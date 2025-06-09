@@ -4,10 +4,11 @@ import { ClerkProvider } from '@clerk/clerk-react'
 import App from './App.tsx'
 import './index.css'
 
-const PUBLISHABLE_KEY = "pk_test_sol0eUQpaRCuehe0DCp9hkbFlq2a9tiIV32hQ2A24Z"
+// TODO: Replace with your actual Clerk publishable key from dashboard
+const PUBLISHABLE_KEY = "pk_test_REPLACE_WITH_YOUR_ACTUAL_PUBLISHABLE_KEY"
 
-if (!PUBLISHABLE_KEY) {
-  throw new Error("Missing Clerk Publishable Key")
+if (!PUBLISHABLE_KEY || PUBLISHABLE_KEY.includes("REPLACE")) {
+  throw new Error("Missing Clerk Publishable Key - Please get your publishable key from https://dashboard.clerk.com/last-active?path=api-keys")
 }
 
 createRoot(document.getElementById("root")!).render(
