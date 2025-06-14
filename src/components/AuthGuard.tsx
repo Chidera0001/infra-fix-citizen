@@ -19,10 +19,12 @@ const AuthGuard = ({ children, requireAuth = true, requiredRole }: AuthGuardProp
     );
   }
 
+  // Only redirect to auth if authentication is required and user is not signed in
   if (requireAuth && !isSignedIn) {
     return <Navigate to="/auth" replace />;
   }
 
+  // Check role requirements if user is signed in
   if (requiredRole && user) {
     const userRole = user.publicMetadata?.role as string;
     if (userRole !== requiredRole) {

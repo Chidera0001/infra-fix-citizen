@@ -1,18 +1,28 @@
 
 import { SignIn, SignUp, useUser } from '@clerk/clerk-react';
 import { Navigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import CitiznLogo from '@/components/CitiznLogo';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Shield, Users, BarChart3 } from 'lucide-react';
 
 const Auth = () => {
-  const { isSignedIn } = useUser();
+  const { isSignedIn, isLoaded } = useUser();
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
 
-  if (isSignedIn) {
+  // Only redirect if user is actually signed in and everything is loaded
+  if (isLoaded && isSignedIn) {
     return <Navigate to="/" replace />;
+  }
+
+  // Show loading state while Clerk is initializing
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
   }
 
   return (
@@ -83,7 +93,7 @@ const Auth = () => {
                           headerSubtitle: 'hidden',
                         }
                       }}
-                      redirectUrl="/"
+                      fallbackRedirectUrl="/"
                     />
                   ) : (
                     <SignUp 
@@ -95,7 +105,7 @@ const Auth = () => {
                           headerSubtitle: 'hidden',
                         }
                       }}
-                      redirectUrl="/"
+                      fallbackRedirectUrl="/"
                     />
                   )}
                 </div>
