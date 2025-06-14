@@ -1,6 +1,6 @@
 
 import { SignIn, SignUp, useUser } from '@clerk/clerk-react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import CitiznLogo from '@/components/CitiznLogo';
 import { Button } from '@/components/ui/button';
@@ -10,29 +10,14 @@ import { Shield, Users, BarChart3 } from 'lucide-react';
 const Auth = () => {
   const { isSignedIn, isLoaded, user } = useUser();
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
-  const location = useLocation();
-  const selectedRole = location.state?.role;
 
   // Handle redirect after successful authentication
   useEffect(() => {
     if (isLoaded && isSignedIn && user) {
-      // Check if user has admin role in metadata
-      const userRole = user.publicMetadata?.role as string;
-      
-      if (selectedRole === 'admin') {
-        if (userRole === 'admin') {
-          // User is admin, redirect to admin dashboard
-          window.location.href = '/admin';
-        } else {
-          // User is not admin, redirect back to landing page
-          window.location.href = '/';
-        }
-      } else {
-        // Default to citizen dashboard for citizens or no role specified
-        window.location.href = '/citizen';
-      }
+      // Always redirect to citizen dashboard after successful authentication
+      window.location.href = '/citizen';
     }
-  }, [isLoaded, isSignedIn, user, selectedRole]);
+  }, [isLoaded, isSignedIn, user]);
 
   // Show loading state while Clerk is initializing
   if (!isLoaded) {
@@ -58,10 +43,10 @@ const Auth = () => {
           <div className="max-w-md">
             <CitiznLogo size="lg" variant="icon" className="mb-8 bg-white/10 backdrop-blur-sm" />
             <h1 className="text-4xl font-bold text-white mb-6 leading-tight">
-              Empowering Citizens, Building Better Communities
+              Join Your Community
             </h1>
             <p className="text-blue-100 text-lg mb-8 leading-relaxed">
-              Join thousands of engaged citizens making a real difference in their communities through transparent reporting and collaborative problem-solving.
+              Start reporting issues and making a real difference in your community through transparent reporting and collaborative problem-solving.
             </p>
             
             <div className="space-y-4">
@@ -91,11 +76,6 @@ const Auth = () => {
                 </div>
                 <CardTitle className="text-2xl text-gray-900">
                   {mode === 'signin' ? 'Welcome Back' : 'Join Citizn'}
-                  {selectedRole && (
-                    <span className="block text-sm font-normal text-gray-600 mt-1">
-                      as {selectedRole === 'admin' ? 'Administrator' : 'Citizen'}
-                    </span>
-                  )}
                 </CardTitle>
                 <CardDescription className="text-gray-600">
                   {mode === 'signin' 
@@ -116,7 +96,7 @@ const Auth = () => {
                           headerSubtitle: 'hidden',
                         }
                       }}
-                      fallbackRedirectUrl="/"
+                      fallbackRedirectUrl="/citizen"
                     />
                   ) : (
                     <SignUp 
@@ -128,7 +108,7 @@ const Auth = () => {
                           headerSubtitle: 'hidden',
                         }
                       }}
-                      fallbackRedirectUrl="/"
+                      fallbackRedirectUrl="/citizen"
                     />
                   )}
                 </div>

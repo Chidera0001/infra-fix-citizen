@@ -1,4 +1,5 @@
-import { useUser, SignInButton } from "@clerk/clerk-react";
+
+import { useUser } from "@clerk/clerk-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,9 +11,12 @@ const Index = () => {
   const { isSignedIn, user } = useUser();
   const navigate = useNavigate();
 
-  const handleRoleSelection = (role: 'citizen' | 'admin') => {
-    // Always go to auth page when selecting a role, regardless of current auth status
-    navigate('/auth', { state: { role } });
+  const handleGetStarted = () => {
+    if (isSignedIn) {
+      navigate('/citizen');
+    } else {
+      navigate('/auth');
+    }
   };
 
   return (
@@ -44,7 +48,7 @@ const Index = () => {
                     Sign In
                   </Button>
                   <Button 
-                    onClick={() => navigate('/auth')}
+                    onClick={handleGetStarted}
                     className="bg-blue-600 hover:bg-blue-700"
                     size="sm"
                   >
@@ -68,13 +72,13 @@ const Index = () => {
               Trusted by Communities Worldwide
             </Badge>
             <h1 className="text-6xl font-bold text-gray-900 mb-8 tracking-tight leading-tight">
-              Empowering Citizens to
+              Report Issues,
               <span className="block bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mt-2">
                 Build Better Communities
               </span>
             </h1>
             <p className="text-xl text-gray-600 mb-12 max-w-4xl mx-auto leading-relaxed">
-              Citizn connects engaged citizens with responsive local government through our professional-grade infrastructure reporting platform. Make your voice heard and see real change happen.
+              Join thousands of engaged citizens making a real difference in their communities through transparent infrastructure reporting and collaborative problem-solving.
             </p>
           </div>
 
@@ -112,14 +116,14 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Enhanced User Type Selection */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 max-w-5xl mx-auto">
-            <Card className="group hover:shadow-2xl transition-all duration-500 border-2 hover:border-blue-300 cursor-pointer transform hover:-translate-y-1 bg-white/80 backdrop-blur-sm" onClick={() => handleRoleSelection("citizen")}>
+          {/* Single Call to Action */}
+          <div className="max-w-2xl mx-auto">
+            <Card className="group hover:shadow-2xl transition-all duration-500 border-2 hover:border-blue-300 cursor-pointer transform hover:-translate-y-1 bg-white/80 backdrop-blur-sm" onClick={handleGetStarted}>
               <CardHeader className="text-center pb-6">
                 <div className="mx-auto bg-gradient-to-r from-blue-500 to-blue-600 p-6 rounded-2xl w-20 h-20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
                   <Camera className="h-10 w-10 text-white" />
                 </div>
-                <CardTitle className="text-3xl text-gray-900 mb-3">I'm a Citizen</CardTitle>
+                <CardTitle className="text-3xl text-gray-900 mb-3">Start Making a Difference</CardTitle>
                 <CardDescription className="text-gray-600 text-lg">
                   Report infrastructure issues and track progress in your community
                 </CardDescription>
@@ -140,39 +144,7 @@ const Index = () => {
                   </li>
                 </ul>
                 <Button className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300" size="lg">
-                  Start Reporting
-                  <ArrowRight className="h-5 w-5 ml-2" />
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="group hover:shadow-2xl transition-all duration-500 border-2 hover:border-green-300 cursor-pointer transform hover:-translate-y-1 bg-white/80 backdrop-blur-sm" onClick={() => handleRoleSelection("admin")}>
-              <CardHeader className="text-center pb-6">
-                <div className="mx-auto bg-gradient-to-r from-green-500 to-green-600 p-6 rounded-2xl w-20 h-20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                  <BarChart3 className="h-10 w-10 text-white" />
-                </div>
-                <CardTitle className="text-3xl text-gray-900 mb-3">I'm an Administrator</CardTitle>
-                <CardDescription className="text-gray-600 text-lg">
-                  Manage citizen reports and coordinate response efforts
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="px-8 pb-8">
-                <ul className="space-y-4 text-left mb-8">
-                  <li className="flex items-center space-x-4">
-                    <CheckCircle className="h-6 w-6 text-green-500 flex-shrink-0" />
-                    <span className="text-gray-700 font-medium">Access comprehensive analytics dashboard</span>
-                  </li>
-                  <li className="flex items-center space-x-4">
-                    <CheckCircle className="h-6 w-6 text-green-500 flex-shrink-0" />
-                    <span className="text-gray-700 font-medium">Manage efficient issue resolution workflows</span>
-                  </li>
-                  <li className="flex items-center space-x-4">
-                    <CheckCircle className="h-6 w-6 text-green-500 flex-shrink-0" />
-                    <span className="text-gray-700 font-medium">Coordinate with response teams</span>
-                  </li>
-                </ul>
-                <Button className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300" size="lg">
-                  Access Dashboard
+                  Get Started
                   <ArrowRight className="h-5 w-5 ml-2" />
                 </Button>
               </CardContent>
