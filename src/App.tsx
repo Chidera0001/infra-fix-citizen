@@ -9,6 +9,9 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import CitizenDashboard from "./pages/CitizenDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import ReportIssue from "./pages/ReportIssue";
+import CitizenMap from "./pages/CitizenMap";
+import CitizenAnalytics from "./pages/CitizenAnalytics";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,6 +30,30 @@ const App = () => (
             element={
               <AuthGuard requireAuth={true}>
                 <CitizenDashboard />
+              </AuthGuard>
+            } 
+          />
+          <Route 
+            path="/citizen/report" 
+            element={
+              <AuthGuard requireAuth={true}>
+                <ReportIssue />
+              </AuthGuard>
+            } 
+          />
+          <Route 
+            path="/citizen/map" 
+            element={
+              <AuthGuard requireAuth={true}>
+                <CitizenMap />
+              </AuthGuard>
+            } 
+          />
+          <Route 
+            path="/citizen/analytics" 
+            element={
+              <AuthGuard requireAuth={true}>
+                <CitizenAnalytics />
               </AuthGuard>
             } 
           />
