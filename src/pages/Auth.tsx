@@ -1,6 +1,6 @@
 
 import { SignIn, SignUp, useUser } from '@clerk/clerk-react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import CitiznLogo from '@/components/CitiznLogo';
 import { Button } from '@/components/ui/button';
@@ -8,13 +8,31 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Shield, Users, BarChart3 } from 'lucide-react';
 
 const Auth = () => {
-  const { isSignedIn, isLoaded } = useUser();
+  const { isSignedIn, isLoaded, user } = useUser();
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
+  const location = useLocation();
+  const selectedRole = location.state?.role;
 
-  // Only redirect if user is actually signed in and everything is loaded
-  if (isLoaded && isSignedIn) {
-    return <Navigate to="/" replace />;
-  }
+  // Handle redirect after successful authentication
+  useEffect(() => {
+    if (isLoaded && isSignedIn && user) {
+      // Check if user has admin role in metadata
+      const userRole = user.publicMetadata?.role as string;
+      
+      if (selectedRole === 'admin') {
+        if (userRole === 'admin') {
+          // User is admin, redirect to admin dashboard
+          window.location.href = '/admin';
+        } else {
+          // User is not admin, redirect back to landing page
+          window.location.href = '/';
+        }
+      } else {
+        // Default to citizen dashboard for citizens or no role specified
+        window.location.href = '/citizen';
+      }
+    }
+  }, [isLoaded, isSignedIn, user, selectedRole]);
 
   // Show loading state while Clerk is initializing
   if (!isLoaded) {
@@ -73,6 +91,11 @@ const Auth = () => {
                 </div>
                 <CardTitle className="text-2xl text-gray-900">
                   {mode === 'signin' ? 'Welcome Back' : 'Join Citizn'}
+                  {selectedRole && (
+                    <span className="block text-sm font-normal text-gray-600 mt-1">
+                      as {selectedRole === 'admin' ? 'Administrator' : 'Citizen'}
+                    </span>
+                  )}
                 </CardTitle>
                 <CardDescription className="text-gray-600">
                   {mode === 'signin' 

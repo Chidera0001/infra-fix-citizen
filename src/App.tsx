@@ -20,12 +20,12 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/auth" element={<Auth />} />
           <Route path="/" element={<Index />} />
+          <Route path="/auth" element={<Auth />} />
           <Route 
             path="/citizen" 
             element={
-              <AuthGuard requiredRole="citizen">
+              <AuthGuard requireAuth={true}>
                 <CitizenDashboard />
               </AuthGuard>
             } 
@@ -33,7 +33,7 @@ const App = () => (
           <Route 
             path="/admin" 
             element={
-              <AuthGuard requiredRole="admin">
+              <AuthGuard requireAuth={true} requiredRole="admin">
                 <AdminDashboard />
               </AuthGuard>
             } 

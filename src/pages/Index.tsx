@@ -1,4 +1,3 @@
-
 import { useUser, SignInButton } from "@clerk/clerk-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,13 +11,8 @@ const Index = () => {
   const navigate = useNavigate();
 
   const handleRoleSelection = (role: 'citizen' | 'admin') => {
-    if (isSignedIn) {
-      // In a real app, you'd update the user's role in Clerk metadata
-      // For now, we'll navigate based on selection
-      navigate(role === 'citizen' ? '/citizen' : '/admin');
-    } else {
-      navigate('/auth');
-    }
+    // Always go to auth page when selecting a role, regardless of current auth status
+    navigate('/auth', { state: { role } });
   };
 
   return (
@@ -42,11 +36,13 @@ const Index = () => {
                 </div>
               ) : (
                 <div className="flex items-center space-x-3">
-                  <SignInButton mode="modal">
-                    <Button variant="outline" size="sm">
-                      Sign In
-                    </Button>
-                  </SignInButton>
+                  <Button 
+                    onClick={() => navigate('/auth')}
+                    variant="outline" 
+                    size="sm"
+                  >
+                    Sign In
+                  </Button>
                   <Button 
                     onClick={() => navigate('/auth')}
                     className="bg-blue-600 hover:bg-blue-700"
