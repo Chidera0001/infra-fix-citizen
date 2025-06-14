@@ -27,6 +27,16 @@ const CitizenDashboard = () => {
     navigate('/citizen/analytics');
   };
 
+  const handleLike = (issueId: string) => {
+    console.log(`Liked issue ${issueId}`);
+    // TODO: Implement like functionality
+  };
+
+  const handleComment = (issueId: string) => {
+    console.log(`Comment on issue ${issueId}`);
+    // TODO: Implement comment functionality
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Header */}
@@ -192,13 +202,19 @@ const CitizenDashboard = () => {
                   {/* Like and Comment Section */}
                   <div className="flex items-center justify-between pt-4 border-t">
                     <div className="flex items-center space-x-6">
-                      <button className="flex items-center space-x-2 text-gray-500 hover:text-red-500 transition-colors">
+                      <button 
+                        className="flex items-center space-x-2 text-gray-500 hover:text-red-500 transition-colors"
+                        onClick={() => handleLike(issue.id)}
+                      >
                         <Heart className="h-5 w-5" />
-                        <span className="text-sm">{issue.likes || 12}</span>
+                        <span className="text-sm">{issue.upvotes}</span>
                       </button>
-                      <button className="flex items-center space-x-2 text-gray-500 hover:text-blue-500 transition-colors">
+                      <button 
+                        className="flex items-center space-x-2 text-gray-500 hover:text-blue-500 transition-colors"
+                        onClick={() => handleComment(issue.id)}
+                      >
                         <MessageCircle className="h-5 w-5" />
-                        <span className="text-sm">{issue.comments?.length || 3} comments</span>
+                        <span className="text-sm">{issue.comments} comments</span>
                       </button>
                     </div>
                     <Button variant="outline" size="sm">
