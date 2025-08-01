@@ -1,18 +1,31 @@
 
 import { SignIn, SignUp, useUser } from '@clerk/clerk-react';
 import { Navigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import CitiznLogo from '@/components/CitiznLogo';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Shield, Users, BarChart3 } from 'lucide-react';
 
 const Auth = () => {
-  const { isSignedIn } = useUser();
+  const { isSignedIn, isLoaded, user } = useUser();
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
 
-  if (isSignedIn) {
-    return <Navigate to="/" replace />;
+  // Handle redirect after successful authentication
+  useEffect(() => {
+    if (isLoaded && isSignedIn && user) {
+      // Always redirect to citizen dashboard after successful authentication
+      window.location.href = '/citizen';
+    }
+  }, [isLoaded, isSignedIn, user]);
+
+  // Show loading state while Clerk is initializing
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
   }
 
   return (
@@ -30,10 +43,10 @@ const Auth = () => {
           <div className="max-w-md">
             <CitiznLogo size="lg" variant="icon" className="mb-8 bg-white/10 backdrop-blur-sm" />
             <h1 className="text-4xl font-bold text-white mb-6 leading-tight">
-              Empowering Citizens, Building Better Communities
+              Join Your Community
             </h1>
             <p className="text-blue-100 text-lg mb-8 leading-relaxed">
-              Join thousands of engaged citizens making a real difference in their communities through transparent reporting and collaborative problem-solving.
+              Start reporting issues and making a real difference in your community through transparent reporting and collaborative problem-solving.
             </p>
             
             <div className="space-y-4">
@@ -83,7 +96,7 @@ const Auth = () => {
                           headerSubtitle: 'hidden',
                         }
                       }}
-                      redirectUrl="/"
+                      fallbackRedirectUrl="/citizen"
                     />
                   ) : (
                     <SignUp 
@@ -95,7 +108,7 @@ const Auth = () => {
                           headerSubtitle: 'hidden',
                         }
                       }}
-                      redirectUrl="/"
+                      fallbackRedirectUrl="/citizen"
                     />
                   )}
                 </div>
