@@ -109,30 +109,32 @@ src/
 
 ### Installation
 
-1. **Clone the repository**
+1.  **Clone the repository**
 
     ```bash
     git clone <your-git-url>
     cd infra-fix-citizen
     ```
 
-2. **Install dependencies**
+2.  **Install dependencies**
 
     ```bash
     npm install
     ```
 
-3. **Environment Setup**
+3.  **Environment Setup**
 
     - Configure Clerk authentication keys
     - Set up Supabase database connection
     - Add environment variables as needed
 
-4. **Start development server**
+4.  **Start development server**
 
-    ```bash
+        ```bash
+
     npm run dev
-    ```
+
+```
 
 5. **Open your browser**
    Navigate to `http://localhost:5173` to view the application
@@ -249,3 +251,4 @@ To address the negative effects of digital systems on human interaction by creat
 ## Problem Statement
 
 Local infrastructure issues often go unresolved due to inefficient reporting channels, lack of transparency, and minimal citizen involvement. This leads to poor community trust, deteriorating infrastructure, and reduced civic engagement.
+```
