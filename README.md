@@ -1,4 +1,6 @@
-# Citizn - Infrastructure Issue Reporting Platform
+# Infrastructure Fix Citizen 🏗️
+
+A comprehensive digital platform designed to revolutionize how Nigerian citizens report and track infrastructure issues in their communities. This application bridges the gap between citizens and local authorities, fostering transparency, accountability, and efficient resolution of infrastructure problems across Nigeria.
 
 <div align="center">
   <img src="https://img.shields.io/badge/React-18.3.1-blue?style=for-the-badge&logo=react" alt="React">
@@ -7,6 +9,29 @@
   <img src="https://img.shields.io/badge/Tailwind-3.4.11-cyan?style=for-the-badge&logo=tailwindcss" alt="Tailwind">
   <img src="https://img.shields.io/badge/Supabase-2.50.0-green?style=for-the-badge&logo=supabase" alt="Supabase">
 </div>
+
+## 🚀 Quick Start
+
+```bash
+# Clone the repository
+git clone <your-repository-url>
+cd infra-fix-citizen
+
+# Run setup script
+npm run setup
+
+# Start development server
+npm run dev
+```
+
+## 📖 Documentation
+
+- **[Architecture Guide](docs/ARCHITECTURE.md)** - System architecture and design principles
+- **[Development Guide](docs/DEVELOPMENT.md)** - Development workflow and best practices
+- **[API Documentation](docs/API.md)** - API endpoints and usage
+- **[Deployment Guide](docs/DEPLOYMENT.md)** - Production deployment instructions
+- **[Supabase Setup](SUPABASE_SETUP.md)** - Backend integration guide
+- **[Google Maps Setup](GOOGLE_MAPS_SETUP.md)** - Maps integration guide
 
 ## 🌟 Overview
 

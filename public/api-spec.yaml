@@ -1,0 +1,1625 @@
+openapi: 3.0.3
+info:
+  title: Infrastructure Fix Citizen API
+  description: |
+    A comprehensive API for reporting and managing infrastructure issues in Nigeria.
+    
+    This API allows citizens to report infrastructure problems, track their status,
+    and enables administrators to manage and resolve issues efficiently.
+    
+    ## Authentication
+    
+    This API uses Clerk authentication with JWT tokens. Include the token in the 
+    Authorization header:
+    
+    ```
+    Authorization: Bearer <your_jwt_token>
+    ```
+    
+    ## Rate Limiting
+    
+    API requests are rate-limited to prevent abuse:
+    - 100 requests per minute for authenticated users
+    - 20 requests per minute for unauthenticated users
+    
+    ## Error Handling
+    
+    The API uses standard HTTP status codes and returns errors in the following format:
+    
+    ```json
+    {
+      "error": {
+        "code": "VALIDATION_ERROR",
+        "message": "Invalid input data",
+        "details": {
+          "field": "title",
+          "message": "Title must be at least 10 characters long"
+        }
+      }
+    }
+    ```
+    
+  version: 1.0.0
+  contact:
+    name: Infrastructure Fix Citizen Team
+    url: https://github.com/your-username/infra-fix-citizen
+    email: support@citizn.ng
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://suasdgighpwmxgiuefvb.supabase.co/rest/v1
+    description: Production Supabase API
+  - url: http://localhost:54321/rest/v1
+    description: Local Supabase API
+
+paths:
+  # Issues Endpoints
+  /issues:
+    get:
+      summary: Get all issues
+      description: Retrieve a list of infrastructure issues with optional filtering
+      tags:
+        - Issues
+      parameters:
+        - name: status
+          in: query
+          description: Filter by issue status
+          schema:
+            $ref: '#/components/schemas/IssueStatus'
+        - name: category
+          in: query
+          description: Filter by issue category
+          schema:
+            $ref: '#/components/schemas/IssueCategory'
+        - name: severity
+          in: query
+          description: Filter by issue severity
+          schema:
+            $ref: '#/components/schemas/IssueSeverity'
+        - name: lat
+          in: query
+          description: Latitude for location-based filtering
+          schema:
+            type: number
+            format: float
+        - name: lng
+          in: query
+          description: Longitude for location-based filtering
+          schema:
+            type: number
+            format: float
+        - name: radius
+          in: query
+          description: Radius in kilometers for location-based filtering
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+        - name: limit
+          in: query
+          description: Maximum number of results to return
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          description: Number of results to skip
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Issue'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    
+    post:
+      summary: Create a new issue
+      description: Report a new infrastructure issue
+      tags:
+        - Issues
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateIssue'
+      responses:
+        '201':
+          description: Issue created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Issue'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /issues/{id}:
+    get:
+      summary: Get issue by ID
+      description: Retrieve a specific issue with full details
+      tags:
+        - Issues
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Issue ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IssueDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    
+    patch:
+      summary: Update an issue
+      description: Update an existing issue (admin or issue reporter only)
+      tags:
+        - Issues
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Issue ID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateIssue'
+      responses:
+        '200':
+          description: Issue updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Issue'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    
+    delete:
+      summary: Delete an issue
+      description: Delete an issue (admin or issue reporter only)
+      tags:
+        - Issues
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Issue ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Issue deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /issues/{id}/upvote:
+    post:
+      summary: Toggle issue upvote
+      description: Add or remove an upvote for an issue
+      tags:
+        - Issues
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Issue ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Upvote toggled successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  action:
+                    type: string
+                    enum: [added, removed]
+                  upvoted:
+                    type: boolean
+                  upvote_count:
+                    type: integer
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  # Comments Endpoints
+  /issues/{id}/comments:
+    get:
+      summary: Get issue comments
+      description: Retrieve all comments for a specific issue
+      tags:
+        - Comments
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Issue ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comment'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    
+    post:
+      summary: Create a comment
+      description: Add a comment to an issue
+      tags:
+        - Comments
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Issue ID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - comment
+              properties:
+                comment:
+                  type: string
+                  minLength: 1
+                  maxLength: 1000
+                is_official:
+                  type: boolean
+                  default: false
+      responses:
+        '201':
+          description: Comment created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /comments/{id}:
+    patch:
+      summary: Update a comment
+      description: Update an existing comment (author or admin only)
+      tags:
+        - Comments
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Comment ID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - comment
+              properties:
+                comment:
+                  type: string
+                  minLength: 1
+                  maxLength: 1000
+      responses:
+        '200':
+          description: Comment updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    
+    delete:
+      summary: Delete a comment
+      description: Delete a comment (author or admin only)
+      tags:
+        - Comments
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Comment ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Comment deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  # Profiles Endpoints
+  /profiles:
+    get:
+      summary: Get user profile
+      description: Get the current user's profile
+      tags:
+        - Profiles
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    
+    patch:
+      summary: Update user profile
+      description: Update the current user's profile
+      tags:
+        - Profiles
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfile'
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  # Categories Endpoints
+  /categories:
+    get:
+      summary: Get all categories
+      description: Retrieve all available issue categories
+      tags:
+        - Categories
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  # Statistics Endpoints
+  /rpc/get_issue_statistics:
+    post:
+      summary: Get issue statistics
+      description: Retrieve comprehensive statistics about issues
+      tags:
+        - Statistics
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                p_lat:
+                  type: number
+                  format: float
+                p_lng:
+                  type: number
+                  format: float
+                p_radius_km:
+                  type: integer
+                  minimum: 1
+                  maximum: 50
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Statistics'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  # Notifications Endpoints
+  /notifications:
+    get:
+      summary: Get user notifications
+      description: Retrieve notifications for the current user
+      tags:
+        - Notifications
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Notification'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /notifications/{id}/read:
+    patch:
+      summary: Mark notification as read
+      description: Mark a specific notification as read
+      tags:
+        - Notifications
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Notification ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Notification marked as read
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /notifications/read-all:
+    patch:
+      summary: Mark all notifications as read
+      description: Mark all notifications for the current user as read
+      tags:
+        - Notifications
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: All notifications marked as read
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  # Admin Endpoints
+  /admin/users:
+    get:
+      summary: Get all users (Admin only)
+      description: Retrieve all user profiles with admin privileges
+      tags:
+        - Admin
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: role
+          in: query
+          description: Filter by user role
+          schema:
+            $ref: '#/components/schemas/UserRole'
+        - name: limit
+          in: query
+          description: Maximum number of results to return
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          description: Number of results to skip
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Profile'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /admin/users/{id}:
+    patch:
+      summary: Update user profile (Admin only)
+      description: Update any user's profile with admin privileges
+      tags:
+        - Admin
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: User ID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminUpdateProfile'
+      responses:
+        '200':
+          description: User profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    
+    delete:
+      summary: Delete user account (Admin only)
+      description: Delete a user account with admin privileges
+      tags:
+        - Admin
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: User ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: User account deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /admin/issues/bulk-update:
+    patch:
+      summary: Bulk update issues (Admin only)
+      description: Update multiple issues at once with admin privileges
+      tags:
+        - Admin
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - issue_ids
+                - updates
+              properties:
+                issue_ids:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+                  minItems: 1
+                  maxItems: 50
+                updates:
+                  $ref: '#/components/schemas/UpdateIssue'
+      responses:
+        '200':
+          description: Issues updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  updated_count:
+                    type: integer
+                  issues:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Issue'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /admin/issues/{id}/assign:
+    patch:
+      summary: Assign issue to user (Admin only)
+      description: Assign an issue to a specific user for resolution
+      tags:
+        - Admin
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Issue ID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - assigned_to
+              properties:
+                assigned_to:
+                  type: string
+                  format: uuid
+                  description: User ID to assign the issue to
+                priority:
+                  type: string
+                  enum: [low, medium, high, critical]
+                  default: medium
+                due_date:
+                  type: string
+                  format: date-time
+                  description: Expected resolution date
+      responses:
+        '200':
+          description: Issue assigned successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Issue'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /admin/analytics/dashboard:
+    get:
+      summary: Get admin dashboard analytics (Admin only)
+      description: Retrieve comprehensive analytics for admin dashboard
+      tags:
+        - Admin
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: period
+          in: query
+          description: Time period for analytics
+          schema:
+            type: string
+            enum: [7d, 30d, 90d, 1y]
+            default: 30d
+        - name: area
+          in: query
+          description: Geographic area filter
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminDashboardAnalytics'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /admin/analytics/reports:
+    get:
+      summary: Generate admin reports (Admin only)
+      description: Generate detailed reports for administrative purposes
+      tags:
+        - Admin
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: report_type
+          in: query
+          required: true
+          description: Type of report to generate
+          schema:
+            type: string
+            enum: [issues_summary, user_activity, resolution_trends, geographic_analysis]
+        - name: start_date
+          in: query
+          description: Start date for report
+          schema:
+            type: string
+            format: date
+        - name: end_date
+          in: query
+          description: End date for report
+          schema:
+            type: string
+            format: date
+        - name: format
+          in: query
+          description: Report format
+          schema:
+            type: string
+            enum: [json, csv, pdf]
+            default: json
+      responses:
+        '200':
+          description: Report generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminReport'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /admin/system/health:
+    get:
+      summary: Get system health status (Admin only)
+      description: Check system health and performance metrics
+      tags:
+        - Admin
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: System health status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemHealth'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /admin/system/maintenance:
+    post:
+      summary: Trigger system maintenance (Admin only)
+      description: Trigger system maintenance operations
+      tags:
+        - Admin
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - operation
+              properties:
+                operation:
+                  type: string
+                  enum: [clear_cache, optimize_database, backup_data, cleanup_logs]
+                dry_run:
+                  type: boolean
+                  default: false
+      responses:
+        '200':
+          description: Maintenance operation completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  operation:
+                    type: string
+                  status:
+                    type: string
+                    enum: [success, warning, error]
+                  message:
+                    type: string
+                  details:
+                    type: object
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token from Clerk authentication
+
+  schemas:
+    IssueStatus:
+      type: string
+      enum: [open, in_progress, resolved, closed]
+      description: Current status of the issue
+
+    IssueCategory:
+      type: string
+      enum: [pothole, street_lighting, water_supply, traffic_signal, drainage, sidewalk, other]
+      description: Category of infrastructure issue
+
+    IssueSeverity:
+      type: string
+      enum: [low, medium, high, critical]
+      description: Severity level of the issue
+
+    UserRole:
+      type: string
+      enum: [citizen, admin, moderator]
+      description: User role in the system
+
+    Issue:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          minLength: 10
+          maxLength: 100
+        description:
+          type: string
+          minLength: 20
+          maxLength: 1000
+        category:
+          $ref: '#/components/schemas/IssueCategory'
+        status:
+          $ref: '#/components/schemas/IssueStatus'
+        severity:
+          $ref: '#/components/schemas/IssueSeverity'
+        location_lat:
+          type: number
+          format: float
+          minimum: -90
+          maximum: 90
+        location_lng:
+          type: number
+          format: float
+          minimum: -180
+          maximum: 180
+        address:
+          type: string
+          nullable: true
+        image_urls:
+          type: array
+          items:
+            type: string
+            format: uri
+        upvotes:
+          type: integer
+          minimum: 0
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        resolved_at:
+          type: string
+          format: date-time
+          nullable: true
+        reporter:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            full_name:
+              type: string
+            email:
+              type: string
+              format: email
+
+    IssueDetail:
+      allOf:
+        - $ref: '#/components/schemas/Issue'
+        - type: object
+          properties:
+            comments:
+              type: array
+              items:
+                $ref: '#/components/schemas/Comment'
+            updates:
+              type: array
+              items:
+                $ref: '#/components/schemas/IssueUpdate'
+
+    CreateIssue:
+      type: object
+      required:
+        - title
+        - description
+        - category
+        - location_lat
+        - location_lng
+      properties:
+        title:
+          type: string
+          minLength: 10
+          maxLength: 100
+        description:
+          type: string
+          minLength: 20
+          maxLength: 1000
+        category:
+          $ref: '#/components/schemas/IssueCategory'
+        severity:
+          $ref: '#/components/schemas/IssueSeverity'
+          default: medium
+        location_lat:
+          type: number
+          format: float
+          minimum: -90
+          maximum: 90
+        location_lng:
+          type: number
+          format: float
+          minimum: -180
+          maximum: 180
+        address:
+          type: string
+        image_urls:
+          type: array
+          items:
+            type: string
+            format: uri
+          maxItems: 5
+
+    UpdateIssue:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 10
+          maxLength: 100
+        description:
+          type: string
+          minLength: 20
+          maxLength: 1000
+        category:
+          $ref: '#/components/schemas/IssueCategory'
+        status:
+          $ref: '#/components/schemas/IssueStatus'
+        severity:
+          $ref: '#/components/schemas/IssueSeverity'
+        address:
+          type: string
+        assigned_to:
+          type: string
+          format: uuid
+
+    Comment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        issue_id:
+          type: string
+          format: uuid
+        comment:
+          type: string
+        is_official:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        user:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            full_name:
+              type: string
+            email:
+              type: string
+              format: email
+
+    IssueUpdate:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        issue_id:
+          type: string
+          format: uuid
+        old_status:
+          $ref: '#/components/schemas/IssueStatus'
+        new_status:
+          $ref: '#/components/schemas/IssueStatus'
+        comment:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        user:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            full_name:
+              type: string
+            email:
+              type: string
+              format: email
+
+    Profile:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        clerk_user_id:
+          type: string
+        email:
+          type: string
+          format: email
+        full_name:
+          type: string
+          nullable: true
+        phone_number:
+          type: string
+          nullable: true
+        role:
+          $ref: '#/components/schemas/UserRole'
+        location_lat:
+          type: number
+          format: float
+          nullable: true
+        location_lng:
+          type: number
+          format: float
+          nullable: true
+        address:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    UpdateProfile:
+      type: object
+      properties:
+        full_name:
+          type: string
+        phone_number:
+          type: string
+        location_lat:
+          type: number
+          format: float
+        location_lng:
+          type: number
+          format: float
+        address:
+          type: string
+
+    AdminUpdateProfile:
+      type: object
+      properties:
+        full_name:
+          type: string
+        phone_number:
+          type: string
+        role:
+          $ref: '#/components/schemas/UserRole'
+        location_lat:
+          type: number
+          format: float
+        location_lng:
+          type: number
+          format: float
+        address:
+          type: string
+        is_active:
+          type: boolean
+          description: Whether the user account is active
+
+    AdminDashboardAnalytics:
+      type: object
+      properties:
+        total_users:
+          type: integer
+        active_users:
+          type: integer
+        total_issues:
+          type: integer
+        issues_by_status:
+          type: object
+          properties:
+            open:
+              type: integer
+            in_progress:
+              type: integer
+            resolved:
+              type: integer
+            closed:
+              type: integer
+        issues_by_category:
+          type: object
+          additionalProperties:
+            type: integer
+        resolution_rate:
+          type: number
+          format: float
+          description: Percentage of issues resolved
+        average_resolution_time:
+          type: number
+          format: float
+          description: Average time to resolve issues in hours
+        top_reporters:
+          type: array
+          items:
+            type: object
+            properties:
+              user_id:
+                type: string
+                format: uuid
+              full_name:
+                type: string
+              issue_count:
+                type: integer
+        geographic_distribution:
+          type: object
+          properties:
+            by_state:
+              type: object
+              additionalProperties:
+                type: integer
+            by_city:
+              type: object
+              additionalProperties:
+                type: integer
+        recent_activity:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+                format: date
+              issues_created:
+                type: integer
+              issues_resolved:
+                type: integer
+              users_registered:
+                type: integer
+
+    AdminReport:
+      type: object
+      properties:
+        report_type:
+          type: string
+        generated_at:
+          type: string
+          format: date-time
+        period:
+          type: object
+          properties:
+            start_date:
+              type: string
+              format: date
+            end_date:
+              type: string
+              format: date
+        summary:
+          type: object
+          properties:
+            total_records:
+              type: integer
+            key_metrics:
+              type: object
+        data:
+          type: object
+          description: Report-specific data structure
+        download_url:
+          type: string
+          format: uri
+          description: URL to download the report file
+
+    SystemHealth:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, warning, critical]
+        timestamp:
+          type: string
+          format: date-time
+        services:
+          type: object
+          properties:
+            database:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [up, down, slow]
+                response_time_ms:
+                  type: number
+                connections:
+                  type: integer
+            storage:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [up, down, full]
+                used_space_gb:
+                  type: number
+                total_space_gb:
+                  type: number
+            api:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [up, down, slow]
+                response_time_ms:
+                  type: number
+                requests_per_minute:
+                  type: integer
+        metrics:
+          type: object
+          properties:
+            cpu_usage_percent:
+              type: number
+            memory_usage_percent:
+              type: number
+            disk_usage_percent:
+              type: number
+            active_connections:
+              type: integer
+
+    Category:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        icon:
+          type: string
+          nullable: true
+        color:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        issue_id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [status_update, comment_added, issue_assigned, issue_resolved]
+        title:
+          type: string
+        message:
+          type: string
+        read:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        issue:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            title:
+              type: string
+
+    Statistics:
+      type: object
+      properties:
+        total_issues:
+          type: integer
+        open_issues:
+          type: integer
+        in_progress_issues:
+          type: integer
+        resolved_issues:
+          type: integer
+        closed_issues:
+          type: integer
+        by_category:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              count:
+                type: integer
+              percentage:
+                type: number
+                format: float
+        by_severity:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              count:
+                type: integer
+              percentage:
+                type: number
+                format: float
+        recent_activity:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+                format: date
+              count:
+                type: integer
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: object
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    ValidationError:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+tags:
+  - name: Issues
+    description: Infrastructure issue management
+  - name: Comments
+    description: Issue comments and discussions
+  - name: Profiles
+    description: User profile management
+  - name: Categories
+    description: Issue categories
+  - name: Statistics
+    description: Analytics and statistics
+  - name: Notifications
+    description: User notifications
+  - name: Admin
+    description: Administrative operations and system management

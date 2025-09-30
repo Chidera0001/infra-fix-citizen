@@ -27,7 +27,7 @@ import CitiznLogo from "@/components/CitiznLogo";
 import IssueCard from "@/components/IssueCard";
 import ReportForm from "@/components/ReportForm";
 import IssueMap from "@/components/IssueMap";
-import InteractiveMap from "@/components/InteractiveMap";
+import InteractiveMapV2 from "@/components/InteractiveMapV2";
 import { mockIssues } from "@/lib/mockData";
 
 const CitizenDashboard = () => {
@@ -280,7 +280,7 @@ const CitizenDashboard = () => {
 							className="h-96 rounded-2xl overflow-hidden"
 							style={{ width: "100%", height: "100%" }}
 						>
-							<InteractiveMap
+							<InteractiveMapV2
 								issues={mockIssues}
 								isAdmin={false}
 								className="h-full w-full"

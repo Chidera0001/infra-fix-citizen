@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import AdminLogin from "./pages/AdminLogin";
 import CitizenDashboard from "./pages/CitizenDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import ApiDocs from "./pages/ApiDocs";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,6 +41,7 @@ const App = () => (
 							</AdminAuthGuard>
 						}
 					/>
+					<Route path="/api-docs" element={<ApiDocs />} />
 					<Route path="*" element={<NotFound />} />
 				</Routes>
 			</BrowserRouter>

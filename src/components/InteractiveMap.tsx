@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Filter, ZoomIn, ZoomOut, Layers } from "lucide-react";
 import { mockIssues } from "@/lib/mockData";
-import { GOOGLE_MAPS_API_KEY, MAP_CONFIG } from "@/config/maps";
+import { GOOGLE_MAPS_API_KEY, MAP_CONFIG } from "@/components/maps";
 
 interface Issue {
 	id: string;
