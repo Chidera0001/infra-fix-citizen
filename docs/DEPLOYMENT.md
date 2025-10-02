@@ -306,8 +306,8 @@ VITE_GOOGLE_MAPS_API_KEY=AIza...
   "headers": [
     {
       "source": "/(.*)",
-      "headers": [
-        {
+  "headers": [
+    {
           "key": "X-Content-Type-Options",
           "value": "nosniff"
         },
@@ -527,7 +527,7 @@ artillery run load-test.yml
 
 ### 3. Security Audit
 
-```bash
+   ```bash
 # Check for vulnerabilities
 npm audit
 
@@ -571,8 +571,8 @@ export default defineConfig({
       }
     })
   ]
-});
-```
+   });
+   ```
 
 ---
 

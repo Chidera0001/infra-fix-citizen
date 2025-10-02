@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, MapPin, Filter, Plus } from "lucide-react";
-import { mockIssues } from "@/lib/mockData";
+import { useIssues } from "@/hooks/use-issues";
 import CitiznLogo from "@/components/CitiznLogo";
 
 declare global {
@@ -22,6 +22,7 @@ const CitizenMap = () => {
   const [map, setMap] = useState<any>(null);
   const [apiKey, setApiKey] = useState("");
   const [isMapLoaded, setIsMapLoaded] = useState(false);
+  const { data: issues = [], isLoading } = useIssues({ limit: 100 });
 
   useEffect(() => {
     if (apiKey && !isMapLoaded) {
@@ -67,7 +68,7 @@ const CitizenMap = () => {
     setIsMapLoaded(true);
 
     // Add markers for existing issues
-    mockIssues.forEach((issue, index) => {
+    issues.forEach((issue, index) => {
       const marker = new window.google.maps.Marker({
         position: {
           lat: 6.5244 + (Math.random() - 0.5) * 0.1,
@@ -179,11 +180,6 @@ const CitizenMap = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="sm" onClick={() => navigate('/citizen')}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
-              </Button>
-              <CitiznLogo size="sm" />
               <div>
                 <h1 className="text-xl font-bold text-gray-900">Issue Map</h1>
                 <p className="text-sm text-gray-600">View and report issues by location</p>
@@ -221,7 +217,7 @@ const CitizenMap = () => {
                 <CardTitle className="text-lg">Nearby Issues</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {mockIssues.slice(0, 6).map((issue) => (
+                {issues.slice(0, 6).map((issue) => (
                   <div key={issue.id} className="border-b pb-3 last:border-b-0">
                     <div className="flex items-start justify-between mb-2">
                       <h4 className="font-medium text-sm">{issue.title}</h4>

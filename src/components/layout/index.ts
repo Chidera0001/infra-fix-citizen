@@ -2,3 +2,5 @@
 export { default as Navbar } from './Navbar';
 export { default as CitiznLogo } from './CitiznLogo';
 export { default as FadeInWhenVisible } from './FadeInWhenVisible';
+export { CitizenSidebar } from './CitizenSidebar';
+export { AdminSidebar } from './AdminSidebar';

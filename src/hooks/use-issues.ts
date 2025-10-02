@@ -11,6 +11,8 @@ export function useIssues(filters?: {
   radius?: number;
   limit?: number;
   offset?: number;
+  sortBy?: string;
+  sortOrder?: string;
 }) {
   return useQuery({
     queryKey: ['issues', filters],

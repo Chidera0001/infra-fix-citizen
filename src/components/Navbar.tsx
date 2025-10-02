@@ -56,7 +56,7 @@ const Navbar: React.FC = () => {
 											<Button
 												variant="outline"
 												size="sm"
-												className="border-white/30 text-white hover:bg-white/10 hover:border-white/50 backdrop-blur-sm"
+												className="border-white/30 text-white bg-inherit hover:border-white/50 backdrop-blur-sm"
 											>
 												Sign In
 											</Button>

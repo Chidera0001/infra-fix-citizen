@@ -39,7 +39,7 @@ import {
 	BarChart,
 } from "lucide-react";
 import IssueCard from "@/components/IssueCard";
-import { mockIssues } from "@/lib/mockData";
+import { useIssues } from "@/hooks/use-issues";
 import {
 	exportToCSV,
 	exportToExcel,
@@ -79,7 +79,7 @@ interface AdminDashboardProps {
 type TimeFilter = "all" | "today" | "week" | "month" | "quarter" | "year";
 
 const AdminDashboard = ({ onBack }: AdminDashboardProps) => {
-	const [issues] = useState(mockIssues);
+	const { data: issues = [], isLoading } = useIssues({ limit: 100 });
 	const [timeFilter, setTimeFilter] = useState<TimeFilter>("all");
 	const [categoryFilter, setCategoryFilter] = useState<string>("all");
 	const [statusFilter, setStatusFilter] = useState<string>("all");

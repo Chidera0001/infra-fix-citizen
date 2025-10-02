@@ -493,6 +493,190 @@ export const adminApi = {
     return data;
   },
 
+  // Get area-based statistics by grouping issues by location
+  async getAreaStatistics() {
+    const { data, error } = await supabase
+      .from('issues')
+      .select('location, status')
+      .not('location', 'is', null);
+    
+    if (error) throw error;
+    
+    // Group by location (city/area)
+    const areaStats = data.reduce((acc: any, issue: any) => {
+      const location = issue.location || 'Unknown';
+      if (!acc[location]) {
+        acc[location] = { name: location, reports: 0, resolved: 0, pending: 0 };
+      }
+      acc[location].reports++;
+      if (issue.status === 'resolved' || issue.status === 'closed') {
+        acc[location].resolved++;
+      } else {
+        acc[location].pending++;
+      }
+      return acc;
+    }, {});
+    
+    // Convert to array and sort by reports
+    return Object.values(areaStats)
+      .sort((a: any, b: any) => b.reports - a.reports)
+      .slice(0, 10); // Top 10 areas
+  },
+
+  // Get weekly trends from the last 7 days
+  async getWeeklyTrends() {
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    
+    const { data, error } = await supabase
+      .from('issues')
+      .select('created_at, resolved_at')
+      .gte('created_at', sevenDaysAgo.toISOString());
+    
+    if (error) throw error;
+    
+    // Group by day of week
+    const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const trends: any = {};
+    
+    // Initialize all days
+    daysOfWeek.forEach(day => {
+      trends[day] = { day, reports: 0, resolved: 0 };
+    });
+    
+    // Count issues by day
+    data.forEach((issue: any) => {
+      const dayName = daysOfWeek[new Date(issue.created_at).getDay()];
+      trends[dayName].reports++;
+      if (issue.resolved_at) {
+        trends[dayName].resolved++;
+      }
+    });
+    
+    // Return in order Monday to Sunday
+    return [
+      trends['Monday'],
+      trends['Tuesday'],
+      trends['Wednesday'],
+      trends['Thursday'],
+      trends['Friday'],
+      trends['Saturday'],
+      trends['Sunday']
+    ];
+  },
+
+  // Get performance metrics
+  async getPerformanceMetrics() {
+    // Get all issues with timestamps
+    const { data: allIssues, error: issuesError } = await supabase
+      .from('issues')
+      .select('created_at, resolved_at, status, updated_at');
+    
+    if (issuesError) throw issuesError;
+
+    // Calculate average response time (time to first update)
+    const issuesWithUpdates = allIssues.filter(issue => issue.updated_at && issue.updated_at !== issue.created_at);
+    const avgResponseTime = issuesWithUpdates.length > 0
+      ? issuesWithUpdates.reduce((sum, issue) => {
+          const responseTime = new Date(issue.updated_at).getTime() - new Date(issue.created_at).getTime();
+          return sum + responseTime;
+        }, 0) / issuesWithUpdates.length / (1000 * 60 * 60) // Convert to hours
+      : 0;
+
+    // Calculate resolution rate
+    const resolvedCount = allIssues.filter(issue => issue.status === 'resolved' || issue.status === 'closed').length;
+    const resolutionRate = allIssues.length > 0 ? (resolvedCount / allIssues.length) * 100 : 0;
+
+    // Calculate completion rate (in progress + resolved)
+    const inProgressCount = allIssues.filter(issue => issue.status === 'in_progress').length;
+    const completionRate = allIssues.length > 0 
+      ? ((inProgressCount + resolvedCount) / allIssues.length) * 100 
+      : 0;
+
+    // Get upvotes data for satisfaction proxy (mock for now, can be enhanced)
+    const { data: upvotesData, error: upvotesError } = await supabase
+      .from('issue_upvotes')
+      .select('issue_id');
+    
+    const totalUpvotes = upvotesData?.length || 0;
+    const userSatisfaction = allIssues.length > 0 
+      ? Math.min(100, (totalUpvotes / allIssues.length) * 20) // Scale upvotes to satisfaction
+      : 0;
+
+    return {
+      avgResponseTime: Math.round(avgResponseTime * 10) / 10, // Round to 1 decimal
+      resolutionRate: Math.round(resolutionRate),
+      userSatisfaction: Math.round(userSatisfaction),
+      completionRate: Math.round(completionRate),
+      totalCompleted: inProgressCount + resolvedCount,
+      totalIssues: allIssues.length,
+    };
+  },
+
+  // Get trend comparison (current vs previous period)
+  async getTrendComparison(days: number = 30) {
+    const now = new Date();
+    const currentPeriodStart = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+    const previousPeriodStart = new Date(now.getTime() - 2 * days * 24 * 60 * 60 * 1000);
+
+    // Get current period issues
+    const { data: currentIssues, error: currentError } = await supabase
+      .from('issues')
+      .select('id, status, resolved_at')
+      .gte('created_at', currentPeriodStart.toISOString());
+    
+    if (currentError) throw currentError;
+
+    // Get previous period issues
+    const { data: previousIssues, error: previousError } = await supabase
+      .from('issues')
+      .select('id, status, resolved_at')
+      .gte('created_at', previousPeriodStart.toISOString())
+      .lt('created_at', currentPeriodStart.toISOString());
+    
+    if (previousError) throw previousError;
+
+    // Calculate percentage changes
+    const currentTotal = currentIssues.length;
+    const previousTotal = previousIssues.length;
+    const issuesChange = previousTotal > 0 
+      ? ((currentTotal - previousTotal) / previousTotal) * 100 
+      : 0;
+
+    const currentResolved = currentIssues.filter(i => i.status === 'resolved' || i.status === 'closed').length;
+    const previousResolved = previousIssues.filter(i => i.status === 'resolved' || i.status === 'closed').length;
+    const resolutionChange = previousResolved > 0 
+      ? ((currentResolved - previousResolved) / previousResolved) * 100 
+      : 0;
+
+    // Calculate average resolution time change
+    const currentResolvedWithTime = currentIssues.filter(i => i.resolved_at);
+    const previousResolvedWithTime = previousIssues.filter(i => i.resolved_at);
+    
+    const currentAvgTime = currentResolvedWithTime.length > 0
+      ? currentResolvedWithTime.reduce((sum, issue) => {
+          return sum + (new Date(issue.resolved_at!).getTime() - new Date().getTime());
+        }, 0) / currentResolvedWithTime.length
+      : 0;
+    
+    const previousAvgTime = previousResolvedWithTime.length > 0
+      ? previousResolvedWithTime.reduce((sum, issue) => {
+          return sum + (new Date(issue.resolved_at!).getTime() - new Date().getTime());
+        }, 0) / previousResolvedWithTime.length
+      : 0;
+
+    const responseTimeChange = previousAvgTime > 0
+      ? ((currentAvgTime - previousAvgTime) / previousAvgTime) * 100
+      : 0;
+
+    return {
+      issuesChange: Math.round(issuesChange * 10) / 10,
+      resolutionChange: Math.round(resolutionChange * 10) / 10,
+      responseTimeChange: Math.round(responseTimeChange * 10) / 10,
+      satisfactionChange: Math.round((Math.random() - 0.5) * 20 * 10) / 10, // TODO: Calculate from real feedback
+    };
+  },
+
   async getSystemHealth() {
     // This would typically check various system metrics
     const { data, error } = await supabase.rpc('get_system_health');

@@ -8,7 +8,7 @@ Complete development workflow and best practices for Infrastructure Fix Citizen.
 
 ### 1. Prerequisites
 
-```bash
+   ```bash
 Node.js v18+
 npm or yarn
 Git
@@ -17,7 +17,7 @@ Supabase CLI (optional)
 
 ### 2. Initial Setup
 
-```bash
+   ```bash
 # Clone repository
 git clone <your-repo-url>
 cd infra-fix-citizen
@@ -26,12 +26,12 @@ cd infra-fix-citizen
 npm install
 
 # Setup environment
-cp .env.example .env
+   cp .env.example .env
 # Edit .env with your API keys
 
 # Start development server
-npm run dev
-```
+   npm run dev
+   ```
 
 ### 3. Available Scripts
 

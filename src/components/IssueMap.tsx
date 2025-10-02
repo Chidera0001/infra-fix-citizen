@@ -19,16 +19,9 @@ const IssueMap = ({ onBack, isAdmin = false }: IssueMapProps) => {
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
 					<div className="flex items-center justify-between">
 						<div className="flex items-center space-x-4">
-							<Button variant="ghost" size="sm" onClick={onBack}>
-								<ArrowLeft className="h-4 w-4 mr-2" />
-								Back to Dashboard
-							</Button>
 							<div className="flex items-center space-x-3">
-								<div className="bg-green-600 p-2 rounded-lg">
-									<MapPin className="h-5 w-5 text-white" />
-								</div>
 								<div>
-									<h1 className="text-xl font-bold text-gray-900">
+									<h1 className="text-xl font-normal text-gray-900">
 										{isAdmin
 											? "Admin Map View"
 											: "Issue Map"}
