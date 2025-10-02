@@ -162,7 +162,7 @@ src/
 ```
 
 5. **Open your browser**
-   Navigate to `http://localhost:5173` to view the application
+   Navigate to `http://localhost:3000` to view the application
 
 ### Available Scripts
 

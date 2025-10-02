@@ -1,53 +1,327 @@
-# Deployment Guide
+# 🚀 Deployment Guide
 
-This guide covers how to deploy the Infrastructure Fix Citizen application to production environments.
+Production deployment guide for Infrastructure Fix Citizen platform.
 
-## 🚀 Deployment Options
+---
 
-### 1. Vercel (Recommended for Frontend)
+## 🎯 Deployment Options
 
-#### Prerequisites
-- Vercel account
-- GitHub repository connected to Vercel
+### Recommended Stack
+- **Frontend**: Vercel or Netlify
+- **Backend**: Supabase (already cloud-hosted)
+- **Auth**: Clerk (already cloud-hosted)
+- **Maps**: Google Maps API
 
-#### Steps
-1. **Connect Repository**
+---
+
+## 📋 Pre-Deployment Checklist
+
+- [ ] Environment variables configured
+- [ ] Database migrations applied
+- [ ] API keys secured
+- [ ] Domain/DNS configured
+- [ ] SSL certificate ready
+- [ ] Performance tested
+- [ ] Security reviewed
+
+---
+
+## 🌐 Deploy to Vercel (Recommended)
+
+### 1. Prerequisites
+
+- Vercel account ([Sign up free](https://vercel.com))
+- GitHub repository connected
+
+### 2. Deploy Steps
+
+#### A. Via Vercel Dashboard
+
+1. **Import Project**
    - Go to [Vercel Dashboard](https://vercel.com/dashboard)
-   - Import your GitHub repository
-   
-2. **Configure Environment Variables**
-   ```
-   VITE_GOOGLE_MAPS_API_KEY=your_production_api_key
-   VITE_SUPABASE_URL=your_supabase_url
-   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-   ```
-   
-3. **Deploy**
-   - Vercel will automatically build and deploy
-   - Every push to main branch triggers deployment
+   - Click "Add New" → "Project"
+   - Import from GitHub
 
-#### Vercel Configuration File
-Create `vercel.json`:
+2. **Configure Build Settings**
+   ```
+   Framework Preset: Vite
+   Build Command: npm run build
+   Output Directory: dist
+   Install Command: npm install
+   ```
+
+3. **Add Environment Variables**
+   ```env
+   VITE_CLERK_PUBLISHABLE_KEY=pk_live_...
+   VITE_SUPABASE_URL=https://....supabase.co
+   VITE_SUPABASE_ANON_KEY=eyJhbGc...
+   VITE_GOOGLE_MAPS_API_KEY=AIza...
+   ```
+
+4. **Deploy**
+   - Click "Deploy"
+   - Wait 2-3 minutes
+   - ✅ Your app is live!
+
+#### B. Via Vercel CLI
+
+```bash
+# Install Vercel CLI
+npm install -g vercel
+
+# Login
+vercel login
+
+# Deploy
+vercel
+
+# Deploy to production
+vercel --prod
+```
+
+### 3. Custom Domain
+
+1. Go to Project Settings → Domains
+2. Add your domain: `yourdomain.com`
+3. Configure DNS:
+   ```
+   Type: A
+   Name: @
+   Value: 76.76.21.21
+
+   Type: CNAME
+   Name: www
+   Value: cname.vercel-dns.com
+   ```
+4. Wait for DNS propagation (5-60 minutes)
+5. SSL certificate auto-configured ✅
+
+---
+
+## 🔷 Deploy to Netlify
+
+### 1. Via Netlify Dashboard
+
+1. **Create New Site**
+   - Go to [Netlify Dashboard](https://app.netlify.com)
+   - Import from GitHub
+
+2. **Build Settings**
+   ```
+   Build Command: npm run build
+   Publish Directory: dist
+   ```
+
+3. **Environment Variables**
+   - Site Settings → Environment → Add variables
+   - Add all `VITE_*` variables
+
+4. **Deploy**
+   - Click "Deploy Site"
+   - Wait 2-3 minutes
+
+### 2. Via Netlify CLI
+
+```bash
+# Install Netlify CLI
+npm install -g netlify-cli
+
+# Login
+netlify login
+
+# Initialize
+netlify init
+
+# Deploy
+netlify deploy --prod
+```
+
+### 3. Custom Domain
+
+1. Site Settings → Domain Management
+2. Add custom domain
+3. Configure DNS (similar to Vercel)
+
+---
+
+## 🗄️ Supabase Production Setup
+
+### 1. Upgrade from Free Tier (if needed)
+
+- Supabase Dashboard → Settings → Billing
+- Choose Pro ($25/month) or Team plan
+- Benefits:
+  - No database pausing
+  - 8GB database
+  - 250GB bandwidth
+  - Daily backups
+  - Email support
+
+### 2. Configure Production Settings
+
+#### Enable Point-in-Time Recovery
+```
+Settings → Database → Point-in-Time Recovery → Enable
+```
+
+#### Set Connection Pooler
+```
+Settings → Database → Connection Pooler → Transaction Mode
+```
+
+#### Configure Auth Settings
+```
+Settings → Auth → Email → Production SMTP
+```
+
+### 3. Apply Migrations
+
+```bash
+# Ensure migrations are applied
+npx supabase link --project-ref your-prod-ref
+npx supabase db push
+```
+
+### 4. Secure API Keys
+
+- **Never commit** `.env` to Git
+- Use **Anon Key** for public access
+- Use **Service Role Key** only in secure backend
+- Enable RLS on all tables ✅
+
+---
+
+## 🔐 Clerk Production Setup
+
+### 1. Update Domains
+
+Clerk Dashboard → Configure → Domains:
+```
+https://yourdomain.com
+https://www.yourdomain.com
+```
+
+### 2. Configure OAuth
+
+For each OAuth provider (Google, GitHub, etc.):
+1. Update Authorized Redirect URIs
+2. Add production domain
+3. Test OAuth flow
+
+### 3. Production API Keys
+
+- Use **Production** publishable key in `.env`
+- Update webhook endpoints if used
+- Configure email templates
+
+---
+
+## 🗺️ Google Maps Production
+
+### 1. Update API Key Restrictions
+
+Google Cloud Console → Credentials:
+
+**HTTP Referrers:**
+```
+https://yourdomain.com/*
+https://www.yourdomain.com/*
+```
+
+**API Restrictions:**
+- Maps JavaScript API
+- Places API
+- Geocoding API
+
+### 2. Set Billing Alerts
+
+Google Cloud → Billing → Budgets:
+```
+Alert at: $50
+Alert at: $100
+Alert at: $200
+```
+
+### 3. Optimize Usage
+
+- Enable map clustering
+- Cache geocoding results
+- Lazy load maps
+- Monitor usage in GCP Dashboard
+
+---
+
+## ⚙️ Build Optimization
+
+### 1. Vite Configuration
+
+```typescript
+// vite.config.ts
+export default defineConfig({
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom'],
+          'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu'],
+        }
+      }
+    },
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true, // Remove console.logs in production
+      }
+    }
+  }
+});
+```
+
+### 2. Environment Variables
+
+**Production `.env`:**
+```env
+NODE_ENV=production
+VITE_CLERK_PUBLISHABLE_KEY=pk_live_...
+VITE_SUPABASE_URL=https://...supabase.co
+VITE_SUPABASE_ANON_KEY=eyJh...
+VITE_GOOGLE_MAPS_API_KEY=AIza...
+```
+
+**Never include:**
+- ❌ Service role keys
+- ❌ Secret API keys
+- ❌ Database passwords
+- ❌ Private keys
+
+---
+
+## 🔒 Security Hardening
+
+### 1. Headers Configuration
+
+**`vercel.json`:**
 ```json
 {
-  "framework": "vite",
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
-  "installCommand": "npm install",
-  "devCommand": "npm run dev",
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
-  ],
   "headers": [
     {
-      "source": "/api/(.*)",
+      "source": "/(.*)",
       "headers": [
         {
-          "key": "Access-Control-Allow-Origin",
-          "value": "*"
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
         }
       ]
     }
@@ -55,254 +329,301 @@ Create `vercel.json`:
 }
 ```
 
-### 2. Netlify
+### 2. Content Security Policy
 
-#### Steps
-1. **Connect Repository**
-   - Go to [Netlify Dashboard](https://app.netlify.com/)
-   - Connect your GitHub repository
-   
-2. **Build Settings**
-   - Build command: `npm run build`
-   - Publish directory: `dist`
-   
-3. **Environment Variables**
-   Set the same environment variables as Vercel
-   
-#### Netlify Configuration File
-Create `netlify.toml`:
-```toml
-[build]
-  command = "npm run build"
-  publish = "dist"
-
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-
-[build.environment]
-  NODE_VERSION = "20"
+```html
+<!-- index.html -->
+<meta http-equiv="Content-Security-Policy" 
+      content="default-src 'self'; 
+               script-src 'self' 'unsafe-inline' maps.googleapis.com;
+               style-src 'self' 'unsafe-inline' fonts.googleapis.com;
+               img-src 'self' data: https:;
+               connect-src 'self' *.supabase.co clerk.com">
 ```
 
-### 3. AWS S3 + CloudFront
+### 3. Supabase RLS
 
-#### Prerequisites
-- AWS Account
-- AWS CLI configured
-- S3 bucket created
-- CloudFront distribution set up
+Verify all tables have RLS enabled:
+```sql
+-- Check RLS status
+SELECT tablename, rowsecurity 
+FROM pg_tables 
+WHERE schemaname = 'public';
 
-#### Deployment Script
+-- All should show: rowsecurity = true
+```
+
+---
+
+## 📊 Monitoring & Analytics
+
+### 1. Vercel Analytics
+
 ```bash
-#!/bin/bash
+# Install Vercel Analytics
+npm install @vercel/analytics
 
-# Build the application
+# Add to App.tsx
+import { Analytics } from '@vercel/analytics/react';
+
+function App() {
+  return (
+    <>
+      <YourApp />
+      <Analytics />
+    </>
+  );
+}
+```
+
+### 2. Supabase Monitoring
+
+Dashboard → Reports:
+- Database size
+- API requests
+- Active connections
+- Query performance
+
+### 3. Error Tracking
+
+**Option A: Sentry**
+```bash
+npm install @sentry/react
+
+# main.tsx
+import * as Sentry from "@sentry/react";
+
+Sentry.init({
+  dsn: "your-sentry-dsn",
+  environment: "production",
+});
+```
+
+**Option B: LogRocket**
+```bash
+npm install logrocket
+
+# main.tsx
+import LogRocket from 'logrocket';
+LogRocket.init('your-app-id');
+```
+
+---
+
+## 🚀 Performance Optimization
+
+### 1. Lazy Loading
+
+```typescript
+// App.tsx
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const CitizenDashboard = lazy(() => import('./pages/CitizenDashboard'));
+
+<Suspense fallback={<LoadingSpinner />}>
+  <Routes>
+    <Route path="/admin" element={<AdminDashboard />} />
+    <Route path="/citizen" element={<CitizenDashboard />} />
+  </Routes>
+</Suspense>
+```
+
+### 2. Image Optimization
+
+```typescript
+// Use optimized images
+<img 
+  src="/images/hero.webp" 
+  alt="Hero" 
+  loading="lazy"
+  width={800}
+  height={600}
+/>
+```
+
+### 3. Code Splitting
+
+Vite automatically code-splits by route. Verify in build output:
+```bash
 npm run build
 
-# Upload to S3
-aws s3 sync dist/ s3://your-bucket-name --delete
-
-# Invalidate CloudFront cache
-aws cloudfront create-invalidation --distribution-id YOUR_DISTRIBUTION_ID --paths "/*"
+# Output shows chunked files:
+# dist/assets/AdminDashboard-abc123.js
+# dist/assets/CitizenDashboard-def456.js
 ```
 
-### 4. Docker Deployment
-
-#### Dockerfile
-```dockerfile
-# Build stage
-FROM node:20-alpine as build-stage
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci --only=production
-COPY . .
-RUN npm run build
-
-# Production stage
-FROM nginx:alpine as production-stage
-COPY --from=build-stage /app/dist /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/nginx.conf
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
-```
-
-#### nginx.conf
-```nginx
-events {
-    worker_connections 1024;
-}
-
-http {
-    include /etc/nginx/mime.types;
-    default_type application/octet-stream;
-    
-    server {
-        listen 80;
-        server_name localhost;
-        root /usr/share/nginx/html;
-        index index.html;
-        
-        location / {
-            try_files $uri $uri/ /index.html;
-        }
-        
-        # Security headers
-        add_header X-Frame-Options "SAMEORIGIN" always;
-        add_header X-Content-Type-Options "nosniff" always;
-        add_header X-XSS-Protection "1; mode=block" always;
-        
-        # Gzip compression
-        gzip on;
-        gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
-    }
-}
-```
-
-## 🗄️ Database Deployment (Supabase)
-
-### Production Setup
-1. **Create Production Project**
-   - Go to [Supabase Dashboard](https://supabase.com/dashboard)
-   - Create new project for production
-   
-2. **Run Migrations**
-   ```bash
-   # Link to production project
-   supabase link --project-ref YOUR_PROJECT_REF
-   
-   # Push migrations
-   supabase db push
-   ```
-   
-3. **Set Environment Variables**
-   Update your deployment platform with production Supabase URLs and keys
-
-### Database Security
-- Enable Row Level Security (RLS)
-- Configure proper API limits
-- Set up monitoring and alerts
-- Regular backups
-
-## 🔐 Environment Configuration
-
-### Production Environment Variables
-```bash
-# Required
-VITE_GOOGLE_MAPS_API_KEY=your_production_maps_key
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your_production_anon_key
-
-# Optional
-VITE_APP_ENV=production
-VITE_SENTRY_DSN=your_sentry_dsn
-VITE_GOOGLE_ANALYTICS_ID=your_ga_id
-```
-
-### Security Considerations
-- Use different API keys for production
-- Restrict API keys to production domains
-- Enable HTTPS only
-- Set up proper CORS policies
-
-## 📊 Monitoring and Analytics
-
-### Error Tracking (Sentry)
-1. **Install Sentry**
-   ```bash
-   npm install @sentry/react @sentry/tracing
-   ```
-   
-2. **Configure Sentry**
-   ```typescript
-   import * as Sentry from "@sentry/react";
-   
-   Sentry.init({
-     dsn: import.meta.env.VITE_SENTRY_DSN,
-     integrations: [
-       new Sentry.BrowserTracing(),
-     ],
-     tracesSampleRate: 1.0,
-   });
-   ```
-
-### Performance Monitoring
-- Use Lighthouse CI for performance audits
-- Monitor Core Web Vitals
-- Set up uptime monitoring
-
-### Analytics
-- Google Analytics 4
-- Supabase Analytics
-- Custom event tracking
+---
 
 ## 🔄 CI/CD Pipeline
 
 ### GitHub Actions
-The repository includes a GitHub Actions workflow that:
-- Runs tests on multiple Node.js versions
-- Performs type checking and linting
-- Builds the application
-- Deploys to production (main branch only)
 
-### Secrets Configuration
-Add these secrets to your GitHub repository:
-- `VITE_GOOGLE_MAPS_API_KEY`
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_ANON_KEY`
-- `VERCEL_TOKEN` (if using Vercel)
+**`.github/workflows/deploy.yml`:**
+```yaml
+name: Deploy to Production
 
-## 🚨 Troubleshooting
+on:
+  push:
+    branches: [main]
 
-### Common Issues
-1. **Build Failures**
-   - Check environment variables
-   - Verify Node.js version
-   - Clear cache and reinstall dependencies
-   
-2. **Runtime Errors**
-   - Check browser console
-   - Verify API endpoints
-   - Check network requests
-   
-3. **Performance Issues**
-   - Analyze bundle size
-   - Check for memory leaks
-   - Optimize images and assets
-
-### Health Checks
-- API endpoint health checks
-- Database connection tests
-- External service availability
-
-## 📈 Scaling Considerations
-
-### Performance Optimization
-- Enable CDN
-- Implement caching strategies
-- Use code splitting
-- Optimize images
-
-### Infrastructure Scaling
-- Load balancing
-- Database read replicas
-- Caching layers (Redis)
-- Monitoring and alerting
-
-## 🔙 Rollback Strategy
-
-### Quick Rollback
-- Keep previous builds available
-- Use feature flags for gradual rollouts
-- Database migration rollback procedures
-- Monitoring for immediate issues
-
-### Disaster Recovery
-- Regular database backups
-- Infrastructure as Code
-- Documentation of all procedures
-- Testing of recovery processes
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run tests
+        run: npm test
+      
+      - name: Build
+        run: npm run build
+        env:
+          VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.CLERK_KEY }}
+          VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_KEY }}
+      
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v20
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.ORG_ID }}
+          vercel-project-id: ${{ secrets.PROJECT_ID }}
+          vercel-args: '--prod'
+```
 
 ---
 
-Choose the deployment strategy that best fits your needs and infrastructure requirements. For most applications, Vercel or Netlify provide the simplest deployment experience with excellent performance.
+## 🧪 Pre-Production Testing
+
+### 1. Staging Environment
+
+Create staging deployment:
+```bash
+# Vercel staging
+vercel --env staging
+
+# Use staging env vars
+VITE_SUPABASE_URL=https://staging-project.supabase.co
+```
+
+### 2. Load Testing
+
+```bash
+# Install artillery
+npm install -g artillery
+
+# Create test script
+# load-test.yml
+artillery run load-test.yml
+```
+
+### 3. Security Audit
+
+```bash
+# Check for vulnerabilities
+npm audit
+
+# Fix automatically
+npm audit fix
+```
+
+---
+
+## 📱 Mobile/PWA Setup
+
+### Add PWA Support
+
+```bash
+npm install vite-plugin-pwa
+
+# vite.config.ts
+import { VitePWA } from 'vite-plugin-pwa';
+
+export default defineConfig({
+  plugins: [
+    VitePWA({
+      registerType: 'autoUpdate',
+      manifest: {
+        name: 'Infrastructure Fix Citizen',
+        short_name: 'InfraFix',
+        description: 'Report infrastructure issues',
+        theme_color: '#16a34a',
+        icons: [
+          {
+            src: '/icon-192.png',
+            sizes: '192x192',
+            type: 'image/png'
+          },
+          {
+            src: '/icon-512.png',
+            sizes: '512x512',
+            type: 'image/png'
+          }
+        ]
+      }
+    })
+  ]
+});
+```
+
+---
+
+## 🔍 Post-Deployment Checklist
+
+- [ ] Site loads correctly
+- [ ] All routes accessible
+- [ ] Auth flow works
+- [ ] Database connections successful
+- [ ] Maps display correctly
+- [ ] Forms submit properly
+- [ ] Mobile responsive
+- [ ] SSL certificate valid
+- [ ] Analytics tracking
+- [ ] Error monitoring active
+- [ ] Performance metrics good
+- [ ] SEO meta tags present
+
+---
+
+## 🆘 Troubleshooting
+
+### "Build failed on Vercel"
+
+**Fix**: Check build logs, ensure all env vars are set
+
+### "Supabase connection timeout"
+
+**Fix**: Check Supabase project is not paused (free tier)
+
+### "Maps not loading"
+
+**Fix**: Update Google Maps API key restrictions with production domain
+
+### "Auth redirect error"
+
+**Fix**: Add production domain to Clerk allowed domains
+
+### "Large bundle size"
+
+**Fix**: Enable code splitting, lazy loading, tree shaking
+
+---
+
+## 📚 Additional Resources
+
+- **Vercel Docs**: https://vercel.com/docs
+- **Netlify Docs**: https://docs.netlify.com
+- **Supabase Production**: https://supabase.com/docs/guides/platform/going-into-prod
+- **Vite Build**: https://vitejs.dev/guide/build.html
+
+---
+
+**Deployment Status**: 🚀 Production Ready

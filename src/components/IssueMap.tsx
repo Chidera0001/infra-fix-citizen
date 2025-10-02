@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, MapPin, Filter } from "lucide-react";
-import { mockIssues } from "@/lib/mockData";
+import { useIssues } from "@/hooks/use-issues";
 import InteractiveMap from "./InteractiveMap";
 
 interface IssueMapProps {
@@ -11,6 +11,7 @@ interface IssueMapProps {
 }
 
 const IssueMap = ({ onBack, isAdmin = false }: IssueMapProps) => {
+	const { data: issues = [], isLoading } = useIssues({ limit: 100 });
 	return (
 		<div className="min-h-screen bg-gray-50">
 			{/* Header */}
@@ -54,11 +55,17 @@ const IssueMap = ({ onBack, isAdmin = false }: IssueMapProps) => {
 					<div className="lg:col-span-3">
 						<Card className="h-[600px]">
 							<CardContent className="p-0 h-full">
-								<InteractiveMap
-									issues={mockIssues}
-									isAdmin={isAdmin}
-									className="h-full"
+								{isLoading ? (
+									<div className="flex items-center justify-center h-full">
+										<p className="text-gray-500">Loading map...</p>
+									</div>
+								) : (
+									<InteractiveMap
+										issues={issues}
+										isAdmin={isAdmin}
+										className="h-full"
 								/>
+								)}
 							</CardContent>
 						</Card>
 					</div>
@@ -72,7 +79,7 @@ const IssueMap = ({ onBack, isAdmin = false }: IssueMapProps) => {
 								</CardTitle>
 							</CardHeader>
 							<CardContent className="space-y-4">
-								{mockIssues.slice(0, 6).map((issue) => (
+								{issues.slice(0, 6).map((issue) => (
 									<div
 										key={issue.id}
 										className="border-b pb-3 last:border-b-0"

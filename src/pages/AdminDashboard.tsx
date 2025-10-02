@@ -34,16 +34,25 @@ import CitiznLogo from "@/components/CitiznLogo";
 import IssueCard from "@/components/IssueCard";
 import InteractiveMap from "@/components/InteractiveMap";
 import IssueMap from "@/components/IssueMap";
-import { mockIssues } from "@/lib/mockData";
 import { useToast } from "@/hooks/use-toast";
+import { useIssues, useIssueStatistics } from "@/hooks/use-issues";
+import { adminApi } from "@/lib/supabase-api";
+import { useQuery } from "@tanstack/react-query";
 
 const AdminDashboard = () => {
 	const [adminUser, setAdminUser] = useState<string>("");
-	const [recentIssues] = useState(mockIssues.slice(0, 5));
 	const [selectedArea, setSelectedArea] = useState<string>("all");
 	const [showMap, setShowMap] = useState(false);
 	const navigate = useNavigate();
 	const { toast } = useToast();
+	
+	// Fetch real data from Supabase
+	const { data: issues = [], isLoading: issuesLoading } = useIssues({ limit: 5, sortBy: 'created_at', sortOrder: 'DESC' });
+	const { data: statistics } = useIssueStatistics();
+	const { data: analytics } = useQuery({
+		queryKey: ['admin-analytics', '30d'],
+		queryFn: () => adminApi.getDashboardAnalytics('30d'),
+	});
 
 	useEffect(() => {
 		const storedUser = localStorage.getItem("adminUser");
@@ -75,24 +84,14 @@ const AdminDashboard = () => {
 		return <IssueMap onBack={handleBackToDashboard} isAdmin={true} />;
 	}
 
-	// Mock data for charts and analytics
-	const areaData = [
-		{ name: "Lagos Mainland", reports: 45, resolved: 32, pending: 13 },
-		{ name: "Victoria Island", reports: 32, resolved: 28, pending: 4 },
-		{ name: "Ikeja", reports: 28, resolved: 20, pending: 8 },
-		{ name: "Surulere", reports: 22, resolved: 18, pending: 4 },
-		{ name: "Oshodi", reports: 18, resolved: 15, pending: 3 },
-	];
-
-	const weeklyTrends = [
-		{ day: "Mon", reports: 12, resolved: 8 },
-		{ day: "Tue", reports: 15, resolved: 12 },
-		{ day: "Wed", reports: 8, resolved: 6 },
-		{ day: "Thu", reports: 20, resolved: 16 },
-		{ day: "Fri", reports: 18, resolved: 14 },
-		{ day: "Sat", reports: 10, resolved: 7 },
-		{ day: "Sun", reports: 6, resolved: 4 },
-	];
+	// Calculate stats from real data
+	const totalIssues = statistics?.total_issues || 0;
+	const openIssues = statistics?.open_issues || 0;
+	const inProgressIssues = statistics?.in_progress_issues || 0;
+	const resolvedIssues = statistics?.resolved_issues || 0;
+	
+	// Use real data if loading completes, otherwise show loading state
+	const recentIssues = issues.slice(0, 5);
 
 	return (
 		<div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-indigo-50">
@@ -147,10 +146,10 @@ const AdminDashboard = () => {
 										Total Issues
 									</p>
 									<p className="text-3xl font-bold text-gray-900">
-										156
+										{totalIssues}
 									</p>
 									<p className="text-xs text-green-600 font-medium mt-1">
-										+12 this week
+										Live data
 									</p>
 								</div>
 								<div className="bg-green-100 p-3 rounded-xl">
@@ -165,10 +164,10 @@ const AdminDashboard = () => {
 							<div className="flex items-center justify-between">
 								<div>
 									<p className="text-sm font-medium text-gray-600 mb-1">
-										Pending
+										Open
 									</p>
 									<p className="text-3xl font-bold text-orange-600">
-										23
+										{openIssues}
 									</p>
 									<p className="text-xs text-orange-600 font-medium mt-1">
 										Require attention
@@ -189,7 +188,7 @@ const AdminDashboard = () => {
 										In Progress
 									</p>
 									<p className="text-3xl font-bold text-blue-600">
-										45
+										{inProgressIssues}
 									</p>
 									<p className="text-xs text-blue-600 font-medium mt-1">
 										Being addressed
@@ -210,10 +209,10 @@ const AdminDashboard = () => {
 										Resolved
 									</p>
 									<p className="text-3xl font-bold text-green-600">
-										88
+										{resolvedIssues}
 									</p>
 									<p className="text-xs text-green-600 font-medium mt-1">
-										56% success rate
+										{totalIssues > 0 ? Math.round((resolvedIssues / totalIssues) * 100) : 0}% success rate
 									</p>
 								</div>
 								<div className="bg-green-100 p-3 rounded-xl">

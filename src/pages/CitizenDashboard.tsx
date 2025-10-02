@@ -28,16 +28,22 @@ import IssueCard from "@/components/IssueCard";
 import ReportForm from "@/components/ReportForm";
 import IssueMap from "@/components/IssueMap";
 import InteractiveMapV2 from "@/components/InteractiveMapV2";
-import { mockIssues } from "@/lib/mockData";
+import { useIssues, useIssueStatistics } from "@/hooks/use-issues";
 
 const CitizenDashboard = () => {
 	const { user } = useUser();
 	const [activeTab, setActiveTab] = useState<"dashboard" | "report" | "map">(
 		"dashboard"
 	);
-	const [myReports] = useState(mockIssues.slice(0, 3));
 	const [showReportForm, setShowReportForm] = useState(false);
 	const [showMap, setShowMap] = useState(false);
+	
+	// Fetch real data from Supabase
+	const { data: allIssues = [], isLoading } = useIssues({ limit: 50 });
+	const { data: statistics } = useIssueStatistics();
+	
+	// Filter user's own reports (when we have user profile integration)
+	const myReports = allIssues.slice(0, 3);
 
 	useEffect(() => {
 		document.title = "Citizn";
@@ -112,10 +118,10 @@ const CitizenDashboard = () => {
 										My Reports
 									</p>
 									<p className="text-3xl font-bold text-gray-900">
-										12
+										{myReports.length}
 									</p>
 									<p className="text-xs text-green-600 font-medium mt-1">
-										+2 this month
+										Recent reports
 									</p>
 								</div>
 								<div className="bg-green-100 p-3 rounded-xl">
@@ -132,10 +138,10 @@ const CitizenDashboard = () => {
 										Resolved
 									</p>
 									<p className="text-3xl font-bold text-green-600">
-										8
+										{statistics?.resolved_issues || 0}
 									</p>
 									<p className="text-xs text-green-600 font-medium mt-1">
-										67% success rate
+										Community wide
 									</p>
 								</div>
 								<div className="bg-green-100 p-3 rounded-xl">
@@ -152,7 +158,7 @@ const CitizenDashboard = () => {
 										In Progress
 									</p>
 									<p className="text-3xl font-bold text-orange-600">
-										3
+										{statistics?.in_progress_issues || 0}
 									</p>
 									<p className="text-xs text-orange-600 font-medium mt-1">
 										Being addressed
@@ -172,10 +178,10 @@ const CitizenDashboard = () => {
 										Community Impact
 									</p>
 									<p className="text-3xl font-bold text-blue-600">
-										47
+										{statistics?.total_issues || 0}
 									</p>
 									<p className="text-xs text-blue-600 font-medium mt-1">
-										Lives improved
+										Total reports
 									</p>
 								</div>
 								<div className="bg-blue-100 p-3 rounded-xl">

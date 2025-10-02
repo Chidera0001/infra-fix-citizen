@@ -33,23 +33,29 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import CitiznLogo from "@/components/CitiznLogo";
+import { useCreateIssue } from "@/hooks/use-issues";
+import { useUser } from "@clerk/clerk-react";
 
 interface ReportFormProps {
 	onBack: () => void;
 }
 
 const ReportForm = ({ onBack }: ReportFormProps) => {
+	const { user } = useUser();
 	const [currentStep, setCurrentStep] = useState(1);
 	const [formData, setFormData] = useState({
 		title: "",
 		description: "",
 		category: "",
-		urgency: "",
+		severity: "medium" as "low" | "medium" | "high" | "critical",
 		location: "",
+		latitude: 6.5244, // Default Lagos coords
+		longitude: 3.3792,
 		photos: [] as File[],
 	});
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const { toast } = useToast();
+	const createIssueMutation = useCreateIssue();
 
 	const totalSteps = 3;
 
@@ -79,17 +85,36 @@ const ReportForm = ({ onBack }: ReportFormProps) => {
 		e.preventDefault();
 		setIsSubmitting(true);
 
-		// Simulate API call
-		await new Promise((resolve) => setTimeout(resolve, 2000));
+		try {
+			// Create issue in Supabase
+			await createIssueMutation.mutateAsync({
+				title: formData.title,
+				description: formData.description,
+				category: formData.category,
+				severity: formData.severity,
+				location: formData.location,
+				latitude: formData.latitude,
+				longitude: formData.longitude,
+				// Note: Photo upload would need additional storage setup (Supabase Storage)
+				// For now, we'll submit without photos
+			});
 
-		toast({
-			title: "Report Submitted Successfully!",
-			description:
-				"Your Nigerian community issue has been reported and will be reviewed by authorities.",
-		});
+			toast({
+				title: "Report Submitted Successfully!",
+				description:
+					"Your issue has been reported and will be reviewed by authorities.",
+			});
 
-		setIsSubmitting(false);
-		onBack();
+			onBack();
+		} catch (error) {
+			toast({
+				title: "Submission Failed",
+				description: "There was an error submitting your report. Please try again.",
+				variant: "destructive",
+			});
+		} finally {
+			setIsSubmitting(false);
+		}
 	};
 
 	const getStepIcon = (step: number) => {
@@ -293,21 +318,21 @@ const ReportForm = ({ onBack }: ReportFormProps) => {
 
 									<div className="space-y-2">
 										<Label
-											htmlFor="urgency"
+											htmlFor="severity"
 											className="text-gray-700 font-medium"
 										>
-											Urgency Level *
+											Severity Level *
 										</Label>
 										<Select
-											onValueChange={(value) =>
+											onValueChange={(value: any) =>
 												setFormData({
 													...formData,
-													urgency: value,
+													severity: value,
 												})
 											}
 										>
 											<SelectTrigger className="border-green-300 focus:border-green-500 focus:ring-green-500 rounded-xl">
-												<SelectValue placeholder="Select urgency level" />
+												<SelectValue placeholder="Select severity level" />
 											</SelectTrigger>
 											<SelectContent>
 												<SelectItem value="low">
@@ -322,8 +347,7 @@ const ReportForm = ({ onBack }: ReportFormProps) => {
 													<div className="flex items-center space-x-2">
 														<div className="w-3 h-3 bg-orange-500 rounded-full"></div>
 														<span>
-															Medium - Moderate
-															concern
+															Medium - Moderate concern
 														</span>
 													</div>
 												</SelectItem>
@@ -331,8 +355,15 @@ const ReportForm = ({ onBack }: ReportFormProps) => {
 													<div className="flex items-center space-x-2">
 														<div className="w-3 h-3 bg-red-500 rounded-full"></div>
 														<span>
-															High - Safety
-															concern
+															High - Safety concern
+														</span>
+													</div>
+												</SelectItem>
+												<SelectItem value="critical">
+													<div className="flex items-center space-x-2">
+														<div className="w-3 h-3 bg-purple-600 rounded-full"></div>
+														<span>
+															Critical - Immediate danger
 														</span>
 													</div>
 												</SelectItem>
