@@ -13,7 +13,7 @@
 
 <div align="center">
   <video width="800" height="450" controls poster="/Assets/Videos/Initial software product & solution demonstration.mp4" style="border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-    <source src="/public/Assets/Videos/Initial software product & solution demonstration.mp4" type="video/mp4">
+    <source src="/Assets/Videos/Initial software product & solution demonstration.mp4" type="video/mp4">
     Your browser does not support the video tag.
   </video>
   <p><em>Complete platform demonstration showing all features and functionality</em></p>
