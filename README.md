@@ -11,16 +11,17 @@
 
 ## 📹 Initial software product/solution demonstration
 
-<div align="center">
-  <video width="800" height="450" controls poster="/Assets/Videos/Initial software product & solution demonstration.mp4" style="border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-    <source src="/Assets/Videos/Initial software product & solution demonstration.mp4" type="video/mp4">
-    Your browser does not support the video tag.
-  </video>
-  <p><em>Complete platform demonstration showing all features and functionality</em></p>
-  
+
+[Watch the demo video](https://screenrec.com/share/iQMIGsvWmp)<div align="center">
+<div>
   <p>
     <strong>Alternative viewing options:</strong><br>
     📺 <a href="https://screenrec.com/share/iQMIGsvWmp" target="_blank" rel="noopener noreferrer">Watch on ScreenRec (External Link)</a>
+  </p>
+  
+  <p>
+    <strong>Video file location:</strong><br>
+    📁 <code>public/Assets/Videos/Initial software product & solution demonstration.mp4</code>
   </p>
 </div>
 
