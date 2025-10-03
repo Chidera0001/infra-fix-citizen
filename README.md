@@ -11,11 +11,11 @@
 
 ## 📹 Initial software product/solution demonstration
 
-
 <div>
   <p>
     <strong>Click to view</strong><br>
-    📺 <a href="https://screenrec.com/share/iQMIGsvWmp" target="_blank" rel="noopener noreferrer">Watch on ScreenRec (External Link)</a>
+    📺 <a href="https://screenrec.com/share/iQMIGsvWmp" target="_blank" rel="noopener noreferrer">Watch on ScreenRec (External Link)</a><br>
+    🎨 <a href="https://www.figma.com/design/jI3bpZDQhj8dCYeMAURjwj/Citizn?node-id=0-1&t=b4hmPiuE346e53nT-1" target="_blank" rel="noopener noreferrer">View Figma Design</a>
   </p>
   
   <p>
