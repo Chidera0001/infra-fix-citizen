@@ -245,49 +245,52 @@ const ReportForm = ({ onBack }: ReportFormProps) => {
 							Step {currentStep} of {totalSteps}
 						</Badge>
 					</div>
-					<div className="flex items-center space-x-4">
-						{Array.from({ length: totalSteps }, (_, i) => (
-							<div key={i} className="flex items-center">
+					<div className="relative">
+						{/* Connecting lines */}
+						<div className="absolute top-5 left-0 right-0 flex items-center justify-between px-5">
+							{Array.from({ length: totalSteps - 1 }, (_, i) => (
 								<div
-									className={`w-10 h-10 rounded-full flex items-center justify-center ${
+									key={i}
+									className={`flex-1 h-1 ${
 										i + 1 < currentStep
-											? "bg-green-500 text-white"
-											: i + 1 === currentStep
-											? "bg-green-100 text-green-600 border-2 border-green-500"
-											: "bg-gray-100 text-gray-400"
+											? "bg-green-500"
+											: "bg-gray-200"
 									}`}
-								>
-									{i + 1 < currentStep ? (
-										<CheckCircle className="h-5 w-5" />
-									) : (
-										getStepIcon(i + 1)
-									)}
-								</div>
-								{i < totalSteps - 1 && (
+								></div>
+							))}
+						</div>
+						
+						{/* Steps */}
+						<div className="flex items-center justify-between">
+							{Array.from({ length: totalSteps }, (_, i) => (
+								<div key={i} className="flex flex-col items-center relative z-10">
 									<div
-										className={`w-16 h-1 ${
+										className={`w-10 h-10 rounded-full flex items-center justify-center ${
 											i + 1 < currentStep
-												? "bg-green-500"
-												: "bg-gray-200"
+												? "bg-green-500 text-white"
+												: i + 1 === currentStep
+												? "bg-green-100 text-green-600 border-2 border-green-500"
+												: "bg-gray-100 text-gray-400"
 										}`}
-									></div>
-								)}
-							</div>
-						))}
-					</div>
-					<div className="flex justify-between mt-4">
-						{Array.from({ length: totalSteps }, (_, i) => (
-							<span
-								key={i}
-								className={`text-sm font-medium ${
-									i + 1 === currentStep
-										? "text-green-600"
-										: "text-gray-500"
-								}`}
-							>
-								{getStepTitle(i + 1)}
-							</span>
-						))}
+									>
+										{i + 1 < currentStep ? (
+											<CheckCircle className="h-5 w-5" />
+										) : (
+											getStepIcon(i + 1)
+										)}
+									</div>
+									<span
+										className={`text-xs font-medium mt-2 text-center ${
+											i + 1 === currentStep
+												? "text-green-600"
+												: "text-gray-500"
+										}`}
+									>
+										{getStepTitle(i + 1)}
+									</span>
+								</div>
+							))}
+						</div>
 					</div>
 				</div>
 
