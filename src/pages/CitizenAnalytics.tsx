@@ -47,7 +47,7 @@ const CitizenAnalytics = () => {
             </Button>
             <CitiznLogo size="sm" />
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Community Analytics</h1>
+              <h1 className="text-xl font-normal text-gray-900">Community Analytics</h1>
               <p className="text-sm text-gray-600">Your impact on community improvement</p>
             </div>
           </div>
@@ -62,7 +62,7 @@ const CitizenAnalytics = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Total Reports</p>
-                  <p className="text-2xl font-bold text-gray-900">123</p>
+                  <p className="text-xl font-normal text-gray-900">123</p>
                   <p className="text-xs text-green-600">+12% this month</p>
                 </div>
                 <BarChart3 className="h-8 w-8 text-blue-600" />
@@ -74,7 +74,7 @@ const CitizenAnalytics = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Resolution Rate</p>
-                  <p className="text-2xl font-bold text-green-600">85%</p>
+                  <p className="text-xl font-normal text-green-600">85%</p>
                   <p className="text-xs text-green-600">+5% this month</p>
                 </div>
                 <TrendingUp className="h-8 w-8 text-green-600" />
@@ -86,7 +86,7 @@ const CitizenAnalytics = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Community Impact</p>
-                  <p className="text-2xl font-bold text-purple-600">47</p>
+                  <p className="text-xl font-normal text-purple-600">47</p>
                   <p className="text-xs text-green-600">Issues helped resolve</p>
                 </div>
                 <Users className="h-8 w-8 text-purple-600" />
@@ -98,7 +98,7 @@ const CitizenAnalytics = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Avg Resolution</p>
-                  <p className="text-2xl font-bold text-orange-600">7.2</p>
+                  <p className="text-xl font-normal text-orange-600">7.2</p>
                   <p className="text-xs text-gray-600">days</p>
                 </div>
                 <Clock className="h-8 w-8 text-orange-600" />
@@ -181,21 +181,21 @@ const CitizenAnalytics = () => {
           <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white border-0 shadow-xl">
             <CardContent className="p-6">
               <h3 className="text-lg font-semibold mb-2">Your Rank</h3>
-              <p className="text-3xl font-bold">#12</p>
+              <p className="text-3xl font-normal">#12</p>
               <p className="text-blue-100">Out of 1,247 active citizens</p>
             </CardContent>
           </Card>
           <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white border-0 shadow-xl">
             <CardContent className="p-6">
               <h3 className="text-lg font-semibold mb-2">Streak</h3>
-              <p className="text-3xl font-bold">15</p>
+              <p className="text-3xl font-normal">15</p>
               <p className="text-green-100">Days of community engagement</p>
             </CardContent>
           </Card>
           <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white border-0 shadow-xl">
             <CardContent className="p-6">
               <h3 className="text-lg font-semibold mb-2">Badge Level</h3>
-              <p className="text-3xl font-bold">Gold</p>
+              <p className="text-3xl font-normal">Gold</p>
               <p className="text-purple-100">Community Champion</p>
             </CardContent>
           </Card>

@@ -62,7 +62,7 @@ const AdminLogin = () => {
 				<div className="flex-1 flex items-center justify-center p-8">
 					<div className="w-full max-w-md bg-white rounded-3xl shadow-2xl p-8">
 						<div className="text-center mb-8">
-							<h1 className="text-3xl text-gray-900 font-bold">
+							<h1 className="text-3xl text-gray-900 font-normal">
 								Admin Login
 							</h1>
 						</div>

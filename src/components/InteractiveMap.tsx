@@ -158,7 +158,7 @@ const InteractiveMap = ({
 					const infoWindow = new google.maps.InfoWindow({
 						content: `
 							<div class="p-2">
-								<h3 class="font-bold">${issue.title}</h3>
+								<h3 class="font-normal">${issue.title}</h3>
 								<p class="text-sm text-gray-600">${issue.category}</p>
 								<p class="text-sm text-gray-600">Status: ${issue.status}</p>
 								<p class="text-sm text-gray-600">Severity: ${issue.severity}/5</p>
@@ -196,7 +196,7 @@ const InteractiveMap = ({
 					const infoWindow = new google.maps.InfoWindow({
 						content: `
 							<div class="p-2 min-w-[200px]">
-								<h3 class="font-bold text-sm mb-1">${issue.title}</h3>
+								<h3 class="font-normal text-sm mb-1">${issue.title}</h3>
 								<p class="text-xs text-gray-600 mb-2">${issue.description}</p>
 								<div class="flex items-center justify-between">
 									<span class="text-xs bg-gray-100 px-2 py-1 rounded">${issue.category}</span>
@@ -246,7 +246,7 @@ const InteractiveMap = ({
 			const infoWindow = new google.maps.InfoWindow({
 				content: `
 					<div class="p-2">
-						<h3 class="font-bold text-sm">Selected Location</h3>
+						<h3 class="font-normal text-sm">Selected Location</h3>
 						<p class="text-xs text-gray-600">
 							Lat: ${selectedLocation.lat.toFixed(4)}, Lng: ${selectedLocation.lng.toFixed(4)}
 						</p>

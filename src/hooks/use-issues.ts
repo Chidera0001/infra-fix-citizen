@@ -34,7 +34,8 @@ export function useCreateIssue() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: issuesApi.createIssue,
+    mutationFn: ({ issueData, clerkUserId }: { issueData: any; clerkUserId?: string }) => 
+      issuesApi.createIssue(issueData, clerkUserId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['issues'] });
       toast({

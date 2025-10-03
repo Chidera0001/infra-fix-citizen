@@ -76,21 +76,41 @@ export const categoriesApi = {
 
 // Issues API
 export const issuesApi = {
-  async createIssue(issueData: IssueInsert) {
+  async createIssue(issueData: IssueInsert, clerkUserId?: string) {
+    // First, get or create the user's profile
+    const profile = await getCurrentUserProfile(clerkUserId);
+    if (!profile) {
+      throw new Error('User profile not found. Please ensure you are logged in.');
+    }
+
+    // Add the reporter_id to the issue data
+    const issueDataWithReporter = {
+      ...issueData,
+      reporter_id: profile.id
+    };
+
     const { data, error } = await supabase
       .from('issues')
-      .insert(issueData)
-      .select(`
-        *,
-        profiles!reporter_id (
-          id,
-          full_name,
-          email
-        )
-      `)
+      .insert(issueDataWithReporter)
+      .select('*')
       .single();
     
     if (error) throw error;
+    
+    // Get the reporter profile separately
+    if (data) {
+      const { data: reporterProfile } = await supabase
+        .from('profiles')
+        .select('id, full_name, email')
+        .eq('id', data.reporter_id)
+        .single();
+      
+      return {
+        ...data,
+        profiles: reporterProfile
+      };
+    }
+    
     return data;
   },
 
@@ -106,54 +126,126 @@ export const issuesApi = {
     sortBy?: string;
     sortOrder?: string;
   }) {
-    const { data, error } = await supabase.rpc('get_issues_with_filters', {
-      p_status: filters?.status as any,
-      p_category: filters?.category as any,
-      p_severity: filters?.severity as any,
-      p_lat: filters?.lat,
-      p_lng: filters?.lng,
-      p_radius_km: filters?.radius,
-      p_limit: filters?.limit || 20,
-      p_offset: filters?.offset || 0,
-      p_sort_by: filters?.sortBy || 'created_at',
-      p_sort_order: filters?.sortOrder || 'DESC'
-    });
+    // First, try a simple query without the join to see if the basic table works
+    let query = supabase
+      .from('issues')
+      .select('*');
+
+    // Apply filters
+    if (filters?.status) {
+      query = query.eq('status', filters.status);
+    }
+    if (filters?.category) {
+      query = query.eq('category', filters.category);
+    }
+    if (filters?.severity) {
+      query = query.eq('severity', filters.severity);
+    }
+
+    // Apply sorting
+    const sortBy = filters?.sortBy || 'created_at';
+    const sortOrder = filters?.sortOrder === 'ASC' ? { ascending: true } : { ascending: false };
+    query = query.order(sortBy, sortOrder);
+
+    // Apply pagination
+    const limit = filters?.limit || 20;
+    const offset = filters?.offset || 0;
+    query = query.range(offset, offset + limit - 1);
+
+    const { data, error } = await query;
     
     if (error) throw error;
+    
+    // If we have data, try to get the profiles separately and merge them
+    if (data && data.length > 0) {
+      const reporterIds = [...new Set(data.map(issue => issue.reporter_id))];
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name, email')
+        .in('id', reporterIds);
+      
+      // Merge profiles with issues
+      const profilesMap = new Map(profiles?.map(p => [p.id, p]) || []);
+      return data.map(issue => ({
+        ...issue,
+        profiles: profilesMap.get(issue.reporter_id) || null
+      }));
+    }
+    
     return data;
   },
 
   async getIssueById(id: string) {
     const { data, error } = await supabase
       .from('issues')
-      .select(`
-        *,
-        profiles!reporter_id (
-          id,
-          full_name,
-          email
-        ),
-        issue_comments (
-          *,
-          profiles!user_id (
-            id,
-            full_name,
-            email
-          )
-        ),
-        issue_updates (
-          *,
-          profiles!user_id (
-            id,
-            full_name,
-            email
-          )
-        )
-      `)
+      .select('*')
       .eq('id', id)
       .single();
     
     if (error) throw error;
+    
+    if (data) {
+      // Get reporter profile
+      const { data: reporterProfile } = await supabase
+        .from('profiles')
+        .select('id, full_name, email')
+        .eq('id', data.reporter_id)
+        .single();
+      
+      // Get comments with user profiles
+      const { data: comments } = await supabase
+        .from('issue_comments')
+        .select('*')
+        .eq('issue_id', id)
+        .order('created_at', { ascending: true });
+      
+      // Get comment user profiles
+      let commentsWithProfiles = [];
+      if (comments && comments.length > 0) {
+        const commentUserIds = [...new Set(comments.map(c => c.user_id))];
+        const { data: commentProfiles } = await supabase
+          .from('profiles')
+          .select('id, full_name, email')
+          .in('id', commentUserIds);
+        
+        const profilesMap = new Map(commentProfiles?.map(p => [p.id, p]) || []);
+        commentsWithProfiles = comments.map(comment => ({
+          ...comment,
+          profiles: profilesMap.get(comment.user_id) || null
+        }));
+      }
+      
+      // Get updates with user profiles
+      const { data: updates } = await supabase
+        .from('issue_updates')
+        .select('*')
+        .eq('issue_id', id)
+        .order('created_at', { ascending: true });
+      
+      // Get update user profiles
+      let updatesWithProfiles = [];
+      if (updates && updates.length > 0) {
+        const updateUserIds = [...new Set(updates.map(u => u.user_id))];
+        const { data: updateProfiles } = await supabase
+          .from('profiles')
+          .select('id, full_name, email')
+          .in('id', updateUserIds);
+        
+        const profilesMap = new Map(updateProfiles?.map(p => [p.id, p]) || []);
+        updatesWithProfiles = updates.map(update => ({
+          ...update,
+          profiles: profilesMap.get(update.user_id) || null
+        }));
+      }
+      
+      return {
+        ...data,
+        profiles: reporterProfile,
+        issue_comments: commentsWithProfiles,
+        issue_updates: updatesWithProfiles
+      };
+    }
+    
     return data;
   },
 
@@ -162,17 +254,25 @@ export const issuesApi = {
       .from('issues')
       .update(updates)
       .eq('id', id)
-      .select(`
-        *,
-        profiles!reporter_id (
-          id,
-          full_name,
-          email
-        )
-      `)
+      .select('*')
       .single();
     
     if (error) throw error;
+    
+    // Get the reporter profile separately
+    if (data) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id, full_name, email')
+        .eq('id', data.reporter_id)
+        .single();
+      
+      return {
+        ...data,
+        profiles: profile
+      };
+    }
+    
     return data;
   },
 
@@ -208,9 +308,9 @@ export const issuesApi = {
 
 // Comments API
 export const commentsApi = {
-  async createComment(issueId: string, comment: string, isOfficial = false) {
+  async createComment(issueId: string, comment: string, isOfficial = false, clerkUserId?: string) {
     // Get current user profile first
-    const profile = await getCurrentUserProfile();
+    const profile = await getCurrentUserProfile(clerkUserId);
     if (!profile) throw new Error('User profile not found');
 
     const { data, error } = await supabase
@@ -221,35 +321,52 @@ export const commentsApi = {
         comment,
         is_official: isOfficial
       })
-      .select(`
-        *,
-        profiles!user_id (
-          id,
-          full_name,
-          email
-        )
-      `)
+      .select('*')
       .single();
     
     if (error) throw error;
+    
+    // Get the user profile separately
+    if (data) {
+      const { data: userProfile } = await supabase
+        .from('profiles')
+        .select('id, full_name, email')
+        .eq('id', data.user_id)
+        .single();
+      
+      return {
+        ...data,
+        profiles: userProfile
+      };
+    }
+    
     return data;
   },
 
   async getComments(issueId: string) {
     const { data, error } = await supabase
       .from('issue_comments')
-      .select(`
-        *,
-        profiles!user_id (
-          id,
-          full_name,
-          email
-        )
-      `)
+      .select('*')
       .eq('issue_id', issueId)
       .order('created_at', { ascending: true });
     
     if (error) throw error;
+    
+    // Get user profiles separately
+    if (data && data.length > 0) {
+      const userIds = [...new Set(data.map(comment => comment.user_id))];
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name, email')
+        .in('id', userIds);
+      
+      const profilesMap = new Map(profiles?.map(p => [p.id, p]) || []);
+      return data.map(comment => ({
+        ...comment,
+        profiles: profilesMap.get(comment.user_id) || null
+      }));
+    }
+    
     return data;
   },
 
@@ -258,17 +375,25 @@ export const commentsApi = {
       .from('issue_comments')
       .update({ comment })
       .eq('id', commentId)
-      .select(`
-        *,
-        profiles!user_id (
-          id,
-          full_name,
-          email
-        )
-      `)
+      .select('*')
       .single();
     
     if (error) throw error;
+    
+    // Get the user profile separately
+    if (data) {
+      const { data: userProfile } = await supabase
+        .from('profiles')
+        .select('id, full_name, email')
+        .eq('id', data.user_id)
+        .single();
+      
+      return {
+        ...data,
+        profiles: userProfile
+      };
+    }
+    
     return data;
   },
 
@@ -284,8 +409,8 @@ export const commentsApi = {
 
 // Notifications API
 export const notificationsApi = {
-  async getNotifications() {
-    const profile = await getCurrentUserProfile();
+  async getNotifications(clerkUserId?: string) {
+    const profile = await getCurrentUserProfile(clerkUserId);
     if (!profile) throw new Error('User profile not found');
 
     const { data, error } = await supabase
@@ -313,8 +438,8 @@ export const notificationsApi = {
     if (error) throw error;
   },
 
-  async markAllAsRead() {
-    const profile = await getCurrentUserProfile();
+  async markAllAsRead(clerkUserId?: string) {
+    const profile = await getCurrentUserProfile(clerkUserId);
     if (!profile) throw new Error('User profile not found');
 
     const { error } = await supabase
@@ -328,19 +453,37 @@ export const notificationsApi = {
 };
 
 // Helper function to get current user profile
-export async function getCurrentUserProfile(): Promise<Profile | null> {
-  const { data: { user } } = await supabase.auth.getUser();
+export async function getCurrentUserProfile(clerkUserId?: string): Promise<Profile | null> {
+  // If no clerkUserId provided, we can't proceed
+  if (!clerkUserId) {
+    throw new Error('Clerk user ID is required');
+  }
   
-  if (!user) return null;
-  
+  // First, try to get existing profile
   const { data, error } = await supabase
     .from('profiles')
     .select('*')
-    .eq('clerk_user_id', user.id)
+    .eq('clerk_user_id', clerkUserId)
     .single();
   
   if (error && error.code !== 'PGRST116') throw error;
-  return data;
+  
+  // If profile exists, return it
+  if (data) return data;
+  
+  // If profile doesn't exist, create one
+  const { data: newProfile, error: createError } = await supabase
+    .from('profiles')
+    .insert({
+      clerk_user_id: clerkUserId,
+      email: '', // We'll get this from Clerk user data
+      full_name: null, // We'll get this from Clerk user data
+    })
+    .select('*')
+    .single();
+  
+  if (createError) throw createError;
+  return newProfile;
 }
 
 // Real-time subscriptions
@@ -405,15 +548,37 @@ export const subscriptions = {
 export const adminApi = {
   async getAllUsers(filters?: {
     role?: string;
+    is_active?: boolean;
+    search?: string;
     limit?: number;
     offset?: number;
   }) {
-    const { data, error } = await supabase
+    let query = supabase
       .from('profiles')
       .select('*')
-      .eq('role', filters?.role || undefined)
-      .order('created_at', { ascending: false })
-      .range(filters?.offset || 0, (filters?.offset || 0) + (filters?.limit || 20) - 1);
+      .order('created_at', { ascending: false });
+
+    // Apply role filter only if provided
+    if (filters?.role) {
+      query = query.eq('role', filters.role);
+    }
+
+    // Apply active status filter only if provided
+    if (filters?.is_active !== undefined) {
+      query = query.eq('is_active', filters.is_active);
+    }
+
+    // Apply search filter if provided
+    if (filters?.search) {
+      query = query.or(`full_name.ilike.%${filters.search}%,email.ilike.%${filters.search}%`);
+    }
+
+    // Apply pagination
+    const offset = filters?.offset || 0;
+    const limit = filters?.limit || 20;
+    query = query.range(offset, offset + limit - 1);
+
+    const { data, error } = await query;
     
     if (error) throw error;
     return data;
@@ -497,14 +662,14 @@ export const adminApi = {
   async getAreaStatistics() {
     const { data, error } = await supabase
       .from('issues')
-      .select('location, status')
-      .not('location', 'is', null);
+      .select('address, status')
+      .not('address', 'is', null);
     
     if (error) throw error;
     
     // Group by location (city/area)
     const areaStats = data.reduce((acc: any, issue: any) => {
-      const location = issue.location || 'Unknown';
+      const location = issue.address || 'Unknown';
       if (!acc[location]) {
         acc[location] = { name: location, reports: 0, resolved: 0, pending: 0 };
       }
@@ -693,6 +858,150 @@ export const adminApi = {
     
     if (error) throw error;
     return data;
+  },
+
+  // Get response time analysis by category
+  async getResponseTimeByCategory() {
+    const { data, error } = await supabase
+      .from('issues')
+      .select('category, created_at, updated_at')
+      .not('category', 'is', null);
+    
+    if (error) throw error;
+    
+    // Group by category and calculate average response time
+    const categoryStats = data.reduce((acc: any, issue: any) => {
+      const category = issue.category || 'Other';
+      if (!acc[category]) {
+        acc[category] = { category, totalTime: 0, count: 0 };
+      }
+      
+      if (issue.updated_at && issue.updated_at !== issue.created_at) {
+        const responseTime = new Date(issue.updated_at).getTime() - new Date(issue.created_at).getTime();
+        acc[category].totalTime += responseTime;
+        acc[category].count++;
+      }
+      
+      return acc;
+    }, {});
+    
+    // Calculate averages and convert to hours
+    return Object.values(categoryStats).map((stat: any) => ({
+      category: stat.category,
+      time: stat.count > 0 ? Math.round((stat.totalTime / stat.count) / (1000 * 60 * 60) * 10) / 10 : 0
+    }));
+  },
+
+  // Get monthly resolution rate trends
+  async getMonthlyResolutionTrends() {
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+    
+    const { data, error } = await supabase
+      .from('issues')
+      .select('created_at, resolved_at, status')
+      .gte('created_at', sixMonthsAgo.toISOString());
+    
+    if (error) throw error;
+    
+    // Group by month
+    const monthlyStats: any = {};
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    data.forEach((issue: any) => {
+      const date = new Date(issue.created_at);
+      const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
+      const monthName = monthNames[date.getMonth()];
+      
+      if (!monthlyStats[monthKey]) {
+        monthlyStats[monthKey] = { month: monthName, total: 0, resolved: 0 };
+      }
+      
+      monthlyStats[monthKey].total++;
+      if (issue.status === 'resolved' || issue.status === 'closed') {
+        monthlyStats[monthKey].resolved++;
+      }
+    });
+    
+    // Calculate rates and return last 6 months
+    return Object.values(monthlyStats)
+      .map((stat: any) => ({
+        month: stat.month,
+        rate: stat.total > 0 ? Math.round((stat.resolved / stat.total) * 100) : 0
+      }))
+      .slice(-6); // Last 6 months
+  },
+
+  // Get issue volume by severity
+  async getIssueVolumeBySeverity() {
+    const { data, error } = await supabase
+      .from('issues')
+      .select('severity')
+      .not('severity', 'is', null);
+    
+    if (error) throw error;
+    
+    // Count by severity
+    const severityCounts = data.reduce((acc: any, issue: any) => {
+      const severity = issue.severity || 'medium';
+      acc[severity] = (acc[severity] || 0) + 1;
+      return acc;
+    }, {});
+    
+    // Map to chart data with colors
+    const severityMap: any = {
+      'critical': { name: 'Critical', color: '#ef4444' },
+      'high': { name: 'High', color: '#f59e0b' },
+      'medium': { name: 'Medium', color: '#10b981' },
+      'low': { name: 'Low', color: '#6b7280' }
+    };
+    
+    return Object.entries(severityCounts).map(([severity, count]) => ({
+      name: severityMap[severity]?.name || severity,
+      value: count,
+      color: severityMap[severity]?.color || '#6b7280'
+    }));
+  },
+
+  // Get user satisfaction breakdown
+  async getUserSatisfactionBreakdown() {
+    // Get upvotes data as proxy for satisfaction
+    const { data: upvotesData, error: upvotesError } = await supabase
+      .from('issue_upvotes')
+      .select('issue_id');
+    
+    if (upvotesError) throw upvotesError;
+    
+    // Get total issues
+    const { data: issuesData, error: issuesError } = await supabase
+      .from('issues')
+      .select('id');
+    
+    if (issuesError) throw issuesError;
+    
+    const totalIssues = issuesData.length;
+    const totalUpvotes = upvotesData.length;
+    
+    // Calculate satisfaction based on upvote ratio
+    const satisfactionRatio = totalIssues > 0 ? totalUpvotes / totalIssues : 0;
+    
+    // Simulate satisfaction breakdown based on upvote ratio
+    const excellent = Math.round(satisfactionRatio * 35);
+    const good = Math.round(satisfactionRatio * 45);
+    const average = Math.round(satisfactionRatio * 15);
+    const poor = Math.round(satisfactionRatio * 5);
+    
+    const overallRating = totalIssues > 0 ? Math.min(5, 3 + (satisfactionRatio * 2)) : 0;
+    
+    return {
+      overallRating: Math.round(overallRating * 10) / 10,
+      breakdown: [
+        { label: 'Excellent', percentage: excellent, color: '#10b981' },
+        { label: 'Good', percentage: good, color: '#10b981' },
+        { label: 'Average', percentage: average, color: '#f59e0b' },
+        { label: 'Poor', percentage: poor, color: '#ef4444' }
+      ]
+    };
   }
 };
 

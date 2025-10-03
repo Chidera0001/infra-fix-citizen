@@ -46,18 +46,20 @@ const ReportForm = ({ onBack }: ReportFormProps) => {
 	const [formData, setFormData] = useState({
 		title: "",
 		description: "",
-		category: "",
+		category: "other" as "pothole" | "street_lighting" | "water_supply" | "traffic_signal" | "drainage" | "sidewalk" | "other",
 		severity: "medium" as "low" | "medium" | "high" | "critical",
-		location: "",
-		latitude: 6.5244, // Default Lagos coords
-		longitude: 3.3792,
+		address: "",
+		location_lat: 6.5244, // Default Lagos coords
+		location_lng: 3.3792,
 		photos: [] as File[],
 	});
+	const [locationMethod, setLocationMethod] = useState<"current" | "map" | null>(null);
+	const [isGettingLocation, setIsGettingLocation] = useState(false);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const { toast } = useToast();
 	const createIssueMutation = useCreateIssue();
 
-	const totalSteps = 3;
+	const totalSteps = 4; // Added location selection step
 
 	const handleNext = () => {
 		if (currentStep < totalSteps) {
@@ -69,6 +71,44 @@ const ReportForm = ({ onBack }: ReportFormProps) => {
 		if (currentStep > 1) {
 			setCurrentStep(currentStep - 1);
 		}
+	};
+
+	const getCurrentLocation = () => {
+		if (!navigator.geolocation) {
+			toast({
+				title: "Geolocation not supported",
+				description: "Your browser doesn't support geolocation. Please select location from map.",
+				variant: "destructive",
+			});
+			return;
+		}
+
+		setIsGettingLocation(true);
+		navigator.geolocation.getCurrentPosition(
+			(position) => {
+				setFormData(prev => ({
+					...prev,
+					location_lat: position.coords.latitude,
+					location_lng: position.coords.longitude,
+				}));
+				setLocationMethod("current");
+				setIsGettingLocation(false);
+				handleNext();
+			},
+			(error) => {
+				toast({
+					title: "Location access denied",
+					description: "Please allow location access or select location from map.",
+					variant: "destructive",
+				});
+				setIsGettingLocation(false);
+			}
+		);
+	};
+
+	const handleLocationFromMap = () => {
+		setLocationMethod("map");
+		handleNext();
 	};
 
 	const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -83,35 +123,61 @@ const ReportForm = ({ onBack }: ReportFormProps) => {
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
+		console.log('Form submitted with data:', formData);
+		
+		// Validate required fields
+		if (!formData.title.trim()) {
+			toast({
+				title: "Validation Error",
+				description: "Please enter an issue title",
+				variant: "destructive",
+			});
+			return;
+		}
+		
+		if (!formData.description.trim()) {
+			toast({
+				title: "Validation Error", 
+				description: "Please enter an issue description",
+				variant: "destructive",
+			});
+			return;
+		}
+		
+		if (!formData.address.trim()) {
+			toast({
+				title: "Validation Error",
+				description: "Please enter an address",
+				variant: "destructive",
+			});
+			return;
+		}
+		
 		setIsSubmitting(true);
 
 		try {
+			console.log('Calling createIssueMutation.mutateAsync...');
 			// Create issue in Supabase
 			await createIssueMutation.mutateAsync({
-				title: formData.title,
-				description: formData.description,
-				category: formData.category,
-				severity: formData.severity,
-				location: formData.location,
-				latitude: formData.latitude,
-				longitude: formData.longitude,
-				// Note: Photo upload would need additional storage setup (Supabase Storage)
-				// For now, we'll submit without photos
+				issueData: {
+					title: formData.title,
+					description: formData.description,
+					category: formData.category,
+					severity: formData.severity,
+					address: formData.address,
+					location_lat: formData.location_lat,
+					location_lng: formData.location_lng,
+					// Note: Photo upload would need additional storage setup (Supabase Storage)
+					// For now, we'll submit without photos
+				},
+				clerkUserId: user?.id
 			});
 
-			toast({
-				title: "Report Submitted Successfully!",
-				description:
-					"Your issue has been reported and will be reviewed by authorities.",
-			});
-
+			// The useCreateIssue hook already shows success toast
 			onBack();
 		} catch (error) {
-			toast({
-				title: "Submission Failed",
-				description: "There was an error submitting your report. Please try again.",
-				variant: "destructive",
-			});
+			console.error('Report submission error:', error);
+			// The useCreateIssue hook already shows error toast, so we don't need to show another one
 		} finally {
 			setIsSubmitting(false);
 		}
@@ -124,6 +190,8 @@ const ReportForm = ({ onBack }: ReportFormProps) => {
 			case 2:
 				return <MapPin className="h-5 w-5" />;
 			case 3:
+				return <Upload className="h-5 w-5" />;
+			case 4:
 				return <CheckCircle className="h-5 w-5" />;
 			default:
 				return <Star className="h-5 w-5" />;
@@ -135,8 +203,10 @@ const ReportForm = ({ onBack }: ReportFormProps) => {
 			case 1:
 				return "Issue Details";
 			case 2:
-				return "Location & Photos";
+				return "Select Location";
 			case 3:
+				return "Photos & Address";
+			case 4:
 				return "Review & Submit";
 			default:
 				return "Step";
@@ -149,18 +219,8 @@ const ReportForm = ({ onBack }: ReportFormProps) => {
 			<header className="bg-white/90 backdrop-blur-md shadow-lg border-b border-green-200/50">
 				<div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
 					<div className="flex items-center space-x-4">
-						<Button
-							variant="ghost"
-							size="sm"
-							onClick={onBack}
-							className="text-gray-600 hover:text-gray-900"
-						>
-							<ArrowLeft className="h-4 w-4 mr-2" />
-							Back to Dashboard
-						</Button>
-						<CitiznLogo size="sm" />
 						<div>
-							<h1 className="text-xl font-bold text-gray-900">
+							<h1 className="text-xl font-normal text-gray-900">
 								Report Infrastructure Issue
 							</h1>
 							<p className="text-sm text-gray-600">
@@ -175,7 +235,7 @@ const ReportForm = ({ onBack }: ReportFormProps) => {
 				{/* Enhanced Progress Indicator */}
 				<div className="mb-8">
 					<div className="flex items-center justify-between mb-6">
-						<h2 className="text-2xl font-bold text-gray-900">
+						<h2 className="text-xl font-normal text-gray-900">
 							Report New Issue
 						</h2>
 						<Badge
@@ -233,16 +293,18 @@ const ReportForm = ({ onBack }: ReportFormProps) => {
 
 				<Card className="bg-white/90 backdrop-blur-sm border-0 shadow-2xl rounded-3xl overflow-hidden">
 					<CardHeader className="pb-6 pt-8">
-						<CardTitle className="text-2xl font-bold flex items-center space-x-3">
+						<CardTitle className="text-xl font-normal flex items-center space-x-3">
 							{getStepIcon(currentStep)}
 							<span>{getStepTitle(currentStep)}</span>
 						</CardTitle>
-						<CardDescription className="text-gray-600 text-lg">
+						<CardDescription className="text-gray-600 text-md">
 							{currentStep === 1 &&
 								"Describe the infrastructure issue you've encountered in your Nigerian community"}
 							{currentStep === 2 &&
-								"Add location details and photos to help authorities locate and understand the issue"}
+								"Choose how you want to provide the location of the issue"}
 							{currentStep === 3 &&
+								"Add photos and address details to help authorities locate and understand the issue"}
+							{currentStep === 4 &&
 								"Review your report before submitting to Nigerian authorities"}
 						</CardDescription>
 					</CardHeader>
@@ -285,7 +347,7 @@ const ReportForm = ({ onBack }: ReportFormProps) => {
 												onValueChange={(value) =>
 													setFormData({
 														...formData,
-														category: value,
+														category: value as any,
 													})
 												}
 											>
@@ -296,17 +358,20 @@ const ReportForm = ({ onBack }: ReportFormProps) => {
 													<SelectItem value="pothole">
 														Pothole
 													</SelectItem>
-													<SelectItem value="streetlight">
+													<SelectItem value="street_lighting">
 														Streetlight
 													</SelectItem>
 													<SelectItem value="drainage">
 														Drainage
 													</SelectItem>
-													<SelectItem value="water">
+													<SelectItem value="water_supply">
 														Water Supply
 													</SelectItem>
-													<SelectItem value="road">
-														Road Damage
+													<SelectItem value="traffic_signal">
+														Traffic Signal
+													</SelectItem>
+													<SelectItem value="sidewalk">
+														Sidewalk
 													</SelectItem>
 													<SelectItem value="other">
 														Other
@@ -395,24 +460,83 @@ const ReportForm = ({ onBack }: ReportFormProps) => {
 								</div>
 							)}
 
-							{/* Step 2: Location & Photos */}
+							{/* Step 2: Location Selection */}
 							{currentStep === 2 && (
+								<div className="space-y-6">
+									<div className="text-center space-y-4">
+										<div className="space-y-2">
+											<h3 className="text-lg font-semibold text-gray-900">
+												How would you like to provide the location?
+											</h3>
+											<p className="text-gray-600">
+												Choose the most convenient method for you
+											</p>
+										</div>
+										
+										<div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
+											<Button
+												type="button"
+												onClick={getCurrentLocation}
+												disabled={isGettingLocation}
+												className="h-24 flex flex-col items-center justify-center space-y-2 bg-green-50 hover:bg-green-100 border-2 border-green-200 text-green-700"
+											>
+												<MapPin className="h-8 w-8" />
+												<span className="font-medium">
+													{isGettingLocation ? "Getting Location..." : "Use Current Location"}
+												</span>
+											</Button>
+											
+											<Button
+												type="button"
+												onClick={handleLocationFromMap}
+												className="h-24 flex flex-col items-center justify-center space-y-2 bg-blue-50 hover:bg-blue-100 border-2 border-blue-200 text-blue-700"
+											>
+												<MapPin className="h-8 w-8" />
+												<span className="font-medium">Select from Map</span>
+											</Button>
+										</div>
+										
+										{locationMethod === "current" && (
+											<div className="bg-green-50 border border-green-200 rounded-lg p-4">
+												<p className="text-green-700 text-sm">
+													✓ Location obtained: {formData.location_lat.toFixed(4)}, {formData.location_lng.toFixed(4)}
+												</p>
+											</div>
+										)}
+										
+										{locationMethod && (
+											<div className="flex justify-center mt-6">
+												<Button
+													type="button"
+													onClick={handleNext}
+													className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold"
+												>
+													Continue to Next Step
+												</Button>
+											</div>
+										)}
+									</div>
+								</div>
+							)}
+
+							{/* Step 3: Photos & Address */}
+							{currentStep === 3 && (
 								<div className="space-y-6">
 									<div className="space-y-2">
 										<Label
-											htmlFor="location"
+											htmlFor="address"
 											className="text-gray-700 font-medium"
 										>
-											Location *
+											Address Description *
 										</Label>
 										<Input
-											id="location"
+											id="address"
 											placeholder="e.g., Main Street, Victoria Island, Lagos"
-											value={formData.location}
+											value={formData.address}
 											onChange={(e) =>
 												setFormData({
 													...formData,
-													location: e.target.value,
+													address: e.target.value,
 												})
 											}
 											className="border-green-300 focus:border-green-500 focus:ring-green-500 rounded-xl"
@@ -484,11 +608,21 @@ const ReportForm = ({ onBack }: ReportFormProps) => {
 											</div>
 										)}
 									</div>
+									
+									<div className="flex justify-center mt-6">
+										<Button
+											type="button"
+											onClick={handleNext}
+											className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold"
+										>
+											Continue to Review
+										</Button>
+									</div>
 								</div>
 							)}
 
-							{/* Step 3: Review & Submit */}
-							{currentStep === 3 && (
+							{/* Step 4: Review & Submit */}
+							{currentStep === 4 && (
 								<div className="space-y-6">
 									<div className="bg-green-50 border border-green-200 rounded-xl p-6">
 										<h3 className="font-semibold text-green-800 mb-4 flex items-center">
@@ -517,29 +651,40 @@ const ReportForm = ({ onBack }: ReportFormProps) => {
 											</div>
 											<div>
 												<Label className="text-sm font-medium text-gray-600">
-													Urgency
+													Severity
 												</Label>
 												<Badge
 													variant="secondary"
 													className={
-														formData.urgency ===
-														"high"
+														formData.severity ===
+														"critical"
 															? "bg-red-100 text-red-700"
-															: formData.urgency ===
-															  "medium"
+															: formData.severity ===
+															  "high"
 															? "bg-orange-100 text-orange-700"
+															: formData.severity ===
+															  "medium"
+															? "bg-yellow-100 text-yellow-700"
 															: "bg-green-100 text-green-700"
 													}
 												>
-													{formData.urgency}
+													{formData.severity}
 												</Badge>
 											</div>
 											<div>
 												<Label className="text-sm font-medium text-gray-600">
-													Location
+													Address
 												</Label>
 												<p className="text-gray-900 font-medium">
-													{formData.location}
+													{formData.address}
+												</p>
+											</div>
+											<div>
+												<Label className="text-sm font-medium text-gray-600">
+													Coordinates
+												</Label>
+												<p className="text-gray-900 font-medium">
+													{formData.location_lat.toFixed(4)}, {formData.location_lng.toFixed(4)}
 												</p>
 											</div>
 											<div>

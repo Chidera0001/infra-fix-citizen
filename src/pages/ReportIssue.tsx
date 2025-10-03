@@ -64,7 +64,7 @@ const ReportIssue = () => {
             </Button>
             <CitiznLogo size="sm" />
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Report Infrastructure Issue</h1>
+              <h1 className="text-xl font-normal text-gray-900">Report Infrastructure Issue</h1>
               <p className="text-sm text-gray-600">Help improve your community</p>
             </div>
           </div>

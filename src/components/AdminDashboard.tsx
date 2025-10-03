@@ -289,7 +289,7 @@ const AdminDashboard = ({ onBack }: AdminDashboardProps) => {
 									<BarChart3 className="h-5 w-5 text-white" />
 								</div>
 								<div>
-									<h1 className="text-xl font-bold text-gray-900">
+									<h1 className="text-xl font-normal text-gray-900">
 										Admin Dashboard
 									</h1>
 									<p className="text-sm text-gray-600">
@@ -548,7 +548,7 @@ const AdminDashboard = ({ onBack }: AdminDashboardProps) => {
 									<p className="text-sm font-medium text-gray-600">
 										Total Reports
 									</p>
-									<p className="text-3xl font-bold text-gray-900">
+									<p className="text-3xl font-normal text-gray-900">
 										{filteredIssues.length}
 									</p>
 									<p className="text-sm text-green-600 mt-1">
@@ -568,7 +568,7 @@ const AdminDashboard = ({ onBack }: AdminDashboardProps) => {
 									<p className="text-sm font-medium text-gray-600">
 										Open Issues
 									</p>
-									<p className="text-3xl font-bold text-red-600">
+									<p className="text-3xl font-normal text-red-600">
 										{openIssues.length}
 									</p>
 									<p className="text-sm text-red-600 mt-1">
@@ -588,7 +588,7 @@ const AdminDashboard = ({ onBack }: AdminDashboardProps) => {
 									<p className="text-sm font-medium text-gray-600">
 										In Progress
 									</p>
-									<p className="text-3xl font-bold text-orange-600">
+									<p className="text-3xl font-normal text-orange-600">
 										{inProgressIssues.length}
 									</p>
 									<p className="text-sm text-orange-600 mt-1">
@@ -608,7 +608,7 @@ const AdminDashboard = ({ onBack }: AdminDashboardProps) => {
 									<p className="text-sm font-medium text-gray-600">
 										Resolved
 									</p>
-									<p className="text-3xl font-bold text-green-600">
+									<p className="text-3xl font-normal text-green-600">
 										{resolvedIssues.length}
 									</p>
 									<p className="text-sm text-green-600 mt-1">
@@ -782,7 +782,7 @@ const AdminDashboard = ({ onBack }: AdminDashboardProps) => {
 											<span className="text-sm font-medium">
 												Average Resolution Time
 											</span>
-											<span className="text-2xl font-bold text-blue-600">
+											<span className="text-xl font-normal text-blue-600">
 												{filteredIssues.length > 0
 													? "5.2 days"
 													: "N/A"}
@@ -792,7 +792,7 @@ const AdminDashboard = ({ onBack }: AdminDashboardProps) => {
 											<span className="text-sm font-medium">
 												Citizen Satisfaction
 											</span>
-											<span className="text-2xl font-bold text-green-600">
+											<span className="text-xl font-normal text-green-600">
 												{filteredIssues.length > 0
 													? "4.7/5"
 													: "N/A"}
@@ -802,7 +802,7 @@ const AdminDashboard = ({ onBack }: AdminDashboardProps) => {
 											<span className="text-sm font-medium">
 												Resolution Rate
 											</span>
-											<span className="text-2xl font-bold text-green-600">
+											<span className="text-xl font-normal text-green-600">
 												{filteredIssues.length > 0
 													? `${Math.round(
 															(resolvedIssues.length /
@@ -816,7 +816,7 @@ const AdminDashboard = ({ onBack }: AdminDashboardProps) => {
 											<span className="text-sm font-medium">
 												Response Time
 											</span>
-											<span className="text-2xl font-bold text-blue-600">
+											<span className="text-xl font-normal text-blue-600">
 												{filteredIssues.length > 0
 													? "2.1 hours"
 													: "N/A"}

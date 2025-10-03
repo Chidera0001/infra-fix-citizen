@@ -385,7 +385,7 @@ localStorage.setItem('supabase.debug', 'true');
 ```tsx
 // Use utility classes
 <div className="flex items-center space-x-4 p-6 bg-white rounded-lg shadow">
-  <h2 className="text-2xl font-bold text-gray-900">Title</h2>
+  <h2 className="text-xl font-bold text-gray-900">Title</h2>
 </div>
 
 // Responsive design

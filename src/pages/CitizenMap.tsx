@@ -181,7 +181,7 @@ const CitizenMap = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div>
-                <h1 className="text-xl font-bold text-gray-900">Issue Map</h1>
+                <h1 className="text-xl font-normal text-gray-900">Issue Map</h1>
                 <p className="text-sm text-gray-600">View and report issues by location</p>
               </div>
             </div>

@@ -19,7 +19,7 @@ const CitiznLogo = ({
 
 	const textSizes = {
 		sm: "text-lg",
-		md: "text-2xl",
+		md: "text-xl",
 		lg: "text-4xl",
 	};
 
@@ -48,7 +48,7 @@ const CitiznLogo = ({
 		<div className={`flex items-center space-x-3 ${className}`}>
 			<LogoIcon />
 			<span
-				className={`font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent ${textSizes[size]} tracking-tight`}
+				className={`font-normal bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent ${textSizes[size]} tracking-tight`}
 			>
 				Citizn
 			</span>

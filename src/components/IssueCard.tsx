@@ -98,7 +98,7 @@ const IssueCard = ({ issue, showActions = true }: IssueCardProps) => {
 				<div className="flex items-start justify-between mb-4">
 					<div className="flex-1">
 						<div className="flex items-center space-x-3 mb-3">
-							<h3 className="text-lg font-bold text-gray-900">
+							<h3 className="text-lg font-normal text-gray-900">
 								{issue.title}
 							</h3>
 							<div className="flex items-center space-x-2">

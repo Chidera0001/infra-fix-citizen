@@ -1,42 +1,37 @@
-import React from "react";
+import React, { useState } from "react";
 import { useUser, SignInButton } from "@clerk/clerk-react";
 import { Button } from "@/components/ui/button";
-import { UserPlus } from "lucide-react";
+import { UserPlus, Menu, X } from "lucide-react";
 import CitiznLogo from "@/components/CitiznLogo";
 import { useNavigate } from "react-router-dom";
 
 const Navbar: React.FC = () => {
 	const { isSignedIn, user } = useUser();
 	const navigate = useNavigate();
+	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+	const toggleMobileMenu = () => {
+		setIsMobileMenuOpen(!isMobileMenuOpen);
+	};
+
+	const closeMobileMenu = () => {
+		setIsMobileMenuOpen(false);
+	};
 
 	return (
 		<nav className="relative z-50 w-full">
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
 				{/* Semi-transparent dark background with backdrop blur */}
-				<div className="bg-black/20 backdrop-blur-md rounded-2xl  shadow-2xl">
-					<div className="px-6 py-4">
+				<div className="bg-black/20 backdrop-blur-md rounded-2xl shadow-2xl">
+					<div className="px-4 sm:px-6 py-4">
 						<div className="flex items-center justify-between">
 							{/* Logo */}
 							<CitiznLogo size="md" />
 
-							{/* Navigation Links */}
-							<div className="hidden md:flex items-center space-x-8">
-								<a
-									href="#problems"
-									className="text-white/90 hover:text-white font-medium transition-colors duration-200"
-								>
-									Problems We Solve
-								</a>
-								<a
-									href="#solution"
-									className="text-white/90 hover:text-white font-medium transition-colors duration-200"
-								>
-									Our Solution
-								</a>
-							</div>
+				
 
-							{/* Auth Buttons */}
-							<div className="flex items-center space-x-4">
+							{/* Desktop Auth Buttons */}
+							<div className="hidden md:flex items-center space-x-4">
 								{isSignedIn ? (
 									<div className="flex items-center space-x-3">
 										<span className="text-sm text-white/90 font-medium">
@@ -72,7 +67,87 @@ const Navbar: React.FC = () => {
 									</div>
 								)}
 							</div>
+
+							{/* Mobile Menu Button */}
+							<button
+								onClick={toggleMobileMenu}
+								className="md:hidden p-2 text-white/90 hover:text-white transition-colors duration-200"
+							>
+								{isMobileMenuOpen ? (
+									<X className="h-6 w-6" />
+								) : (
+									<Menu className="h-6 w-6" />
+								)}
+							</button>
 						</div>
+
+						{/* Mobile Menu */}
+						{isMobileMenuOpen && (
+							<div className="md:hidden mt-4 pt-4 border-t border-white/20">
+								<div className="flex flex-col space-y-4">
+									{/* Mobile Navigation Links */}
+									<a
+										href="#problems"
+										onClick={closeMobileMenu}
+										className="text-white/90 hover:text-white font-medium transition-colors duration-200 py-2"
+									>
+										Problems We Solve
+									</a>
+									<a
+										href="#solution"
+										onClick={closeMobileMenu}
+										className="text-white/90 hover:text-white font-medium transition-colors duration-200 py-2"
+									>
+										Our Solution
+									</a>
+
+									{/* Mobile Auth Buttons */}
+									<div className="flex flex-col space-y-3 pt-4">
+										{isSignedIn ? (
+											<>
+												<span className="text-sm text-white/90 font-medium">
+													Welcome back, {user?.firstName}
+												</span>
+												<Button
+													onClick={() => {
+														navigate("/citizen");
+														closeMobileMenu();
+													}}
+													className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 border-0 w-full"
+													size="sm"
+												>
+													Dashboard
+												</Button>
+											</>
+										) : (
+											<>
+												<SignInButton mode="modal">
+													<Button
+														variant="outline"
+														size="sm"
+														className="border-white/30 text-white bg-inherit hover:border-white/50 backdrop-blur-sm w-full"
+														onClick={closeMobileMenu}
+													>
+														Sign In
+													</Button>
+												</SignInButton>
+												<Button
+													onClick={() => {
+														navigate("/auth");
+														closeMobileMenu();
+													}}
+													className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold shadow-lg backdrop-blur-sm w-full"
+													size="sm"
+												>
+													<UserPlus className="h-4 w-4 mr-2" />
+													Get Started
+												</Button>
+											</>
+										)}
+									</div>
+								</div>
+							</div>
+						)}
 					</div>
 				</div>
 			</div>
