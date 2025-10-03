@@ -12,10 +12,9 @@
 ## 📹 Initial software product/solution demonstration
 
 
-[Watch the demo video](https://screenrec.com/share/iQMIGsvWmp)<div align="center">
 <div>
   <p>
-    <strong>Alternative viewing options:</strong><br>
+    <strong>Click to view</strong><br>
     📺 <a href="https://screenrec.com/share/iQMIGsvWmp" target="_blank" rel="noopener noreferrer">Watch on ScreenRec (External Link)</a>
   </p>
   
