@@ -20,27 +20,27 @@
 
 ## 📸 Screenshots
 
-### 🏠 Landing Page
+### 🏠 Citizen Dashboard
 <div align="center">
-  <img src="/Assets/Screenshots/Citizn Dashboard.png" alt="Citizn Landing Page" width="800" style="border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+  <img src="/public/Assets/Screenshots/Citizn Dashboard.png" alt="Citizn Landing Page" width="800" style="border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
   <p><em>Modern, responsive landing page with hero section and key features</em></p>
 </div>
 
 ### 📝 Issue Reporting
 <div align="center">
-  <img src="/Assets/Screenshots/Report-Issue.png" alt="Issue Reporting Interface" width="800" style="border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+  <img src="/public/Assets/Screenshots/Report-Issue.png" alt="Issue Reporting Interface" width="800" style="border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
   <p><em>Intuitive issue reporting form with step-by-step guidance</em></p>
 </div>
 
 ### 👨‍💼 Admin Dashboard
 <div align="center">
-  <img src="/Assets/Screenshots/Admin-Dashboard.png" alt="Admin Dashboard" width="800" style="border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+  <img src="/public/Assets/Screenshots/Admin-Dashboard.png" alt="Admin Dashboard" width="800" style="border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
   <p><em>Comprehensive admin dashboard with analytics and issue management</em></p>
 </div>
 
 ### 👥 User Management
 <div align="center">
-  <img src="/Assets/Screenshots/Admin-User-Managament.png" alt="User Management Interface" width="800" style="border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+  <img src="/public/Assets/Screenshots/Admin-User-Managament.png" alt="User Management Interface" width="800" style="border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
   <p><em>Advanced user management system for administrators</em></p>
 </div>
 
@@ -56,7 +56,7 @@
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/infra-fix-citizen.git
+git clone https://github.com/Chidera0001/infra-fix-citizen.git
 cd infra-fix-citizen
 
 # Install dependencies
@@ -367,26 +367,15 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 If you encounter any issues or have questions:
 
-- 📧 **Email**: [your-email@example.com]
-- 🐛 **Issues**: [GitHub Issues](https://github.com/your-username/infra-fix-citizen/issues)
-- 💬 **Discussions**: [GitHub Discussions](https://github.com/your-username/infra-fix-citizen/discussions)
-- 📖 **Documentation**: [Project Wiki](https://github.com/your-username/infra-fix-citizen/wiki)
+- 📧 **Email**: [c.anele@alustudent.com]
+- 🐛 **Issues**: [GitHub Issues](https://github.com/Chidera0001/infra-fix-citizen/issues)
+- 💬 **Discussions**: [GitHub Discussions](https://github.com/Chidera0001/infra-fix-citizen/discussions)
+
 
 ## 🙏 Acknowledgments
 
-- **Lovable Platform** - For providing the development environment
 - **shadcn/ui** - For the beautiful component library
 - **Clerk** - For robust authentication solutions
 - **Supabase** - For backend infrastructure
 - **Open Source Community** - For the amazing tools and libraries
 
----
-
-<div align="center">
-  <p><strong>Built with ❤️ for stronger communities</strong></p>
-  <p>Making civic engagement accessible, transparent, and effective</p>
-  
-  <p>
-    <a href="#citizn---infrastructure-issue-management-platform">⬆️ Back to top</a>
-  </p>
-</div>
