@@ -9,13 +9,14 @@
 
 > A modern, scalable platform that empowers citizens to report infrastructure issues and enables local authorities to respond efficiently through data-driven insights and streamlined workflows.
 
-## 📹 Demo Video
+## 📹 Initial software product/solution demonstration
 
 <div align="center">
-  <a href="https://your-demo-video-url.com">
+  <a href="https://screenrec.com/share/iQMIGsvWmp">
     <img src="https://via.placeholder.com/800x450/1f2937/ffffff?text=Demo+Video+Coming+Soon" alt="Citizn Platform Demo" width="800" height="450" style="border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
   </a>
   <p><em>Click to watch the full platform demonstration</em></p>
+  <p><em>Video file is located at public/Assets/Videos/Initial software product & solution demonstration.mp4</em></p>
 </div>
 
 ## 📸 Screenshots
