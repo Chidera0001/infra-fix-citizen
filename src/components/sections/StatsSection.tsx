@@ -44,7 +44,7 @@ const StatsSection = () => {
 	}
 
 	if (error) {
-		console.error('Stats loading error:', error);
+		// Stats loading error
 		// Fallback to default values if there's an error
 	}
 
@@ -68,7 +68,7 @@ const StatsSection = () => {
 										className="text-xl sm:text-3xl font-normal"
 									/>
 								</h3>
-								<p className="text-gray-700 font-semibold text-sm sm:text-base text-center">
+								<p className="text-black font-semibold text-sm sm:text-base text-center">
 									Issues fixed
 								</p>
 							</div>
@@ -87,7 +87,7 @@ const StatsSection = () => {
 										className="text-xl sm:text-3xl font-normal"
 									/>
 								</h3>
-								<p className="text-gray-700 font-semibold text-sm sm:text-base text-center">
+								<p className="text-black font-semibold text-sm sm:text-base text-center">
 									Active Citizens
 								</p>
 							</div>
@@ -113,7 +113,7 @@ const StatsSection = () => {
 											className="text-xl sm:text-3xl font-normal"
 										/>
 									</h3>
-									<p className="text-gray-700 font-semibold text-sm sm:text-base text-center">
+									<p className="text-black font-semibold text-sm sm:text-base text-center">
 										Avg Response Time
 									</p>
 								</div>

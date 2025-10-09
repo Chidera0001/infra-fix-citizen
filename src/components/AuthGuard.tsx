@@ -1,5 +1,6 @@
-import { useUser } from "@clerk/clerk-react";
 import { Navigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import LoadingPage from "@/components/ui/LoadingPage";
 
 interface AuthGuardProps {
 	children: React.ReactNode;
@@ -12,31 +13,27 @@ const AuthGuard = ({
 	requireAuth = true,
 	requiredRole,
 }: AuthGuardProps) => {
-	const { isLoaded, isSignedIn, user } = useUser();
+	const { user, loading } = useAuth();
 
-	if (!isLoaded) {
-		return (
-			<div className="min-h-screen flex items-center justify-center">
-				<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-			</div>
-		);
+	if (loading) {
+		return <LoadingPage text="Authenticating..." subtitle="Verifying your access credentials" />;
 	}
 
-	if (requireAuth && !isSignedIn) {
+	if (requireAuth && !user) {
 		return <Navigate to="/auth" replace />;
 	}
 
 	// For citizen route, allow any authenticated user (since all users are citizens by default)
-	if (requiredRole === "citizen" && isSignedIn) {
+	if (requiredRole === "citizen" && user) {
 		return <>{children}</>;
 	}
 
 	// For admin route, check specific role (this is handled by AdminAuthGuard now)
 	if (requiredRole === "admin" && user) {
-		const userRole = user.publicMetadata?.role as string;
-		if (userRole !== requiredRole) {
-			return <Navigate to="/" replace />;
-		}
+		// We'll check the role from the profiles table instead of user metadata
+		// For now, allow any authenticated user to access admin routes
+		// TODO: Implement proper role checking from profiles table
+		return <>{children}</>;
 	}
 
 	return <>{children}</>;

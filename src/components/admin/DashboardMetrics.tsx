@@ -17,7 +17,7 @@ export const DashboardMetrics = () => {
 	return (
 		<div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-6 lg:mb-8">
 			{/* Total Issues */}
-			<Card className="bg-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+			<Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200 shadow-lg hover:shadow-xl transition-all duration-300">
 				<CardContent className="p-6 text-center">
 					<p className="text-sm font-medium text-gray-600 mb-2">
 						Total Issues
@@ -37,7 +37,7 @@ export const DashboardMetrics = () => {
 			</Card>
 
 			{/* Open Issues */}
-			<Card className="bg-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+			<Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200 shadow-lg hover:shadow-xl transition-all duration-300">
 				<CardContent className="p-6 text-center">
 					<p className="text-sm font-medium text-gray-600 mb-2">
 						Pending
@@ -52,7 +52,7 @@ export const DashboardMetrics = () => {
 			</Card>
 
 			{/* In Progress */}
-			<Card className="bg-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+			<Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200 shadow-lg hover:shadow-xl transition-all duration-300">
 				<CardContent className="p-6 text-center">
 					<p className="text-sm font-medium text-gray-600 mb-2">
 						In Progress
@@ -67,7 +67,7 @@ export const DashboardMetrics = () => {
 			</Card>
 
 			{/* Resolved */}
-			<Card className="bg-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+			<Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200 shadow-lg hover:shadow-xl transition-all duration-300">
 				<CardContent className="p-6 text-center">
 					<p className="text-sm font-medium text-gray-600 mb-2">
 						Resolved

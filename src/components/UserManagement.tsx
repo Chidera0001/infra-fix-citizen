@@ -57,6 +57,7 @@ import {
 import { useUsers, useUpdateUser, useDeleteUser, useUserStats, type UserFilters } from "@/hooks/use-users";
 import { formatDistanceToNow } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
 interface UserManagementProps {
 	className?: string;
@@ -135,7 +136,7 @@ export const UserManagement = ({ className }: UserManagementProps) => {
 			setIsEditDialogOpen(false);
 			setSelectedUser(null);
 		} catch (error) {
-			console.error("Failed to update user:", error);
+                  // Failed to update user
 		}
 	};
 
@@ -148,7 +149,7 @@ export const UserManagement = ({ className }: UserManagementProps) => {
 			setIsDeleteDialogOpen(false);
 			setSelectedUser(null);
 		} catch (error) {
-			console.error("Failed to delete user:", error);
+                  // Failed to delete user
 		}
 	};
 
@@ -196,31 +197,31 @@ export const UserManagement = ({ className }: UserManagementProps) => {
 		<div className={className}>
 			{/* Stats Cards */}
 			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-				<Card className="bg-white border-0 shadow-lg">
+				<Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200 shadow-lg">
 					<CardContent className="p-6 text-center">
 						<Users className="h-8 w-8 text-blue-500 mx-auto mb-2" />
-						<p className="text-xl font-normal text-gray-900">{userStats?.total || 0}</p>
-						<p className="text-sm text-gray-600">Total Users</p>
+						<p className="text-xl font-bold text-gray-900">{userStats?.total || 0}</p>
+						<p className="text-sm text-gray-600 ">Total Users</p>
 					</CardContent>
 				</Card>
-				<Card className="bg-white border-0 shadow-lg">
+				<Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200 shadow-lg">
 					<CardContent className="p-6 text-center">
 						<UserCheck className="h-8 w-8 text-green-500 mx-auto mb-2" />
-						<p className="text-xl font-normal text-gray-900">{userStats?.active || 0}</p>
-						<p className="text-sm text-gray-600">Active Users</p>
+						<p className="text-xl text-gray-900 font-bold">{userStats?.active || 0}</p>
+						<p className="text-sm text-gray-600 ">Active Users</p>
 					</CardContent>
 				</Card>
-				<Card className="bg-white border-0 shadow-lg">
+				<Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200 shadow-lg">
 					<CardContent className="p-6 text-center">
 						<ShieldCheck className="h-8 w-8 text-purple-500 mx-auto mb-2" />
-						<p className="text-xl font-normal text-gray-900">{userStats?.admins || 0}</p>
+						<p className="text-xl font-bold text-gray-900">{userStats?.admins || 0}</p>
 						<p className="text-sm text-gray-600">Admins</p>
 					</CardContent>
 				</Card>
-				<Card className="bg-white border-0 shadow-lg">
+				<Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200 shadow-lg">
 					<CardContent className="p-6 text-center">
 						<UserX className="h-8 w-8 text-red-500 mx-auto mb-2" />
-						<p className="text-xl font-normal text-gray-900">{userStats?.inactive || 0}</p>
+						<p className="text-xl font-bold text-gray-900">{userStats?.inactive || 0}</p>
 						<p className="text-sm text-gray-600">Inactive Users</p>
 					</CardContent>
 				</Card>
@@ -283,7 +284,9 @@ export const UserManagement = ({ className }: UserManagementProps) => {
 			<Card className="bg-white border-0 shadow-lg">
 				<CardContent className="p-0">
 					{isLoading ? (
-						<div className="py-8 text-center text-gray-500">Loading users...</div>
+						<div className="py-8 text-center">
+							<LoadingSpinner text="Loading users..." />
+						</div>
 					) : users.length === 0 ? (
 						<div className="py-12 text-center">
 							<Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />

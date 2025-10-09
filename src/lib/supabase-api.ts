@@ -1,6 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
-import { useUser } from '@clerk/clerk-react';
 
 type Tables = Database['public']['Tables'];
 type Issue = Tables['issues']['Row'];
@@ -13,11 +12,11 @@ type Category = Tables['categories']['Row'];
 
 // Profile API
 export const profileApi = {
-  async createOrUpdateProfile(clerkUserId: string, userData: Partial<ProfileInsert>) {
+  async createOrUpdateProfile(userId: string, userData: Partial<ProfileInsert>) {
     const { data, error } = await supabase
       .from('profiles')
       .upsert({
-        clerk_user_id: clerkUserId,
+        user_id: userId,
         ...userData,
       })
       .select()
@@ -27,22 +26,22 @@ export const profileApi = {
     return data;
   },
 
-  async getProfile(clerkUserId: string) {
+  async getProfile(userId: string) {
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
-      .eq('clerk_user_id', clerkUserId)
+      .eq('user_id', userId)
       .single();
     
     if (error && error.code !== 'PGRST116') throw error; // PGRST116 = not found
     return data;
   },
 
-  async updateProfile(clerkUserId: string, updates: ProfileUpdate) {
+  async updateProfile(userId: string, updates: ProfileUpdate) {
     const { data, error } = await supabase
       .from('profiles')
       .update(updates)
-      .eq('clerk_user_id', clerkUserId)
+      .eq('user_id', userId)
       .select()
       .single();
     
@@ -76,9 +75,9 @@ export const categoriesApi = {
 
 // Issues API
 export const issuesApi = {
-  async createIssue(issueData: IssueInsert, clerkUserId?: string) {
+  async createIssue(issueData: IssueInsert, userId?: string) {
     // First, get or create the user's profile
-    const profile = await getCurrentUserProfile(clerkUserId);
+    const profile = await getCurrentUserProfile(userId);
     if (!profile) {
       throw new Error('User profile not found. Please ensure you are logged in.');
     }
@@ -308,9 +307,9 @@ export const issuesApi = {
 
 // Comments API
 export const commentsApi = {
-  async createComment(issueId: string, comment: string, isOfficial = false, clerkUserId?: string) {
+  async createComment(issueId: string, comment: string, isOfficial = false, userId?: string) {
     // Get current user profile first
-    const profile = await getCurrentUserProfile(clerkUserId);
+    const profile = await getCurrentUserProfile(userId);
     if (!profile) throw new Error('User profile not found');
 
     const { data, error } = await supabase
@@ -409,8 +408,8 @@ export const commentsApi = {
 
 // Notifications API
 export const notificationsApi = {
-  async getNotifications(clerkUserId?: string) {
-    const profile = await getCurrentUserProfile(clerkUserId);
+  async getNotifications(userId?: string) {
+    const profile = await getCurrentUserProfile(userId);
     if (!profile) throw new Error('User profile not found');
 
     const { data, error } = await supabase
@@ -438,8 +437,8 @@ export const notificationsApi = {
     if (error) throw error;
   },
 
-  async markAllAsRead(clerkUserId?: string) {
-    const profile = await getCurrentUserProfile(clerkUserId);
+  async markAllAsRead(userId?: string) {
+    const profile = await getCurrentUserProfile(userId);
     if (!profile) throw new Error('User profile not found');
 
     const { error } = await supabase
@@ -453,37 +452,88 @@ export const notificationsApi = {
 };
 
 // Helper function to get current user profile
-export async function getCurrentUserProfile(clerkUserId?: string): Promise<Profile | null> {
-  // If no clerkUserId provided, we can't proceed
-  if (!clerkUserId) {
-    throw new Error('Clerk user ID is required');
+export async function getCurrentUserProfile(userId?: string): Promise<Profile | null> {
+  
+  // If no userId provided, we can't proceed
+  if (!userId) {
+    throw new Error('User ID is required');
   }
   
   // First, try to get existing profile
   const { data, error } = await supabase
     .from('profiles')
     .select('*')
-    .eq('clerk_user_id', clerkUserId)
+    .eq('user_id', userId)
     .single();
   
-  if (error && error.code !== 'PGRST116') throw error;
+  
+  if (error && error.code !== 'PGRST116') {
+    throw error;
+  }
   
   // If profile exists, return it
-  if (data) return data;
+  if (data) {
+    
+    // If profile exists but has empty email/name, update it with auth user data
+    if (!data.email || data.full_name === 'User') {
+      try {
+        const { data: authUser } = await supabase.auth.getUser();
+        if (authUser.user) {
+          const updatedProfile = await updateProfileWithUserData(userId, authUser.user);
+          return updatedProfile;
+        }
+      } catch (updateError) {
+        // Return the existing profile even if update fails
+      }
+    }
+    
+  return data;
+  }
   
-  // If profile doesn't exist, create one
+  
+  // Get user data from Supabase auth
+  const { data: authUser } = await supabase.auth.getUser();
+  const userData = authUser.user;
+  
   const { data: newProfile, error: createError } = await supabase
     .from('profiles')
     .insert({
-      clerk_user_id: clerkUserId,
-      email: '', // We'll get this from Clerk user data
-      full_name: null, // We'll get this from Clerk user data
+      user_id: userId,
+      email: userData?.email || '',
+      full_name: userData?.user_metadata?.full_name || 'User',
+      role: 'citizen',
+      is_active: true
     })
     .select('*')
     .single();
   
-  if (createError) throw createError;
+  
+  if (createError) {
+    throw createError;
+  }
+  
   return newProfile;
+}
+
+// Function to update profile with Supabase user data
+export async function updateProfileWithUserData(userId: string, userData: any) {
+  
+  const { data: updatedProfile, error } = await supabase
+    .from('profiles')
+    .update({
+      email: userData.email || '',
+      full_name: userData.user_metadata?.full_name || userData.full_name || 'User',
+      updated_at: new Date().toISOString()
+    })
+    .eq('user_id', userId)
+    .select('*')
+    .single();
+  
+  if (error) {
+    throw error;
+  }
+  
+  return updatedProfile;
 }
 
 // Real-time subscriptions

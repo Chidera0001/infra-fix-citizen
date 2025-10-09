@@ -9,6 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Camera, MapPin, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { getCurrentLocationWithAddress } from "@/utils/geocoding";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import CitiznLogo from "@/components/CitiznLogo";
 
 const ReportIssue = () => {
@@ -22,6 +24,44 @@ const ReportIssue = () => {
     location: "",
     photo: null as File | null,
   });
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
+
+  const getCurrentLocation = async () => {
+    if (!navigator.geolocation) {
+      toast({
+        title: "Geolocation not supported",
+        description: "Your browser doesn't support geolocation. Please enter location manually.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsGettingLocation(true);
+    
+    try {
+      const { address } = await getCurrentLocationWithAddress();
+      
+      setFormData(prev => ({
+        ...prev,
+        location: address,
+      }));
+      
+      setIsGettingLocation(false);
+      
+      toast({
+        title: "Location captured successfully!",
+        description: `Found: ${address}`,
+      });
+    } catch (error) {
+      // Location error
+      toast({
+        title: "Location access denied",
+        description: "Please allow location access or enter location manually.",
+        variant: "destructive",
+      });
+      setIsGettingLocation(false);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -148,11 +188,29 @@ const ReportIssue = () => {
                       value={formData.location}
                       onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                       required
+                      className={formData.location ? "bg-green-50" : ""}
                     />
-                    <Button type="button" variant="outline" size="icon">
-                      <MapPin className="h-4 w-4" />
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="icon"
+                      onClick={getCurrentLocation}
+                      disabled={isGettingLocation}
+                      className="flex-shrink-0"
+                    >
+                      {isGettingLocation ? (
+                        <LoadingSpinner size="sm" />
+                      ) : (
+                        <MapPin className="h-4 w-4" />
+                      )}
                     </Button>
                   </div>
+                  {formData.location && (
+                    <p className="text-xs text-green-600 flex items-center space-x-1">
+                      <MapPin className="h-3 w-3" />
+                      <span>Location automatically detected</span>
+                    </p>
+                  )}
                 </div>
               </div>
 

@@ -9,7 +9,7 @@ export const Analytics = () => {
 				<h1 className="text-xl sm:text-xl lg:text-3xl font-normal text-gray-900 mb-2 lg:mb-3">
 					Advanced Analytics
 				</h1>
-				<p className="text-gray-700 text-base lg:text-sm font-medium">
+				<p className="text-black text-base lg:text-sm font-medium">
 					Detailed analytics and reporting tools
 				</p>
 			</div>

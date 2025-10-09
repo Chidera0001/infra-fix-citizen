@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, MapPin, Filter, Plus } from "lucide-react";
+import { ArrowLeft, MapPin, Plus } from "lucide-react";
 import { useIssues } from "@/hooks/use-issues";
 import CitiznLogo from "@/components/CitiznLogo";
 
@@ -186,10 +186,6 @@ const CitizenMap = () => {
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              <Button variant="outline">
-                <Filter className="h-4 w-4 mr-2" />
-                Filters
-              </Button>
               <Button onClick={() => navigate('/citizen/report')}>
                 <Plus className="h-4 w-4 mr-2" />
                 Report Issue

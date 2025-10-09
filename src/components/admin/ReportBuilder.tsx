@@ -18,7 +18,7 @@ export const ReportBuilder = () => {
 			<CardContent>
 				<div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
 					<div>
-						<label className="block text-sm font-medium text-gray-700 mb-2">Report Type</label>
+						<label className="block text-sm font-medium text-black mb-2">Report Type</label>
 						<select className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
 							<option value="summary">Summary Report</option>
 							<option value="detailed">Detailed Report</option>
@@ -27,7 +27,7 @@ export const ReportBuilder = () => {
 						</select>
 					</div>
 					<div>
-						<label className="block text-sm font-medium text-gray-700 mb-2">Date Range</label>
+						<label className="block text-sm font-medium text-black mb-2">Date Range</label>
 						<select className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
 							<option value="7d">Last 7 days</option>
 							<option value="30d">Last 30 days</option>
@@ -36,7 +36,7 @@ export const ReportBuilder = () => {
 						</select>
 					</div>
 					<div>
-						<label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+						<label className="block text-sm font-medium text-black mb-2">Category</label>
 						<select className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
 							<option value="all">All Categories</option>
 							<option value="infrastructure">Infrastructure</option>
@@ -46,7 +46,7 @@ export const ReportBuilder = () => {
 						</select>
 					</div>
 					<div>
-						<label className="block text-sm font-medium text-gray-700 mb-2">Export Format</label>
+						<label className="block text-sm font-medium text-black mb-2">Export Format</label>
 						<select className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
 							<option value="pdf">PDF</option>
 							<option value="csv">CSV</option>
@@ -64,7 +64,7 @@ export const ReportBuilder = () => {
 						<Download className="h-4 w-4 mr-2" />
 						Export Data
 					</Button>
-					<Button variant="outline" className="border-gray-300 text-gray-700 hover:bg-gray-50">
+					<Button variant="outline" className="border-gray-300 text-black hover:bg-gray-50">
 						<Settings className="h-4 w-4 mr-2" />
 						Advanced Filters
 					</Button>

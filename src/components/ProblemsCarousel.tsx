@@ -60,60 +60,54 @@ const ProblemsCards: React.FC = () => {
 				<div className="text-center mb-12 sm:mb-16 lg:mb-20">
 					<Badge className="mb-6 sm:mb-8 bg-green-50 text-green-700 border-green-200 px-4 py-2 text-sm font-medium">
 						<AlertTriangle className="h-4 w-4 mr-2" />
-						The Problem We Solve
+						The Problems We Face
 					</Badge>
-					<h3 className="text-xl sm:text-3xl md:text-4xl font-normal text-gray-900 mb-6 sm:mb-8 px-4">
+					<h3 className="text-l sm:text-2xl md:text-3xl lg:text-4xl font-semibold text-gray-900 mb-6 sm:mb-8 px-4">
 						Infrastructure Issues Affecting Nigerian Communities
 					</h3>
 				</div>
 
 				{/* Cards Container */}
-				<div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 max-w-7xl mx-auto">
+				<div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
 					{problems.map((problem) => (
 						<div
 							key={problem.id}
-							className="bg-white/95 backdrop-blur-md rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden border border-green-200/30 hover:shadow-3xl transition-all duration-500 hover:-translate-y-2"
+							className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-all duration-300 flex flex-col"
 						>
-							{/* Card Header with Background Image */}
-							<div className="relative h-48 sm:h-56 lg:h-64 overflow-hidden">
+							{/* Card Header with Background Image - Matching padding */}
+							<div className="relative h-48 overflow-hidden m-6 mb-4">
 								<img
 									src={problem.image}
 									alt={problem.title}
-									className="w-full h-full object-cover"
+									className="w-full h-full object-cover rounded-lg"
 								/>
-								{/* Dark overlay for text readability */}
-								<div className="absolute inset-0 bg-black/40"></div>
-								{/* Gradient overlay */}
-								<div className="absolute inset-0 bg-gradient-to-r from-green-900/40 via-transparent to-blue-900/40"></div>
-
-								
 							</div>
 
-							{/* Card Content */}
-							<div className="p-4 sm:p-6 lg:p-8">
-								<div className="mb-4 sm:mb-6">
-									<h4 className="text-xl sm:text-xl font-normal text-gray-900 mb-3 sm:mb-4">
+							{/* Card Content - Matching padding */}
+							<div className="px-6 pb-6 flex flex-col flex-grow">
+								<div className="mb-6 flex-grow">
+									<h4 className="text-lg font-bold text-gray-900 mb-3">
 										{problem.title}
 									</h4>
-									<p className="text-gray-700 text-sm sm:text-base leading-relaxed">
+									<p className="text-black text-sm leading-relaxed">
 										{problem.description}
 									</p>
 								</div>
 
-								{/* Impact Points */}
-								<div className="space-y-2 sm:space-y-3">
+								{/* Impact Points - Aligned at bottom */}
+								<div className="space-y-2 mt-auto">
 									{problem.impacts.map(
 										(impact, impactIndex) => (
 											<div
 												key={impactIndex}
-												className="bg-green-50 p-2 sm:p-3 rounded-lg sm:rounded-xl border border-green-200 hover:bg-green-100 transition-all duration-300"
+												className="flex items-center space-x-3 bg-green-50 p-2 sm:p-2 rounded-lg sm:rounded-xl 
+                                                border border-green-200 hover:bg-green-100 transition-all 
+                                                duration-300"
 											>
-												<div className="flex items-center space-x-2">
-													<div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-500 rounded-full flex-shrink-0"></div>
-													<span className="text-gray-700 font-medium text-xs sm:text-sm">
-														{impact}
-													</span>
-												</div>
+												<div className="w-2 h-2 bg-green-400 rounded-full flex-shrink-0"></div>
+												<span className="text-black text-sm">
+													{impact}
+												</span>
 											</div>
 										)
 									)}

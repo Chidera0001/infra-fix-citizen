@@ -4,7 +4,8 @@ import 'swagger-ui-react/swagger-ui.css';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Download, ExternalLink, Book } from 'lucide-react';
+import { Download, ExternalLink, Book } from 'lucide-react';
+import LoadingPage from '@/components/ui/LoadingPage';
 
 interface ApiDocsProps {
   className?: string;
@@ -54,14 +55,7 @@ const ApiDocs: React.FC<ApiDocsProps> = ({ className }) => {
   };
 
   if (loading) {
-    return (
-      <div className={`flex items-center justify-center min-h-[400px] ${className}`}>
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading API documentation...</p>
-        </div>
-      </div>
-    );
+    return <LoadingPage text="Loading API Documentation..." subtitle="Fetching the latest API specifications" />;
   }
 
   if (error) {

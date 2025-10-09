@@ -1,8 +1,9 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MapPin } from "lucide-react";
-import InteractiveMapV2 from "@/components/InteractiveMapV2";
+import InteractiveMap from "@/components/InteractiveMap";
 import type { Issue } from "@/lib/supabase-api";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
 interface CommunityMapProps {
 	issues: Issue[];
@@ -29,7 +30,7 @@ export const CommunityMap = ({ issues, isLoading, onShowMap }: CommunityMapProps
 							variant="outline"
 							size="sm"
 							onClick={onShowMap}
-							className="border-green-300 text-green-700 hover:bg-green-50"
+							className="bg-gradient-to-r from-green-400 to-green-300 border-green-200 shadow-lg text-white"
 						>
 							<MapPin className="h-4 w-4 mr-2" />
 							Full Map View
@@ -44,10 +45,10 @@ export const CommunityMap = ({ issues, isLoading, onShowMap }: CommunityMapProps
 				>
 					{isLoading ? (
 						<div className="flex items-center justify-center h-full">
-							<p className="text-gray-500">Loading map...</p>
+							<LoadingSpinner text="Loading map..." />
 						</div>
 					) : (
-						<InteractiveMapV2
+						<InteractiveMap
 							issues={issues}
 							isAdmin={false}
 							className="h-full w-full"

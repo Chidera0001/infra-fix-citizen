@@ -8,6 +8,7 @@ import {
 import { Bell } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import type { Notification } from "@/lib/supabase-api";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
 interface NotificationsDropdownProps {
 	notifications: Notification[];
@@ -45,7 +46,9 @@ export const NotificationsDropdown = ({
 						)}
 					</div>
 					{isLoading ? (
-						<p className="text-sm text-gray-500 px-2 py-4">Loading notifications...</p>
+						<div className="px-2 py-4 text-center">
+							<LoadingSpinner size="sm" text="Loading notifications..." />
+						</div>
 					) : notifications.length === 0 ? (
 						<p className="text-sm text-gray-500 px-2 py-4">No notifications</p>
 					) : (

@@ -1,7 +1,7 @@
 import { Home, FileText, Map, Settings, LogOut, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import CitiznLogo from "@/components/CitiznLogo";
-import { useUser, useClerk } from "@clerk/clerk-react";
+import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
@@ -11,13 +11,12 @@ interface CitizenSidebarProps {
 }
 
 export const CitizenSidebar = ({ activeTab, onTabChange }: CitizenSidebarProps) => {
-	const { user } = useUser();
-	const { signOut } = useClerk();
+	const { user, signOut } = useAuth();
 	const navigate = useNavigate();
 	const [isOpen, setIsOpen] = useState(false);
 
-	const handleSignOut = () => {
-		signOut();
+	const handleSignOut = async () => {
+		await signOut();
 		navigate("/");
 	};
 
@@ -37,9 +36,9 @@ export const CitizenSidebar = ({ activeTab, onTabChange }: CitizenSidebarProps) 
 			{/* Mobile Menu Button */}
 			<button
 				onClick={() => setIsOpen(!isOpen)}
-				className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-lg border border-gray-200"
+				className="lg:hidden fixed top-4 right-4 z-50 p-2 bg-white rounded-lg shadow-lg border border-gray-200"
 			>
-				{isOpen ? <X className="h-6 w-6 text-gray-700" /> : <Menu className="h-6 w-6 text-gray-700" />}
+				{isOpen ? <X className="h-6 w-6 text-black" /> : <Menu className="h-6 w-6 text-black" />}
 			</button>
 
 			{/* Overlay for mobile */}
@@ -60,14 +59,14 @@ export const CitizenSidebar = ({ activeTab, onTabChange }: CitizenSidebarProps) 
 		{/* User Profile */}
 		<div className="p-6 border-b border-gray-200">
 			<div className="flex items-center space-x-3">
-				<img 
-					src={user?.imageUrl} 
-					alt={user?.fullName || "User"} 
-					className="w-12 h-12 rounded-full"
-				/>
+				<div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+					<span className="text-green-600 font-semibold text-lg">
+						{user?.user_metadata?.full_name?.charAt(0) || user?.email?.charAt(0) || 'U'}
+					</span>
+				</div>
 				<div className="flex-1 min-w-0">
 					<p className="text-base font-semibold text-gray-900 truncate">
-						{user?.fullName}
+						{user?.user_metadata?.full_name || user?.email || 'User'}
 					</p>
 					<p className="text-sm text-gray-600 truncate">Citizen</p>
 				</div>
@@ -87,7 +86,7 @@ export const CitizenSidebar = ({ activeTab, onTabChange }: CitizenSidebarProps) 
 							className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
 								isActive
 									? "bg-green-50 text-green-700 font-semibold"
-									: "text-gray-700 hover:bg-gray-50"
+									: "text-black hover:bg-gray-50"
 							}`}
 						>
 							<Icon className={`h-5 w-5 ${isActive ? "text-green-600" : "text-gray-500"}`} />
@@ -101,7 +100,7 @@ export const CitizenSidebar = ({ activeTab, onTabChange }: CitizenSidebarProps) 
 			<div className="p-4 border-t border-gray-200 space-y-2">
 				<Button
 					variant="ghost"
-					className="w-full justify-start text-gray-700 hover:bg-gray-50"
+					className="w-full justify-start text-black hover:bg-gray-50"
 					onClick={() => navigate("/settings")}
 				>
 					<Settings className="h-5 w-5 mr-3 text-gray-500" />

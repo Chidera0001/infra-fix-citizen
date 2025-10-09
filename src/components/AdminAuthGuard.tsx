@@ -1,33 +1,29 @@
 import { Navigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useCurrentProfile } from "@/hooks/use-profile";
+import LoadingPage from "@/components/ui/LoadingPage";
 
 interface AdminAuthGuardProps {
 	children: React.ReactNode;
 }
 
 const AdminAuthGuard = ({ children }: AdminAuthGuardProps) => {
-	const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(
-		null
-	);
-
-	useEffect(() => {
-		// Check if admin is authenticated via localStorage
-		const adminAuth = localStorage.getItem("adminAuthenticated");
-		setIsAuthenticated(adminAuth === "true");
-	}, []);
+	const { user, loading } = useAuth();
+	const { data: profile, isLoading: profileLoading } = useCurrentProfile();
 
 	// Show loading while checking authentication
-	if (isAuthenticated === null) {
-		return (
-			<div className="min-h-screen flex items-center justify-center">
-				<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
-			</div>
-		);
+	if (loading || profileLoading) {
+		return <LoadingPage text="Verifying Admin Access..." subtitle="Checking your administrative privileges" />;
 	}
 
 	// Redirect to admin login if not authenticated
-	if (!isAuthenticated) {
+	if (!user) {
 		return <Navigate to="/admin-login" replace />;
+	}
+
+	// Check if user has admin role
+	if (profile?.role !== 'admin') {
+		return <Navigate to="/" replace />;
 	}
 
 	return <>{children}</>;

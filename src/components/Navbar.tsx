@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import { useUser, SignInButton } from "@clerk/clerk-react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { UserPlus, Menu, X } from "lucide-react";
 import CitiznLogo from "@/components/CitiznLogo";
 import { useNavigate } from "react-router-dom";
 
 const Navbar: React.FC = () => {
-	const { isSignedIn, user } = useUser();
+	const { user, signOut } = useAuth();
 	const navigate = useNavigate();
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -16,6 +16,11 @@ const Navbar: React.FC = () => {
 
 	const closeMobileMenu = () => {
 		setIsMobileMenuOpen(false);
+	};
+
+	const handleSignOut = async () => {
+		await signOut();
+		navigate("/");
 	};
 
 	return (
@@ -32,10 +37,10 @@ const Navbar: React.FC = () => {
 
 							{/* Desktop Auth Buttons */}
 							<div className="hidden md:flex items-center space-x-4">
-								{isSignedIn ? (
+								{user ? (
 									<div className="flex items-center space-x-3">
 										<span className="text-sm text-white/90 font-medium">
-											Welcome back, {user?.firstName}
+											Welcome back, {user?.user_metadata?.full_name || user?.email}
 										</span>
 										<Button
 											onClick={() => navigate("/citizen")}
@@ -44,18 +49,25 @@ const Navbar: React.FC = () => {
 										>
 											Dashboard
 										</Button>
+										<Button
+											onClick={handleSignOut}
+											variant="outline"
+											size="sm"
+											className="border-white/30 text-white bg-inherit hover:border-white/50 backdrop-blur-sm"
+										>
+											Sign Out
+										</Button>
 									</div>
 								) : (
 									<div className="flex items-center space-x-3">
-										<SignInButton mode="modal">
-											<Button
-												variant="outline"
-												size="sm"
-												className="border-white/30 text-white bg-inherit hover:border-white/50 backdrop-blur-sm"
-											>
-												Sign In
-											</Button>
-										</SignInButton>
+										<Button
+											onClick={() => navigate("/auth")}
+											variant="outline"
+											size="sm"
+											className="border-white/30 text-white bg-inherit hover:border-white/50 backdrop-blur-sm"
+										>
+											Sign In
+										</Button>
 										<Button
 											onClick={() => navigate("/auth")}
 											className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold shadow-lg backdrop-blur-sm"
@@ -103,10 +115,10 @@ const Navbar: React.FC = () => {
 
 									{/* Mobile Auth Buttons */}
 									<div className="flex flex-col space-y-3 pt-4">
-										{isSignedIn ? (
+										{user ? (
 											<>
 												<span className="text-sm text-white/90 font-medium">
-													Welcome back, {user?.firstName}
+													Welcome back, {user?.user_metadata?.full_name || user?.email}
 												</span>
 												<Button
 													onClick={() => {
@@ -118,19 +130,31 @@ const Navbar: React.FC = () => {
 												>
 													Dashboard
 												</Button>
+												<Button
+													onClick={() => {
+														handleSignOut();
+														closeMobileMenu();
+													}}
+													variant="outline"
+													size="sm"
+													className="border-white/30 text-white bg-inherit hover:border-white/50 backdrop-blur-sm w-full"
+												>
+													Sign Out
+												</Button>
 											</>
 										) : (
 											<>
-												<SignInButton mode="modal">
-													<Button
-														variant="outline"
-														size="sm"
-														className="border-white/30 text-white bg-inherit hover:border-white/50 backdrop-blur-sm w-full"
-														onClick={closeMobileMenu}
-													>
-														Sign In
-													</Button>
-												</SignInButton>
+												<Button
+													onClick={() => {
+														navigate("/auth");
+														closeMobileMenu();
+													}}
+													variant="outline"
+													size="sm"
+													className="border-white/30 text-white bg-inherit hover:border-white/50 backdrop-blur-sm w-full"
+												>
+													Sign In
+												</Button>
 												<Button
 													onClick={() => {
 														navigate("/auth");

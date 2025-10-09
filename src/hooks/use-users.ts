@@ -60,7 +60,7 @@ export function useUpdateUser() {
         description: "Failed to update user. Please try again.",
         variant: "destructive",
       });
-      console.error('Update user error:', error);
+      // Update user error
     },
   });
 }
@@ -87,7 +87,7 @@ export function useDeleteUser() {
         description: "Failed to delete user. Please try again.",
         variant: "destructive",
       });
-      console.error('Delete user error:', error);
+      // Delete user error
     },
   });
 }

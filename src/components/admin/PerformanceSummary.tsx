@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { adminApi } from "@/lib/supabase-api";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
 export const PerformanceSummary = () => {
 	const { data: performanceMetrics, isLoading: metricsLoading } = useQuery({
@@ -23,7 +24,7 @@ export const PerformanceSummary = () => {
 			<CardContent>
 				{metricsLoading ? (
 					<div className="h-[200px] flex items-center justify-center">
-						<p className="text-gray-500">Loading performance data...</p>
+						<LoadingSpinner text="Loading performance data..." />
 					</div>
 				) : !performanceMetrics ? (
 					<div className="h-[200px] flex items-center justify-center">
@@ -49,7 +50,7 @@ export const PerformanceSummary = () => {
 						</div>
 						<div className="pt-4 border-t border-gray-200">
 							<div className="flex items-center justify-between">
-								<span className="text-sm font-medium text-gray-700">Overall Score</span>
+								<span className="text-sm font-medium text-black">Overall Score</span>
 								<span className="text-xl font-normal text-green-600">
 									{performanceMetrics.completionRate >= 90 ? 'A+' : 
 									 performanceMetrics.completionRate >= 80 ? 'A' :

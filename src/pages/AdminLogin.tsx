@@ -5,40 +5,47 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Shield, Lock, User, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
 const AdminLogin = () => {
 	const [credentials, setCredentials] = useState({
-		username: "",
+		email: "",
 		password: "",
 	});
 	const [isLoading, setIsLoading] = useState(false);
 	const [showPassword, setShowPassword] = useState(false);
 	const navigate = useNavigate();
 	const { toast } = useToast();
+	const { signIn } = useAuth();
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		setIsLoading(true);
 
-		await new Promise((resolve) => setTimeout(resolve, 1000));
-
-		if (
-			credentials.username === "Admin" &&
-			credentials.password === "123456789"
-		) {
-			localStorage.setItem("adminAuthenticated", "true");
-			localStorage.setItem("adminUser", credentials.username);
-
-			toast({
-				title: "Login Successful",
-				description: "Welcome to the Nigerian Administrative Dashboard",
-			});
-
-			navigate("/admin-citizn");
-		} else {
+		try {
+			// Try to sign in with Supabase
+			const { error } = await signIn(credentials.email, credentials.password);
+			
+			if (error) {
+				toast({
+					title: "Login Failed",
+					description: "Invalid email or password",
+					variant: "destructive",
+				});
+			} else {
+				// Check if user has admin role
+				// This will be handled by the AdminAuthGuard
+				toast({
+					title: "Login Successful",
+					description: "Welcome to the Admin Dashboard",
+				});
+				navigate("/admin-citizn");
+			}
+		} catch (err) {
 			toast({
 				title: "Login Failed",
-				description: "Invalid username or password",
+				description: "An error occurred during login",
 				variant: "destructive",
 			});
 		}
@@ -73,23 +80,22 @@ const AdminLogin = () => {
 						>
 									<div className="space-y-2">
 										<Label
-											htmlFor="username"
-											className="text-gray-700 font-medium"
+											htmlFor="email"
+											className="text-black font-medium"
 										>
-											Username
+											Email
 										</Label>
 										<div className="relative">
 											<User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
 											<Input
-												id="username"
-												type="text"
-												placeholder="Enter your username"
-												value={credentials.username}
+												id="email"
+												type="email"
+												placeholder="Enter your admin email"
+												value={credentials.email}
 												onChange={(e) =>
 													setCredentials({
 														...credentials,
-														username:
-															e.target.value,
+														email: e.target.value,
 													})
 												}
 												className="pl-10 border-green-300 focus:border-green-500 focus:ring-green-500 rounded-xl"
@@ -101,7 +107,7 @@ const AdminLogin = () => {
 									<div className="space-y-2">
 										<Label
 											htmlFor="password"
-											className="text-gray-700 font-medium"
+											className="text-black font-medium"
 										>
 											Password
 										</Label>
@@ -151,19 +157,19 @@ const AdminLogin = () => {
 										className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
 										disabled={isLoading}
 									>
-										{isLoading ? (
-											<div className="flex items-center space-x-2">
-												<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-												<span>Authenticating...</span>
-											</div>
-										) : (
-											<div className="flex items-center space-x-2">
-												<Shield className="h-5 w-5" />
-												<span>
-													Login to Admin Dashboard
-												</span>
-											</div>
-										)}
+									{isLoading ? (
+										<div className="flex items-center space-x-2">
+											<LoadingSpinner size="sm" text="" />
+											<span>Authenticating...</span>
+										</div>
+									) : (
+										<div className="flex items-center space-x-2">
+											<Shield className="h-5 w-5" />
+											<span>
+												Login to Admin Dashboard
+											</span>
+										</div>
+									)}
 									</Button>
 						</form>
 					</div>

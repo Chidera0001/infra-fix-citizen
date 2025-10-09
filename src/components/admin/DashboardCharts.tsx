@@ -133,8 +133,8 @@ export const DashboardCharts = () => {
 								>
 									{[
 										{ name: 'Open', value: statistics?.open_issues || 0, color: '#ef4444' },
-										{ name: 'In Progress', value: statistics?.in_progress_issues || 0, color: '#16a34a' },
-										{ name: 'Resolved', value: statistics?.resolved_issues || 0, color: '#10b981' },
+										{ name: 'In Progress', value: statistics?.in_progress_issues || 0, color: '#22c55e' },
+										{ name: 'Resolved', value: statistics?.resolved_issues || 0, color: '#16a34a' },
 									].filter(item => item.value > 0).map((entry, index) => (
 										<Cell key={`cell-${index}`} fill={entry.color} />
 									))}
@@ -179,7 +179,7 @@ export const DashboardCharts = () => {
 										}}
 									/>
 									<Legend />
-									<Bar dataKey="resolved" fill="#10b981" name="Resolved" radius={[0, 8, 8, 0]} />
+									<Bar dataKey="resolved" fill="#22c55e" name="Resolved" radius={[0, 8, 8, 0]} />
 									<Bar dataKey="pending" fill="#ef4444" name="Pending" radius={[0, 8, 8, 0]} />
 								</BarChart>
 							</ResponsiveContainer>

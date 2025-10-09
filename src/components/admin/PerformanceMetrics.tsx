@@ -28,7 +28,7 @@ export const PerformanceMetrics = () => {
 			{/* Resolution Rate */}
 			<div>
 				<div className="flex items-center justify-between mb-2">
-					<span className="text-sm font-medium text-gray-700">Resolution Rate</span>
+					<span className="text-sm font-medium text-black">Resolution Rate</span>
 					<span className="text-sm font-normal text-green-600">
 						{performanceMetrics.resolutionRate || 0}%
 					</span>
@@ -44,7 +44,7 @@ export const PerformanceMetrics = () => {
 			{/* Avg Response Time */}
 			<div>
 				<div className="flex items-center justify-between mb-2">
-					<span className="text-sm font-medium text-gray-700">Avg Response Time</span>
+					<span className="text-sm font-medium text-black">Avg Response Time</span>
 					<span className="text-sm font-normal text-green-600">
 						{performanceMetrics.avgResponseTime || 0} hrs
 					</span>
@@ -62,7 +62,7 @@ export const PerformanceMetrics = () => {
 			{/* User Satisfaction */}
 			<div>
 				<div className="flex items-center justify-between mb-2">
-					<span className="text-sm font-medium text-gray-700">User Satisfaction</span>
+					<span className="text-sm font-medium text-black">User Satisfaction</span>
 					<span className="text-sm font-normal text-green-600">
 						{performanceMetrics.userSatisfaction || 0}%
 					</span>
@@ -78,7 +78,7 @@ export const PerformanceMetrics = () => {
 			{/* Completion Rate */}
 			<div>
 				<div className="flex items-center justify-between mb-2">
-					<span className="text-sm font-medium text-gray-700">Issue Completion</span>
+					<span className="text-sm font-medium text-black">Issue Completion</span>
 					<span className="text-sm font-normal text-green-600">
 						{performanceMetrics.totalCompleted || 0} / {performanceMetrics.totalIssues || 0}
 					</span>

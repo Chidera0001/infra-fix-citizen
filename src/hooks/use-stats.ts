@@ -23,7 +23,7 @@ export function useStats() {
         inProgressIssues: issueStats?.in_progress_issues || 0,
       };
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
+    staleTime: 10000, // 10 seconds - more responsive
+    refetchInterval: 30000, // Refetch every 30 seconds
   });
 }

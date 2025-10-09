@@ -15,27 +15,28 @@ import { Button } from "@/components/ui/button";
 import CitiznLogo from "@/components/CitiznLogo";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
 
 interface AdminSidebarProps {
 	activeTab: string;
 	onTabChange: (tab: "dashboard" | "issues" | "map" | "users" | "analytics") => void;
-	adminUser: string;
+	profile: any;
 }
 
-export const AdminSidebar = ({ activeTab, onTabChange, adminUser }: AdminSidebarProps) => {
+export const AdminSidebar = ({ activeTab, onTabChange, profile }: AdminSidebarProps) => {
 	const navigate = useNavigate();
 	const { toast } = useToast();
+	const { signOut } = useAuth();
 	const [isOpen, setIsOpen] = useState(false);
 
-	const handleLogout = () => {
-		localStorage.removeItem("adminAuthenticated");
-		localStorage.removeItem("adminUser");
+	const handleLogout = async () => {
+		await signOut();
 		toast({
 			title: "Logged Out",
 			description: "You have been successfully logged out",
 		});
-		navigate("/admin-login");
+		navigate("/");
 	};
 
 	const handleMenuItemClick = (tab: "dashboard" | "issues" | "map" | "users" | "analytics") => {
@@ -58,7 +59,7 @@ export const AdminSidebar = ({ activeTab, onTabChange, adminUser }: AdminSidebar
 				onClick={() => setIsOpen(!isOpen)}
 				className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-lg border border-gray-200"
 			>
-				{isOpen ? <X className="h-6 w-6 text-gray-700" /> : <Menu className="h-6 w-6 text-gray-700" />}
+				{isOpen ? <X className="h-6 w-6 text-black" /> : <Menu className="h-6 w-6 text-black" />}
 			</button>
 
 			{/* Overlay for mobile */}
@@ -79,9 +80,17 @@ export const AdminSidebar = ({ activeTab, onTabChange, adminUser }: AdminSidebar
 		{/* Logo and Admin Profile Combined */}
 		<div className="p-6 border-b border-gray-200">
 			<div className="flex items-center space-x-3">
-				<p className="text-lg font-normal text-gray-900">
-					Welcome Admin
-				</p>
+				<div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+					<span className="text-green-600 font-semibold text-lg">
+						{profile?.full_name?.charAt(0) || profile?.email?.charAt(0) || 'A'}
+					</span>
+				</div>
+				<div className="flex-1 min-w-0">
+					<p className="text-base font-semibold text-gray-900 truncate">
+						{profile?.full_name || profile?.email || 'Admin'}
+					</p>
+					<p className="text-sm text-gray-600 truncate">Administrator</p>
+				</div>
 			</div>
 		</div>
 
@@ -98,7 +107,7 @@ export const AdminSidebar = ({ activeTab, onTabChange, adminUser }: AdminSidebar
 							className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
 								isActive
 									? "bg-green-50 text-green-700 font-semibold"
-									: "text-gray-700 hover:bg-gray-50"
+									: "text-black hover:bg-gray-50"
 							}`}
 						>
 							<Icon className={`h-5 w-5 ${isActive ? "text-green-600" : "text-gray-500"}`} />
@@ -112,7 +121,7 @@ export const AdminSidebar = ({ activeTab, onTabChange, adminUser }: AdminSidebar
 			<div className="p-4 border-t border-gray-200 space-y-2">
 				<Button
 					variant="ghost"
-					className="w-full justify-start text-gray-700 hover:bg-gray-50"
+					className="w-full justify-start text-black hover:bg-gray-50"
 					onClick={() => navigate("/admin/settings")}
 				>
 					<Settings className="h-5 w-5 mr-3 text-gray-500" />

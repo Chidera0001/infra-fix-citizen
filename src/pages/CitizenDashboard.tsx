@@ -3,6 +3,7 @@ import ReportForm from "@/components/ReportForm";
 import IssueMap from "@/components/IssueMap";
 import { useIssues, useIssueStatistics } from "@/hooks/use-issues";
 import { useNotifications, useMarkAsRead } from "@/hooks/use-notifications";
+import { useCurrentProfile } from "@/hooks/use-profile";
 import { CitizenSidebar } from "@/components/layout/CitizenSidebar";
 import { Dashboard, MyReports } from "@/components/citizen";
 
@@ -19,8 +20,13 @@ const CitizenDashboard = () => {
 	const { data: notifications = [], isLoading: notificationsLoading } = useNotifications();
 	const markAsReadMutation = useMarkAsRead();
 	
-	// Filter user's own reports (when we have user profile integration)
-	const myReports = allIssues.slice(0, 3);
+	// Trigger profile update with Clerk data
+	const { data: profile } = useCurrentProfile();
+	
+	// Filter user's own reports based on reporter_id
+	const myReports = allIssues.filter(issue => 
+		profile?.id && issue.reporter_id === profile.id
+	);
 
 	useEffect(() => {
 		document.title = "Citizn";
@@ -35,6 +41,7 @@ const CitizenDashboard = () => {
 	// Handle tab changes
 	const handleTabChange = (tab: "dashboard" | "reports" | "map") => {
 		setActiveTab(tab);
+		setShowReportForm(false); // Close report form when changing tabs
 		if (tab === "map") {
 			setShowMap(true);
 		} else {
@@ -51,13 +58,13 @@ const CitizenDashboard = () => {
 
 	// If showing report form, render it with sidebar
 	if (showReportForm) {
-		return (
+	return (
 			<div className="flex h-screen overflow-hidden bg-gradient-to-br from-green-50 via-blue-50 to-indigo-50">
 				<CitizenSidebar activeTab={activeTab} onTabChange={handleTabChange} />
 				<div className="flex-1 overflow-y-auto">
 					<ReportForm onBack={handleBackToDashboard} />
-				</div>
-			</div>
+						</div>
+					</div>
 		);
 	}
 
@@ -68,8 +75,8 @@ const CitizenDashboard = () => {
 				<CitizenSidebar activeTab={activeTab} onTabChange={handleTabChange} />
 				<div className="flex-1 overflow-y-auto">
 					<IssueMap onBack={handleBackToDashboard} isAdmin={false} />
-				</div>
-			</div>
+								</div>
+							</div>
 		);
 	}
 

@@ -318,7 +318,7 @@ const AdminDashboard = ({ onBack }: AdminDashboardProps) => {
 						<div className="grid grid-cols-1 md:grid-cols-4 gap-4">
 							{/* Time Filter */}
 							<div className="space-y-2">
-								<label className="text-sm font-medium text-gray-700">
+								<label className="text-sm font-medium text-black">
 									Time Period
 								</label>
 								<Select
@@ -355,7 +355,7 @@ const AdminDashboard = ({ onBack }: AdminDashboardProps) => {
 
 							{/* Category Filter */}
 							<div className="space-y-2">
-								<label className="text-sm font-medium text-gray-700">
+								<label className="text-sm font-medium text-black">
 									Category
 								</label>
 								<Select
@@ -383,7 +383,7 @@ const AdminDashboard = ({ onBack }: AdminDashboardProps) => {
 
 							{/* Status Filter */}
 							<div className="space-y-2">
-								<label className="text-sm font-medium text-gray-700">
+								<label className="text-sm font-medium text-black">
 									Status
 								</label>
 								<Select
@@ -412,7 +412,7 @@ const AdminDashboard = ({ onBack }: AdminDashboardProps) => {
 
 							{/* Export Button */}
 							<div className="space-y-2">
-								<label className="text-sm font-medium text-gray-700">
+								<label className="text-sm font-medium text-black">
 									Export
 								</label>
 								<Dialog

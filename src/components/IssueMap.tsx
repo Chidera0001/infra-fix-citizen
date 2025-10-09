@@ -1,9 +1,7 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, MapPin, Filter } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useIssues } from "@/hooks/use-issues";
 import InteractiveMap from "./InteractiveMap";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
 interface IssueMapProps {
 	onBack: () => void;
@@ -12,134 +10,42 @@ interface IssueMapProps {
 
 const IssueMap = ({ onBack, isAdmin = false }: IssueMapProps) => {
 	const { data: issues = [], isLoading } = useIssues({ limit: 100 });
+	
 	return (
-		<div className="min-h-screen bg-gray-50">
+		<div className="h-screen w-full flex flex-col bg-gray-50">
 			{/* Header */}
-			<header className="bg-white shadow-sm border-b">
-				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+			<header className="bg-white shadow-sm border-b flex-shrink-0">
+				<div className="px-4 sm:px-6 lg:px-8 py-4">
 					<div className="flex items-center justify-between">
 						<div className="flex items-center space-x-4">
-							<div className="flex items-center space-x-3">
-								<div>
-									<h1 className="text-xl font-normal text-gray-900">
-										{isAdmin
-											? "Admin Map View"
-											: "Issue Map"}
-									</h1>
-									<p className="text-sm text-gray-600">
-										{isAdmin
-											? "Monitor all issues across the community"
-											: "View all reported issues by location"}
-									</p>
-								</div>
+							<div>
+								<h1 className="text-xl font-normal text-gray-900">
+									{isAdmin ? "Admin Map View" : "Issue Map"}
+								</h1>
+								<p className="text-sm text-gray-600">
+									{isAdmin
+										? "Monitor all issues across the community"
+										: "View all reported issues by location"}
+								</p>
 							</div>
 						</div>
-						<Button variant="outline">
-							<Filter className="h-4 w-4 mr-2" />
-							Filters
-						</Button>
 					</div>
 				</div>
 			</header>
 
-			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-				<div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-					{/* Interactive Map */}
-					<div className="lg:col-span-3">
-						<Card className="h-[600px]">
-							<CardContent className="p-0 h-full">
-								{isLoading ? (
-									<div className="flex items-center justify-center h-full">
-										<p className="text-gray-500">Loading map...</p>
-									</div>
-								) : (
-									<InteractiveMap
-										issues={issues}
-										isAdmin={isAdmin}
-										className="h-full"
-								/>
-								)}
-							</CardContent>
-						</Card>
+			{/* Full-Width Map */}
+			<div className="flex-1 w-full">
+				{isLoading ? (
+					<div className="flex items-center justify-center h-full">
+						<LoadingSpinner text="Loading map..." />
 					</div>
-
-					{/* Issue List Sidebar */}
-					<div className="space-y-4">
-						<Card>
-							<CardHeader>
-								<CardTitle className="text-lg">
-									Nearby Issues
-								</CardTitle>
-							</CardHeader>
-							<CardContent className="space-y-4">
-								{issues.slice(0, 6).map((issue) => (
-									<div
-										key={issue.id}
-										className="border-b pb-3 last:border-b-0"
-									>
-										<div className="flex items-start justify-between mb-2">
-											<h4 className="font-medium text-sm">
-												{issue.title}
-											</h4>
-											<Badge
-												variant={
-													issue.status === "open"
-														? "destructive"
-														: issue.status ===
-														  "in-progress"
-														? "default"
-														: "secondary"
-												}
-											>
-												{issue.status}
-											</Badge>
-										</div>
-										<p className="text-xs text-gray-600 mb-2">
-											{issue.location}
-										</p>
-										<div className="flex items-center justify-between">
-											<span className="text-xs text-gray-500">
-												{issue.category}
-											</span>
-											<span className="text-xs text-gray-500">
-												{issue.date}
-											</span>
-										</div>
-									</div>
-								))}
-							</CardContent>
-						</Card>
-
-						{/* Legend */}
-						<Card>
-							<CardHeader>
-								<CardTitle className="text-lg">
-									Map Legend
-								</CardTitle>
-							</CardHeader>
-							<CardContent className="space-y-2">
-								<div className="flex items-center space-x-3">
-									<div className="w-3 h-3 bg-red-500 rounded-full"></div>
-									<span className="text-sm">Open Issues</span>
-								</div>
-								<div className="flex items-center space-x-3">
-									<div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-									<span className="text-sm">In Progress</span>
-								</div>
-								<div className="flex items-center space-x-3">
-									<div className="w-3 h-3 bg-green-500 rounded-full"></div>
-									<span className="text-sm">Resolved</span>
-								</div>
-								<div className="flex items-center space-x-3">
-									<div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-									<span className="text-sm">
-										Water Issues
-									</span>
-								</div>
-							</CardContent>
-						</Card>
-					</div>
-				</div>
+				) : (
+					<InteractiveMap
+						issues={issues}
+						isAdmin={isAdmin}
+						className="h-full w-full"
+					/>
+				)}
 			</div>
 		</div>
 	);

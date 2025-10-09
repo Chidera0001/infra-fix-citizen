@@ -17,7 +17,7 @@ export function useIssues(filters?: {
   return useQuery({
     queryKey: ['issues', filters],
     queryFn: () => issuesApi.getIssues(filters),
-    staleTime: 30000, // 30 seconds
+    staleTime: 10000, // 10 seconds - more responsive
   });
 }
 
@@ -34,10 +34,13 @@ export function useCreateIssue() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: ({ issueData, clerkUserId }: { issueData: any; clerkUserId?: string }) => 
-      issuesApi.createIssue(issueData, clerkUserId),
+    mutationFn: ({ issueData, userId }: { issueData: any; userId?: string }) => 
+      issuesApi.createIssue(issueData, userId),
     onSuccess: () => {
+      // Invalidate all related queries to refresh stats
       queryClient.invalidateQueries({ queryKey: ['issues'] });
+      queryClient.invalidateQueries({ queryKey: ['issue-statistics'] });
+      queryClient.invalidateQueries({ queryKey: ['stats'] });
       toast({
         title: 'Success!',
         description: 'Issue reported successfully',
@@ -61,7 +64,10 @@ export function useUpdateIssue() {
     mutationFn: ({ id, updates }: { id: string; updates: any }) =>
       issuesApi.updateIssue(id, updates),
     onSuccess: () => {
+      // Invalidate all related queries to refresh stats
       queryClient.invalidateQueries({ queryKey: ['issues'] });
+      queryClient.invalidateQueries({ queryKey: ['issue-statistics'] });
+      queryClient.invalidateQueries({ queryKey: ['stats'] });
       toast({
         title: 'Success!',
         description: 'Issue updated successfully',
@@ -84,7 +90,10 @@ export function useDeleteIssue() {
   return useMutation({
     mutationFn: issuesApi.deleteIssue,
     onSuccess: () => {
+      // Invalidate all related queries to refresh stats
       queryClient.invalidateQueries({ queryKey: ['issues'] });
+      queryClient.invalidateQueries({ queryKey: ['issue-statistics'] });
+      queryClient.invalidateQueries({ queryKey: ['stats'] });
       toast({
         title: 'Success!',
         description: 'Issue deleted successfully',
@@ -106,7 +115,10 @@ export function useToggleUpvote() {
   return useMutation({
     mutationFn: issuesApi.toggleUpvote,
     onSuccess: () => {
+      // Invalidate all related queries to refresh stats
       queryClient.invalidateQueries({ queryKey: ['issues'] });
+      queryClient.invalidateQueries({ queryKey: ['issue-statistics'] });
+      queryClient.invalidateQueries({ queryKey: ['stats'] });
     },
   });
 }
@@ -115,6 +127,6 @@ export function useIssueStatistics(lat?: number, lng?: number, radius?: number) 
   return useQuery({
     queryKey: ['issue-statistics', lat, lng, radius],
     queryFn: () => issuesApi.getIssueStatistics(lat, lng, radius),
-    staleTime: 60000, // 1 minute
+    staleTime: 10000, // 10 seconds - more responsive
   });
 }

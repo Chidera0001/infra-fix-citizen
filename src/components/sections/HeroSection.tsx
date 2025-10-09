@@ -1,4 +1,4 @@
-import { useUser } from "@clerk/clerk-react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import Navbar from "@/components/Navbar";
@@ -7,11 +7,11 @@ import { useNavigate } from "react-router-dom";
 import StatsSection from "./StatsSection";
 
 const HeroSection = () => {
-	const { isSignedIn } = useUser();
+	const { user } = useAuth();
 	const navigate = useNavigate();
 
 	const handleGetStarted = () => {
-		if (isSignedIn) {
+		if (user) {
 			navigate("/citizen");
 		} else {
 			navigate("/auth");

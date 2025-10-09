@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import IssueMap from "@/components/IssueMap";
 import { useToast } from "@/hooks/use-toast";
+import { useCurrentProfile } from "@/hooks/use-profile";
+import { useAuth } from "@/contexts/AuthContext";
 import { AdminSidebar } from "@/components/layout/AdminSidebar";
 import { 
 	Analytics, 
@@ -11,18 +13,14 @@ import {
 } from "@/components/admin";
 
 const AdminDashboard = () => {
-	const [adminUser, setAdminUser] = useState<string>("");
 	const [showMap, setShowMap] = useState(false);
 	const [activeTab, setActiveTab] = useState<"dashboard" | "issues" | "map" | "users" | "analytics">("dashboard");
 	const navigate = useNavigate();
 	const { toast } = useToast();
+	const { signOut } = useAuth();
 
-	useEffect(() => {
-		const storedUser = localStorage.getItem("adminUser");
-		if (storedUser) {
-			setAdminUser(storedUser);
-		}
-	}, []);
+	// Get current user profile
+	const { data: profile } = useCurrentProfile();
 
 	useEffect(() => {
 		document.title = "Admin-Citizn";
@@ -62,22 +60,22 @@ const AdminDashboard = () => {
 	if (showMap) {
 	return (
 			<div className="flex h-screen overflow-hidden bg-gradient-to-br from-green-50 via-blue-50 to-indigo-50">
-				<AdminSidebar activeTab={activeTab} onTabChange={handleTabChange} adminUser={adminUser} />
+				<AdminSidebar activeTab={activeTab} onTabChange={handleTabChange} profile={profile} />
 				<div className="flex-1 overflow-y-auto">
 					<IssueMap onBack={handleBackToDashboard} isAdmin={true} />
 						</div>
 					</div>
-		);
-	}
+	);
+}
 
-	return (
-		<div className="flex h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-			{/* Sidebar */}
-			<AdminSidebar activeTab={activeTab} onTabChange={handleTabChange} adminUser={adminUser} />
+return (
+	<div className="flex h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+		{/* Sidebar */}
+		<AdminSidebar activeTab={activeTab} onTabChange={handleTabChange} profile={profile} />
 
-			{/* Main Content */}
-			<div className="flex-1 overflow-y-auto">
-				{renderContent()}
+		{/* Main Content */}
+		<div className="flex-1 overflow-y-auto">
+			{renderContent()}
 			</div>
 		</div>
 	);

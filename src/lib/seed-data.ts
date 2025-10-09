@@ -120,7 +120,7 @@ export const seedIssues: Omit<IssueInsert, 'reporter_id'>[] = [
 // Function to seed the database with sample data
 export async function seedDatabase() {
   try {
-    console.log('Starting database seeding...');
+    // Starting database seeding...
     
     // First, check if we already have data
     const { data: existingIssues, error: checkError } = await supabase
@@ -129,12 +129,12 @@ export async function seedDatabase() {
       .limit(1);
     
     if (checkError) {
-      console.error('Error checking existing data:', checkError);
+      // Error checking existing data
       return;
     }
     
     if (existingIssues && existingIssues.length > 0) {
-      console.log('Database already has data, skipping seed');
+      // Database already has data, skipping seed
       return;
     }
     
@@ -151,7 +151,7 @@ export async function seedDatabase() {
       .single();
     
     if (profileError) {
-      console.error('Error creating admin profile:', profileError);
+      // Error creating admin profile
       return;
     }
     
@@ -166,21 +166,21 @@ export async function seedDatabase() {
       .insert(issuesWithReporter);
     
     if (issuesError) {
-      console.error('Error inserting seed issues:', issuesError);
+      // Error inserting seed issues
       return;
     }
     
-    console.log(`Successfully seeded ${seedIssues.length} issues`);
+    // Successfully seeded issues
     
   } catch (error) {
-    console.error('Error seeding database:', error);
+    // Error seeding database
   }
 }
 
 // Function to clear all data (for development)
 export async function clearDatabase() {
   try {
-    console.log('Clearing database...');
+    // Clearing database...
     
     // Delete in order due to foreign key constraints
     await supabase.from('notifications').delete().neq('id', '00000000-0000-0000-0000-000000000000');
@@ -190,8 +190,8 @@ export async function clearDatabase() {
     await supabase.from('issues').delete().neq('id', '00000000-0000-0000-0000-000000000000');
     await supabase.from('profiles').delete().neq('id', '00000000-0000-0000-0000-000000000000');
     
-    console.log('Database cleared successfully');
+    // Database cleared successfully
   } catch (error) {
-    console.error('Error clearing database:', error);
+    // Error clearing database
   }
 }

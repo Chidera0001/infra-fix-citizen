@@ -45,7 +45,7 @@ const IssueCard = ({ issue, showActions = true }: IssueCardProps) => {
 			case "resolved":
 				return "bg-green-100 text-green-700 border-green-200";
 			default:
-				return "bg-gray-100 text-gray-700 border-gray-200";
+				return "bg-gray-100 text-black border-gray-200";
 		}
 	};
 
@@ -58,7 +58,7 @@ const IssueCard = ({ issue, showActions = true }: IssueCardProps) => {
 			case "low":
 				return "bg-green-100 text-green-700 border-green-200";
 			default:
-				return "bg-gray-100 text-gray-700 border-gray-200";
+				return "bg-gray-100 text-black border-gray-200";
 		}
 	};
 
@@ -118,7 +118,7 @@ const IssueCard = ({ issue, showActions = true }: IssueCardProps) => {
 							</div>
 						</div>
 
-						<p className="text-gray-700 mb-4 leading-relaxed">
+						<p className="text-black mb-4 leading-relaxed">
 							{issue.description}
 						</p>
 
@@ -146,7 +146,7 @@ const IssueCard = ({ issue, showActions = true }: IssueCardProps) => {
 								<div className="bg-green-100 p-2 rounded-lg">
 									{getCategoryIcon(issue.category)}
 								</div>
-								<span className="text-sm font-medium text-gray-700 capitalize">
+								<span className="text-sm font-medium text-black capitalize">
 									{issue.category}
 								</span>
 							</div>
@@ -203,7 +203,7 @@ const IssueCard = ({ issue, showActions = true }: IssueCardProps) => {
 				{issue.status === "in-progress" && (
 					<div className="mt-4 pt-4 border-t border-gray-100">
 						<div className="flex items-center justify-between mb-2">
-							<span className="text-sm font-medium text-gray-700">
+							<span className="text-sm font-medium text-black">
 								Resolution Progress
 							</span>
 							<span className="text-sm text-orange-600 font-medium">

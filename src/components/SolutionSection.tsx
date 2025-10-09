@@ -2,8 +2,15 @@ import React from "react";
 import { CheckCircle, ArrowRight, Shield, Users, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useNavigate } from "react-router-dom";
 
 const SolutionSection: React.FC = () => {
+	const navigate = useNavigate();
+
+	const handleExplorePlatform = () => {
+		navigate('/auth');
+	};
+
 	return (
 		<section className="py-12 sm:py-16 lg:py-24 bg-gradient-to-br from-green-50 via-blue-50 to-indigo-50 relative overflow-hidden">
 			{/* Background Pattern */}
@@ -20,7 +27,7 @@ const SolutionSection: React.FC = () => {
 						<CheckCircle className="h-4 w-4 mr-2" />
 						Our Solution
 					</Badge>
-					<h3 className="text-l sm:text-2xl md:text-3xl lg:text-4xl font-normal text-gray-900 mb-6 sm:mb-8 px-4">
+					<h3 className="text-l sm:text-2xl md:text-3xl lg:text-4xl font-semibold text-gray-900 mb-6 sm:mb-8 px-4">
 						Citizn: Bridging Citizens & Government
 					</h3>
 				</div>
@@ -31,15 +38,16 @@ const SolutionSection: React.FC = () => {
 					<div className="lg:col-span-2 space-y-4 sm:space-y-6">
 						{/* Digital Reporting Platform */}
 						<div className="bg-white/80 backdrop-blur-sm p-4 sm:p-6 rounded-2xl border border-green-200/30 shadow-lg">
-							<div className="flex items-center mb-3 sm:mb-4">
-								<div className="bg-green-500 p-2 rounded-xl mr-3">
-									<Shield className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+							{/* Icon at the top */}
+							<div className="flex justify-start mb-4">
+								<div className="bg-green-500 p-3 rounded-xl">
+									<Shield className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
 								</div>
-								<h4 className="text-lg sm:text-xl font-normal text-gray-900">
-									Digital Reporting Platform
-								</h4>
 							</div>
-							<p className="text-gray-700 text-sm sm:text-base leading-relaxed mb-3 sm:mb-4">
+							<h4 className="text-[14px] font-semibold text-gray-900 text-left mb-3 sm:mb-4">
+								Digital Reporting Platform
+							</h4>
+							<p className="text-black text-xs sm:text-sm leading-relaxed mb-3 sm:mb-4">
 								Citizn provides an intuitive mobile and web
 								platform where citizens can easily report
 								infrastructure issues with photos, precise
@@ -48,19 +56,19 @@ const SolutionSection: React.FC = () => {
 							<div className="space-y-2">
 								<div className="flex items-center space-x-3">
 									<div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-500 rounded-full flex-shrink-0"></div>
-									<span className="text-gray-700 text-xs sm:text-sm">
+									<span className="text-black text-xs sm:text-sm">
 										Easy photo and location capture
 									</span>
 								</div>
 								<div className="flex items-center space-x-3">
 									<div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-500 rounded-full flex-shrink-0"></div>
-									<span className="text-gray-700 text-xs sm:text-sm">
+									<span className="text-black text-xs sm:text-sm">
 										Real-time issue tracking
 									</span>
 								</div>
 								<div className="flex items-center space-x-3">
 									<div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-500 rounded-full flex-shrink-0"></div>
-									<span className="text-gray-700 text-xs sm:text-sm">
+									<span className="text-black text-xs sm:text-sm">
 										Direct communication with authorities
 									</span>
 								</div>
@@ -69,15 +77,16 @@ const SolutionSection: React.FC = () => {
 
 						{/* Efficient Resolution Process */}
 						<div className="bg-white/80 backdrop-blur-sm p-4 sm:p-6 rounded-2xl border border-green-200/30 shadow-lg">
-							<div className="flex items-center mb-3 sm:mb-4">
-								<div className="bg-green-500 p-2 rounded-xl mr-3">
-									<Users className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+							{/* Icon at the top */}
+							<div className="flex justify-start mb-4">
+								<div className="bg-green-500 p-3 rounded-xl">
+									<Users className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
 								</div>
-								<h4 className="text-lg sm:text-xl font-normal text-gray-900">
-									Efficient Resolution Process
-								</h4>
 							</div>
-							<p className="text-gray-700 text-sm sm:text-base leading-relaxed mb-3 sm:mb-4">
+							<h4 className="text-[14px] font-semibold text-gray-900 text-left mb-3 sm:mb-4">
+								Efficient Resolution Process
+							</h4>
+							<p className="text-black text-xs sm:text-sm leading-relaxed mb-3 sm:mb-4">
 								Our platform streamlines the resolution process
 								by connecting citizens directly with the right
 								government departments for faster response
@@ -86,30 +95,31 @@ const SolutionSection: React.FC = () => {
 							<div className="space-y-2">
 								<div className="flex items-center space-x-3">
 									<div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-500 rounded-full flex-shrink-0"></div>
-									<span className="text-gray-700 text-xs sm:text-sm">
+									<span className="text-black text-xs sm:text-sm">
 										Direct routing to appropriate
 										departments
 									</span>
 								</div>
 								<div className="flex items-center space-x-3">
 									<div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-500 rounded-full flex-shrink-0"></div>
-									<span className="text-gray-700 text-xs sm:text-sm">
+									<span className="text-black text-xs sm:text-sm">
 										Progress tracking and updates
 									</span>
 								</div>
 								<div className="flex items-center space-x-3">
 									<div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-500 rounded-full flex-shrink-0"></div>
-									<span className="text-gray-700 text-xs sm:text-sm">
+									<span className="text-black text-xs sm:text-sm">
 										Accountability and transparency
 									</span>
 								</div>
 							</div>
 						</div>
 
-						{/* Call to Action */}
-						<div className="text-center pt-2 sm:pt-4">
+						{/* Call to Action - Left aligned */}
+						<div className="pt-2 sm:pt-4">
 							<Button
-								className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-normal py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-sm sm:text-base transform hover:-translate-y-1 w-full sm:w-auto"
+								onClick={handleExplorePlatform}
+								className="text-[14px] font-semibold bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white  py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-sm sm:text-base transform hover:-translate-y-1 w-fit"
 								size="lg"
 							>
 								Explore Our Platform

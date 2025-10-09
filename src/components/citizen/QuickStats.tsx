@@ -15,7 +15,7 @@ export const QuickStats = ({
 }: QuickStatsProps) => {
 	return (
 		<div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
-			<Card className="bg-white border-0 shadow-xl rounded-2xl hover:shadow-2xl transition-all duration-300">
+			<Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200 shadow-xl rounded-2xl hover:shadow-2xl transition-all duration-300">
 				<CardContent className="p-6 text-center">
 					<p className="text-sm font-medium text-gray-600 mb-2">
 						My Reports
@@ -29,7 +29,7 @@ export const QuickStats = ({
 				</CardContent>
 			</Card>
 			
-			<Card className="bg-white border-0 shadow-xl rounded-2xl hover:shadow-2xl transition-all duration-300">
+			<Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200 shadow-xl rounded-2xl hover:shadow-2xl transition-all duration-300">
 				<CardContent className="p-6 text-center">
 					<p className="text-sm font-medium text-gray-600 mb-2">
 						Resolved
@@ -43,7 +43,7 @@ export const QuickStats = ({
 				</CardContent>
 			</Card>
 			
-			<Card className="bg-white border-0 shadow-xl rounded-2xl hover:shadow-2xl transition-all duration-300">
+			<Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200 shadow-xl rounded-2xl hover:shadow-2xl transition-all duration-300">
 				<CardContent className="p-6 text-center">
 					<p className="text-sm font-medium text-gray-600 mb-2">
 						In Progress
@@ -57,7 +57,7 @@ export const QuickStats = ({
 				</CardContent>
 			</Card>
 			
-			<Card className="bg-white border-0 shadow-xl rounded-2xl hover:shadow-2xl transition-all duration-300">
+			<Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200 shadow-xl rounded-2xl hover:shadow-2xl transition-all duration-300">
 				<CardContent className="p-6 text-center">
 					<p className="text-sm font-medium text-gray-600 mb-2">
 						Community Impact

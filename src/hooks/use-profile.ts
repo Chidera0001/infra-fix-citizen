@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useUser } from '@clerk/clerk-react';
+import { useAuth } from '@/contexts/AuthContext';
 import { profileApi, type Profile, type ProfileUpdate } from '@/lib/supabase-api';
 import { useToast } from '@/hooks/use-toast';
 
@@ -7,12 +7,12 @@ import { useToast } from '@/hooks/use-toast';
 export const profileKeys = {
   all: ['profiles'] as const,
   current: () => [...profileKeys.all, 'current'] as const,
-  detail: (clerkUserId: string) => [...profileKeys.all, 'detail', clerkUserId] as const,
+  detail: (userId: string) => [...profileKeys.all, 'detail', userId] as const,
 };
 
 // Hook to get current user profile
 export function useCurrentProfile() {
-  const { user, isLoaded } = useUser();
+  const { user } = useAuth();
 
   return useQuery({
     queryKey: profileKeys.current(),
@@ -24,23 +24,35 @@ export function useCurrentProfile() {
       // Create profile if it doesn't exist
       if (!profile && user) {
         profile = await profileApi.createOrUpdateProfile(user.id, {
-          email: user.emailAddresses[0]?.emailAddress || '',
-          full_name: user.fullName,
+          email: user.email || '',
+          full_name: user.user_metadata?.full_name || 'User',
         });
+      }
+      
+      // If profile exists but is incomplete, update it
+      if (profile && (!profile.email || profile.full_name === 'User')) {
+        try {
+          profile = await profileApi.updateProfile(user.id, {
+            email: user.email || '',
+            full_name: user.user_metadata?.full_name || 'User',
+          });
+        } catch (error) {
+          // Failed to update profile
+        }
       }
       
       return profile;
     },
-    enabled: isLoaded && !!user,
+    enabled: !!user,
   });
 }
 
 // Hook to get a specific profile
-export function useProfile(clerkUserId: string) {
+export function useProfile(userId: string) {
   return useQuery({
-    queryKey: profileKeys.detail(clerkUserId),
-    queryFn: () => profileApi.getProfile(clerkUserId),
-    enabled: !!clerkUserId,
+    queryKey: profileKeys.detail(userId),
+    queryFn: () => profileApi.getProfile(userId),
+    enabled: !!userId,
   });
 }
 
@@ -48,7 +60,7 @@ export function useProfile(clerkUserId: string) {
 export function useUpdateProfile() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const { user } = useUser();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: (updates: ProfileUpdate) => {
@@ -71,7 +83,7 @@ export function useUpdateProfile() {
         description: 'Failed to update profile. Please try again.',
         variant: 'destructive',
       });
-      console.error('Update profile error:', error);
+      // Update profile error
     },
   });
 }
