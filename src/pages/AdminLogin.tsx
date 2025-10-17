@@ -66,10 +66,19 @@ const AdminLogin = () => {
 				</div>
 
 				{/* Right side - Admin Login Form */}
-				<div className="flex-1 flex items-center justify-center p-8">
-					<div className="w-full max-w-md bg-white rounded-3xl shadow-2xl p-8">
+				<div className="flex-1 flex items-center justify-center p-4 sm:p-8 overflow-auto scrollbar-hide">
+					<div className="w-full max-w-md bg-white rounded-3xl shadow-2xl p-6">
+						{/* Logo */}
+						<div className="flex justify-center mb-6">
+							<img 
+								src="/Assets/logo/Trademark.png" 
+								alt="Citizn Logo" 
+								className="h-12 w-auto"
+							/>
+						</div>
+
 						<div className="text-center mb-8">
-							<h1 className="text-3xl text-gray-900 font-normal">
+							<h1 className="text-3xl text-gray-900 font-bold">
 								Admin Login
 							</h1>
 						</div>
@@ -86,7 +95,7 @@ const AdminLogin = () => {
 											Email
 										</Label>
 										<div className="relative">
-											<User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+											<User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-700 " />
 											<Input
 												id="email"
 												type="email"
@@ -98,7 +107,7 @@ const AdminLogin = () => {
 														email: e.target.value,
 													})
 												}
-												className="pl-10 border-green-300 focus:border-green-500 focus:ring-green-500 rounded-xl"
+												className="pl-10 border-green-300 focus:border-green-500 focus:ring-green-500 rounded-xl placeholder:text-gray-700"
 												required
 											/>
 										</div>
@@ -112,7 +121,7 @@ const AdminLogin = () => {
 											Password
 										</Label>
 										<div className="relative">
-											<Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+											<Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-700" />
 											<Input
 												id="password"
 												type={
@@ -129,7 +138,7 @@ const AdminLogin = () => {
 															e.target.value,
 													})
 												}
-												className="pl-10 pr-10 border-green-300 focus:border-green-500 focus:ring-green-500 rounded-xl"
+												className="pl-10 pr-10 border-green-300 focus:border-green-500 focus:ring-green-500 rounded-xl placeholder:text-gray-700"
 												required
 											/>
 											<Button
@@ -144,9 +153,9 @@ const AdminLogin = () => {
 												}
 											>
 												{showPassword ? (
-													<EyeOff className="h-4 w-4 text-gray-400" />
+													<EyeOff className="h-4 w-4 text-gray-700" />
 												) : (
-													<Eye className="h-4 w-4 text-gray-400" />
+													<Eye className="h-4 w-4 text-gray-700" />
 												)}
 											</Button>
 										</div>
@@ -163,8 +172,8 @@ const AdminLogin = () => {
 											<span>Authenticating...</span>
 										</div>
 									) : (
-										<div className="flex items-center space-x-2">
-											<Shield className="h-5 w-5" />
+										<div className="flex items-center space-x-3">
+											<img src="/Assets/icons/Shield.svg" alt="Shield" className="h-5 w-5 brightness-0 invert" />
 											<span>
 												Login to Admin Dashboard
 											</span>

@@ -6,10 +6,12 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  isOfflineMode: boolean;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: AuthError | null }>;
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signInWithGoogle: () => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<{ error: AuthError | null }>;
+  enableOfflineMode: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -30,6 +32,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isOfflineMode, setIsOfflineMode] = useState(false);
+  
+  // Use navigator.onLine as fallback to avoid hook dependency issues
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
 
   useEffect(() => {
     // Get initial session
@@ -51,7 +57,42 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Listen for online/offline events
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // Handle offline mode
+  useEffect(() => {
+    if (!isOnline && !user) {
+      // If offline and no user, enable offline mode
+      setIsOfflineMode(true);
+    } else if (isOnline && isOfflineMode) {
+      // If back online, disable offline mode
+      setIsOfflineMode(false);
+    }
+  }, [isOnline, user, isOfflineMode]);
+
+  const enableOfflineMode = () => {
+    setIsOfflineMode(true);
+  };
+
   const signUp = async (email: string, password: string, fullName: string) => {
+    if (!isOnline) {
+      const error = new Error('Cannot sign up while offline') as AuthError;
+      error.code = 'offline_error';
+      return { error };
+    }
+    
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -65,6 +106,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const signIn = async (email: string, password: string) => {
+    if (!isOnline) {
+      const error = new Error('Cannot sign in while offline') as AuthError;
+      error.code = 'offline_error';
+      return { error };
+    }
+    
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -73,6 +120,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const signInWithGoogle = async () => {
+    if (!isOnline) {
+      const error = new Error('Cannot sign in with Google while offline') as AuthError;
+      error.code = 'offline_error';
+      return { error };
+    }
+    
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
@@ -83,6 +136,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const signOut = async () => {
+    if (!isOnline) {
+      // Handle offline sign out by clearing local state
+      setUser(null);
+      setSession(null);
+      return { error: null };
+    }
+    
     const { error } = await supabase.auth.signOut();
     return { error };
   };
@@ -91,10 +151,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     user,
     session,
     loading,
+    isOfflineMode,
     signUp,
     signIn,
     signInWithGoogle,
     signOut,
+    enableOfflineMode,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

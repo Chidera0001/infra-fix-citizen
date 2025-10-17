@@ -9,6 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Camera, MapPin, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useCreateOnlineIssue } from "@/hooks/use-separate-issues";
+import { useAuth } from "@/contexts/AuthContext";
 import { getCurrentLocationWithAddress } from "@/utils/geocoding";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import CitiznLogo from "@/components/CitiznLogo";
@@ -16,6 +18,8 @@ import CitiznLogo from "@/components/CitiznLogo";
 const ReportIssue = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
+  const createIssueMutation = useCreateOnlineIssue();
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -63,7 +67,7 @@ const ReportIssue = () => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.title || !formData.description || !formData.category || !formData.location) {
@@ -75,14 +79,29 @@ const ReportIssue = () => {
       return;
     }
 
-    toast({
-      title: "Report Submitted Successfully!",
-      description: "Your issue has been reported and will be reviewed by authorities.",
-    });
+    try {
+      const issueData = {
+        title: formData.title.trim(),
+        description: formData.description.trim(),
+        category: formData.category,
+        severity: formData.urgency || "medium",
+        address: formData.location.trim(),
+        location_lat: 6.5244, // Default Lagos coords - would need geocoding in real implementation
+        location_lng: 3.3792,
+      };
 
-    setTimeout(() => {
-      navigate('/citizen');
-    }, 2000);
+      await createIssueMutation.mutateAsync({
+        issueData,
+        userId: user?.id,
+        photos: formData.photo ? [formData.photo] : []
+      });
+
+      setTimeout(() => {
+        navigate('/citizen');
+      }, 2000);
+    } catch (error) {
+      // Error handling is done by the mutation
+    }
   };
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -239,8 +258,12 @@ const ReportIssue = () => {
               </div>
 
               <div className="flex space-x-4">
-                <Button type="submit" className="flex-1 bg-blue-600 hover:bg-blue-700">
-                  Submit Report
+                <Button 
+                  type="submit" 
+                  className="flex-1 bg-blue-600 hover:bg-blue-700"
+                  disabled={createIssueMutation.isPending}
+                >
+                  {createIssueMutation.isPending ? "Submitting..." : "Submit Report"}
                 </Button>
                 <Button type="button" variant="outline" onClick={() => navigate('/citizen')}>
                   Cancel

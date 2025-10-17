@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
 	Select,
@@ -9,8 +10,10 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { Search, XCircle } from "lucide-react";
-import { ReportCard } from "./MyReports/index";
+import { Search, XCircle, LayoutList, LayoutGrid } from "lucide-react";
+import { ReportCard, ReportGridCard } from "./MyReports/index";
+import { ReportDetailsModal } from "@/components/citizen/modals/ReportDetailsModal";
+import { generateReportPDF, shareReport } from "@/utils/pdfGenerator";
 import type { Issue } from "@/lib/supabase-api";
 
 interface RecentReportsProps {
@@ -25,6 +28,11 @@ export const RecentReports = ({ reports }: RecentReportsProps) => {
 	const [categoryFilter, setCategoryFilter] = useState<string>("all");
 	const [sortBy, setSortBy] = useState<string>("newest");
 	const [currentPage, setCurrentPage] = useState(1);
+	const [viewMode, setViewMode] = useState<"list" | "grid">("grid");
+	
+	// Modal states
+	const [selectedReport, setSelectedReport] = useState<Issue | null>(null);
+	const [detailsModalOpen, setDetailsModalOpen] = useState(false);
 
 	// Filter and search logic
 	const filteredReports = useMemo(() => {
@@ -74,6 +82,25 @@ export const RecentReports = ({ reports }: RecentReportsProps) => {
 		setCurrentPage(page);
 	};
 
+	// Action handlers
+	const handleViewDetails = (report: Issue) => {
+		setSelectedReport(report);
+		setDetailsModalOpen(true);
+	};
+
+	const handleShareReport = (report: Issue) => {
+		shareReport(report);
+	};
+
+	const handleDownloadPDF = (report: Issue) => {
+		generateReportPDF(report);
+	};
+
+	const handleCloseModal = () => {
+		setDetailsModalOpen(false);
+		setSelectedReport(null);
+	};
+
 	return (
 		<Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl">
 			<CardHeader className="pb-6">
@@ -87,12 +114,33 @@ export const RecentReports = ({ reports }: RecentReportsProps) => {
 							in your Nigerian community
 						</CardDescription>
 					</div>
-					<Badge
-						variant="secondary"
-						className="bg-green-50 text-green-700 border-green-200 self-start sm:self-center"
-					>
-						{filteredReports.length} Reports
-					</Badge>
+					<div className="flex items-center gap-3">
+						{/* View Toggle */}
+						<div className="flex items-center gap-1 border border-gray-200 rounded-lg p-1">
+							<Button
+								variant={viewMode === "list" ? "default" : "ghost"}
+								size="sm"
+								onClick={() => setViewMode("list")}
+								className={`px-3 ${viewMode === "list" ? "bg-green-600 hover:bg-green-700" : ""}`}
+							>
+								<LayoutList className="h-4 w-4" />
+							</Button>
+							<Button
+								variant={viewMode === "grid" ? "default" : "ghost"}
+								size="sm"
+								onClick={() => setViewMode("grid")}
+								className={`px-3 ${viewMode === "grid" ? "bg-green-600 hover:bg-green-700" : ""}`}
+							>
+								<LayoutGrid className="h-4 w-4" />
+							</Button>
+						</div>
+						<Badge
+							variant="secondary"
+							className="bg-green-50 text-green-700 border-green-200"
+						>
+							{filteredReports.length} Reports
+						</Badge>
+					</div>
 				</div>
 			</CardHeader>
 			<CardContent>
@@ -187,15 +235,29 @@ export const RecentReports = ({ reports }: RecentReportsProps) => {
 					)}
 				</div>
 
-				{/* Reports List */}
-				<div className="space-y-4">
-					{paginatedReports.map((report) => (
-						<ReportCard
-							key={report.id}
-							report={report}
-						/>
-					))}
-				</div>
+				{/* Reports List or Grid */}
+				{viewMode === "list" ? (
+					<div className="space-y-4">
+						{paginatedReports.map((report) => (
+							<ReportCard
+								key={report.id}
+								report={report}
+								onViewDetails={handleViewDetails}
+								onShare={handleShareReport}
+								onDownloadPDF={handleDownloadPDF}
+							/>
+						))}
+					</div>
+				) : (
+					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+						{paginatedReports.map((report) => (
+							<ReportGridCard
+								key={report.id}
+								report={report}
+							/>
+						))}
+					</div>
+				)}
 
 				{/* Pagination */}
 				{totalPages > 1 && (
@@ -242,6 +304,15 @@ export const RecentReports = ({ reports }: RecentReportsProps) => {
 					</div>
 				)}
 			</CardContent>
+
+			{/* Report Details Modal */}
+			<ReportDetailsModal
+				report={selectedReport}
+				isOpen={detailsModalOpen}
+				onClose={handleCloseModal}
+				onShare={handleShareReport}
+				onDownloadPDF={handleDownloadPDF}
+			/>
 		</Card>
 	);
 };

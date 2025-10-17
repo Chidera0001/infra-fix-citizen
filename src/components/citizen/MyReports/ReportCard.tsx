@@ -24,13 +24,16 @@ import { formatDistanceToNow } from "date-fns";
 
 interface ReportCardProps {
 	report: Issue;
+	onViewDetails?: (report: Issue) => void;
+	onShare?: (report: Issue) => void;
+	onDownloadPDF?: (report: Issue) => void;
 }
 
 const getStatusIcon = (status: string) => {
 	switch (status) {
 		case "open":
 			return <AlertCircle className="h-4 w-4 text-red-500" />;
-		case "in-progress":
+		case "in_progress":
 			return <Clock className="h-4 w-4 text-yellow-500" />;
 		case "resolved":
 			return <CheckCircle className="h-4 w-4 text-green-500" />;
@@ -54,7 +57,7 @@ const getSeverityColor = (severity: string) => {
 	}
 };
 
-export const ReportCard = ({ report }: ReportCardProps) => {
+export const ReportCard = ({ report, onViewDetails, onShare, onDownloadPDF }: ReportCardProps) => {
 	return (
 		<Card className="border border-gray-200 hover:border-green-300 hover:shadow-md transition-all duration-200">
 			<CardContent className="p-4 sm:p-6">
@@ -113,15 +116,15 @@ export const ReportCard = ({ report }: ReportCardProps) => {
 								</Button>
 							</DropdownMenuTrigger>
 							<DropdownMenuContent align="end">
-								<DropdownMenuItem>
+								<DropdownMenuItem onClick={() => onViewDetails?.(report)}>
 									<Eye className="h-4 w-4 mr-2" />
 									View Details
 								</DropdownMenuItem>
-								<DropdownMenuItem>
+								<DropdownMenuItem onClick={() => onShare?.(report)}>
 									<Share2 className="h-4 w-4 mr-2" />
 									Share Report
 								</DropdownMenuItem>
-								<DropdownMenuItem>
+								<DropdownMenuItem onClick={() => onDownloadPDF?.(report)}>
 									<Download className="h-4 w-4 mr-2" />
 									Download PDF
 								</DropdownMenuItem>

@@ -75,7 +75,8 @@ export const VALIDATION = {
   maxTitleLength: 100,
   minDescriptionLength: 20,
   maxDescriptionLength: 1000,
-  maxImageSize: 5 * 1024 * 1024, // 5MB
+  maxImageSize: 2 * 1024 * 1024, // 2MB per image - optimal for storage and quality
+  maxImagesPerReport: 5, // Maximum 5 images per report
   allowedImageTypes: ['image/jpeg', 'image/png', 'image/webp'],
 } as const;
 

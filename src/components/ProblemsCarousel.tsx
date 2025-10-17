@@ -58,11 +58,14 @@ const ProblemsCards: React.FC = () => {
 		<section className="py-12 sm:py-16 lg:py-24 bg-white/60 backdrop-blur-sm overflow-hidden w-full relative">
 			<div className="w-full px-4 sm:px-6 lg:px-8">
 				<div className="text-center mb-12 sm:mb-16 lg:mb-20">
-					<Badge className="mb-6 sm:mb-8 bg-green-50 text-green-700 border-green-200 px-4 py-2 text-sm font-medium">
-						<AlertTriangle className="h-4 w-4 mr-2" />
+					<Badge className="mb-6 sm:mb-8 gap-2  bg-green-50 text-green-700 border-green-200 px-4 py-2 text-sm font-medium">
+						<div 
+							className="h-4 w-4 bg-[#0A6E2A] mask-[url('/Assets/icons/Alert-triangle.svg')] mask-no-repeat mask-center mask-contain"
+							style={{ WebkitMask: "url('/Assets/icons/Alert-triangle.svg') no-repeat center / contain" }}
+						/>
 						The Problems We Face
 					</Badge>
-					<h3 className="text-l sm:text-2xl md:text-3xl lg:text-4xl font-semibold text-gray-900 mb-6 sm:mb-8 px-4">
+					<h3 className="text-l sm:text-2xl md:text-3xl lg:text-3xl font-semibold text-gray-900 mb-6 sm:mb-8 px-4">
 						Infrastructure Issues Affecting Nigerian Communities
 					</h3>
 				</div>

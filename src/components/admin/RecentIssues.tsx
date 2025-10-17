@@ -7,6 +7,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
 	Select,
@@ -15,33 +16,76 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { Search, XCircle } from "lucide-react";
-import { AdminIssueCard } from "./AllIssues/index";
-import { useIssues } from "@/hooks/use-issues";
+import { Search, XCircle, LayoutList, LayoutGrid } from "lucide-react";
+import { AdminIssueCard, AdminIssueGridCard } from "./AllIssues/index";
+import { AdminSearchAndFilters } from "./AdminSearchAndFilters";
+import { useIssues, useUpdateIssue, useDeleteIssue } from "@/hooks/use-issues";
+import { useToast } from "@/hooks/use-toast";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import { 
+	IssueDetailsModal, 
+	UpdateStatusModal, 
+	DeleteConfirmationModal, 
+	ShareReportModal 
+} from "./modals";
+import type { Issue } from "@/lib/supabase-api";
 
 const ITEMS_PER_PAGE = 5;
 
 export const RecentIssues = () => {
 	const { data: issues = [], isLoading: issuesLoading } = useIssues({ limit: 100, sortBy: 'created_at', sortOrder: 'DESC' });
+	const { mutate: updateIssue } = useUpdateIssue();
+	const { mutate: deleteIssue } = useDeleteIssue();
+	const { toast } = useToast();
 	
 	const [searchTerm, setSearchTerm] = useState("");
 	const [statusFilter, setStatusFilter] = useState<string>("all");
 	const [categoryFilter, setCategoryFilter] = useState<string>("all");
+	const [locationFilter, setLocationFilter] = useState<string>("all");
 	const [sortBy, setSortBy] = useState<string>("newest");
 	const [currentPage, setCurrentPage] = useState(1);
+	const [viewMode, setViewMode] = useState<"list" | "grid">("grid");
+
+	// Modal states
+	const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
+	const [detailsModalOpen, setDetailsModalOpen] = useState(false);
+	const [updateModalOpen, setUpdateModalOpen] = useState(false);
+	const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+	const [shareModalOpen, setShareModalOpen] = useState(false);
 
 	// Filter and search logic
 	const filteredIssues = useMemo(() => {
 		let filtered = issues.filter((issue) => {
-			const matchesSearch = issue.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-								 issue.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-								 issue.address?.toLowerCase().includes(searchTerm.toLowerCase());
+			// Enhanced search - includes title, description, address, category, and status
+			const searchLower = searchTerm.toLowerCase();
+			const matchesSearch = !searchTerm || (
+				issue.title.toLowerCase().includes(searchLower) ||
+				issue.description?.toLowerCase().includes(searchLower) ||
+				issue.address?.toLowerCase().includes(searchLower) ||
+				issue.category.toLowerCase().includes(searchLower) ||
+				issue.status.toLowerCase().includes(searchLower)
+			);
 			
 			const matchesStatus = statusFilter === "all" || issue.status === statusFilter;
 			const matchesCategory = categoryFilter === "all" || issue.category === categoryFilter;
 			
-			return matchesSearch && matchesStatus && matchesCategory;
+			// Location filter - check if the extracted location matches
+			let matchesLocation = locationFilter === "all";
+			if (locationFilter !== "all" && issue.address) {
+				const fullAddress = issue.address;
+				let extractedLocation = fullAddress;
+				if (fullAddress.includes(',')) {
+					extractedLocation = fullAddress.split(',')[0].trim();
+				} else if (fullAddress.includes(' ')) {
+					const parts = fullAddress.split(' ');
+					extractedLocation = parts.slice(0, 2).join(' ');
+				}
+				extractedLocation = extractedLocation.replace(/^\d+\s*/, '');
+				extractedLocation = extractedLocation.charAt(0).toUpperCase() + extractedLocation.slice(1).toLowerCase();
+				matchesLocation = extractedLocation === locationFilter;
+			}
+			
+			return matchesSearch && matchesStatus && matchesCategory && matchesLocation;
 		});
 
 		// Sort logic
@@ -57,13 +101,26 @@ export const RecentIssues = () => {
 						   (priorityOrder[a.severity as keyof typeof priorityOrder] || 0);
 				case "status":
 					return a.status.localeCompare(b.status);
+				case "location":
+					const getLocationName = (address: string) => {
+						if (!address) return '';
+						let location = address;
+						if (address.includes(',')) {
+							location = address.split(',')[0].trim();
+						} else if (address.includes(' ')) {
+							const parts = address.split(' ');
+							location = parts.slice(0, 2).join(' ');
+						}
+						return location.replace(/^\d+\s*/, '').toLowerCase();
+					};
+					return getLocationName(a.address || '').localeCompare(getLocationName(b.address || ''));
 				default:
 					return 0;
 			}
 		});
 
 		return filtered;
-	}, [issues, searchTerm, statusFilter, categoryFilter, sortBy]);
+	}, [issues, searchTerm, statusFilter, categoryFilter, locationFilter, sortBy]);
 
 	// Pagination logic
 	const totalPages = Math.ceil(filteredIssues.length / ITEMS_PER_PAGE);
@@ -73,29 +130,73 @@ export const RecentIssues = () => {
 	// Reset to first page when filters change
 	useMemo(() => {
 		setCurrentPage(1);
-	}, [searchTerm, statusFilter, categoryFilter, sortBy]);
+	}, [searchTerm, statusFilter, categoryFilter, locationFilter, sortBy]);
 
 	const handlePageChange = (page: number) => {
 		setCurrentPage(page);
 	};
 
-	const handleViewDetails = (issue: any) => {
-		// View details functionality can be implemented here
+	const handleViewDetails = (issue: Issue) => {
+		setSelectedIssue(issue);
+		setDetailsModalOpen(true);
 	};
 
-	const handleUpdate = (issue: any) => {
-		// Update functionality can be implemented here
+	const handleUpdate = (issue: Issue) => {
+		setSelectedIssue(issue);
+		setUpdateModalOpen(true);
 	};
 
-	const handleDelete = (issue: any) => {
-		// Delete functionality can be implemented here
+	const handleDelete = (issue: Issue) => {
+		setSelectedIssue(issue);
+		setDeleteModalOpen(true);
+	};
+
+	const handleShare = (issue: Issue) => {
+		setSelectedIssue(issue);
+		setShareModalOpen(true);
+	};
+
+	const handleUpdateIssue = async (issueId: string, updates: { status: string; severity?: string; resolution_notes?: string }) => {
+		updateIssue({ id: issueId, updates }, {
+			onSuccess: () => {
+				toast({
+					title: "Success",
+					description: "Issue updated successfully",
+				});
+			},
+			onError: (error) => {
+				toast({
+					title: "Error",
+					description: "Failed to update issue",
+					variant: "destructive",
+				});
+			}
+		});
+	};
+
+	const handleDeleteIssue = async (issueId: string) => {
+		deleteIssue(issueId, {
+			onSuccess: () => {
+				toast({
+					title: "Success",
+					description: "Issue deleted successfully",
+				});
+			},
+			onError: (error) => {
+				toast({
+					title: "Error",
+					description: "Failed to delete issue",
+					variant: "destructive",
+				});
+			}
+		});
 	};
 
 	return (
 		<Card className="bg-white border-0 shadow-lg">
 			<CardHeader>
-				<div className="flex items-center justify-between">
-					<div>
+				<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+					<div className="flex-1">
 						<CardTitle className="text-xl font-normal text-gray-900">
 							Recent Issues
 						</CardTitle>
@@ -103,101 +204,47 @@ export const RecentIssues = () => {
 							Latest reports requiring attention
 						</CardDescription>
 					</div>
-					<Badge className="bg-green-100 text-green-700 border-green-200">
-						{filteredIssues.length} New
-					</Badge>
+					<div className="flex items-center gap-3">
+						{/* View Toggle */}
+						<div className="flex items-center gap-1 border border-gray-200 rounded-lg p-1">
+							<Button
+								variant={viewMode === "list" ? "default" : "ghost"}
+								size="sm"
+								onClick={() => setViewMode("list")}
+								className={`px-3 ${viewMode === "list" ? "bg-green-600 hover:bg-green-700" : ""}`}
+							>
+								<LayoutList className="h-4 w-4" />
+							</Button>
+							<Button
+								variant={viewMode === "grid" ? "default" : "ghost"}
+								size="sm"
+								onClick={() => setViewMode("grid")}
+								className={`px-3 ${viewMode === "grid" ? "bg-green-600 hover:bg-green-700" : ""}`}
+							>
+								<LayoutGrid className="h-4 w-4" />
+							</Button>
+						</div>
+						<Badge className="bg-green-100 text-green-700 border-green-200">
+							{filteredIssues.length} New
+						</Badge>
+					</div>
 				</div>
 			</CardHeader>
 			<CardContent>
 				{/* Search and Filter Section */}
-				<div className="mb-6 space-y-4">
-					{/* Search */}
-					<div className="relative">
-						<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-						<Input
-							placeholder="Search issues..."
-							value={searchTerm}
-							onChange={(e) => setSearchTerm(e.target.value)}
-							className="pl-10 border-gray-300 focus:border-green-500 focus:ring-green-500 rounded-xl"
-						/>
-					</div>
-
-					{/* Filters */}
-					<div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-						<Select value={statusFilter} onValueChange={setStatusFilter}>
-							<SelectTrigger className="border-gray-300 rounded-xl">
-								<SelectValue placeholder="Status" />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="all">All Status</SelectItem>
-								<SelectItem value="open">Open</SelectItem>
-								<SelectItem value="in_progress">In Progress</SelectItem>
-								<SelectItem value="resolved">Resolved</SelectItem>
-							</SelectContent>
-						</Select>
-
-						<Select value={categoryFilter} onValueChange={setCategoryFilter}>
-							<SelectTrigger className="border-gray-300 rounded-xl">
-								<SelectValue placeholder="Category" />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="all">All Categories</SelectItem>
-								<SelectItem value="pothole">Pothole</SelectItem>
-								<SelectItem value="street_lighting">Street Lighting</SelectItem>
-								<SelectItem value="water_supply">Water Supply</SelectItem>
-								<SelectItem value="traffic_signal">Traffic Signal</SelectItem>
-								<SelectItem value="drainage">Drainage</SelectItem>
-								<SelectItem value="sidewalk">Sidewalk</SelectItem>
-								<SelectItem value="other">Other</SelectItem>
-							</SelectContent>
-						</Select>
-
-						<Select value={sortBy} onValueChange={setSortBy}>
-							<SelectTrigger className="border-gray-300 rounded-xl">
-								<SelectValue placeholder="Sort by" />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="newest">Newest First</SelectItem>
-								<SelectItem value="oldest">Oldest First</SelectItem>
-								<SelectItem value="priority">Priority</SelectItem>
-								<SelectItem value="status">Status</SelectItem>
-							</SelectContent>
-						</Select>
-					</div>
-
-					{/* Active Filters Display */}
-					{(searchTerm || statusFilter !== "all" || categoryFilter !== "all") && (
-						<div className="flex flex-wrap gap-2">
-							<span className="text-sm text-gray-600">Active filters:</span>
-							{searchTerm && (
-								<Badge variant="secondary" className="bg-blue-100 text-blue-800">
-									Search: "{searchTerm}"
-									<XCircle 
-										className="h-3 w-3 ml-1 cursor-pointer" 
-										onClick={() => setSearchTerm("")}
-									/>
-								</Badge>
-							)}
-							{statusFilter !== "all" && (
-								<Badge variant="secondary" className="bg-green-100 text-green-800">
-									Status: {statusFilter}
-									<XCircle 
-										className="h-3 w-3 ml-1 cursor-pointer" 
-										onClick={() => setStatusFilter("all")}
-									/>
-								</Badge>
-							)}
-							{categoryFilter !== "all" && (
-								<Badge variant="secondary" className="bg-purple-100 text-purple-800">
-									Category: {categoryFilter.replace("_", " ")}
-									<XCircle 
-										className="h-3 w-3 ml-1 cursor-pointer" 
-										onClick={() => setCategoryFilter("all")}
-									/>
-								</Badge>
-							)}
-						</div>
-					)}
+				<div className="mb-6">
+					<AdminSearchAndFilters
+						searchTerm={searchTerm}
+						setSearchTerm={setSearchTerm}
+						statusFilter={statusFilter}
+						setStatusFilter={setStatusFilter}
+						categoryFilter={categoryFilter}
+						setCategoryFilter={setCategoryFilter}
+						locationFilter={locationFilter}
+						setLocationFilter={setLocationFilter}
+						sortBy={sortBy}
+						setSortBy={setSortBy}
+					/>
 				</div>
 
 				{issuesLoading ? (
@@ -210,18 +257,34 @@ export const RecentIssues = () => {
 					</div>
 				) : (
 					<>
-						{/* Issues List */}
-						<div className="space-y-4">
-							{paginatedIssues.map((issue) => (
-								<AdminIssueCard
-									key={issue.id}
-									issue={issue}
-									onViewDetails={handleViewDetails}
-									onUpdate={handleUpdate}
-									onDelete={handleDelete}
-								/>
-							))}
-						</div>
+						{/* Issues List or Grid */}
+						{viewMode === "list" ? (
+							<div className="space-y-4">
+								{paginatedIssues.map((issue) => (
+									<AdminIssueCard
+										key={issue.id}
+										issue={issue}
+										onViewDetails={handleViewDetails}
+										onUpdate={handleUpdate}
+										onDelete={handleDelete}
+										onShare={handleShare}
+									/>
+								))}
+							</div>
+						) : (
+							<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+								{paginatedIssues.map((issue) => (
+									<AdminIssueGridCard
+										key={issue.id}
+										issue={issue}
+										onViewDetails={handleViewDetails}
+										onUpdate={handleUpdate}
+										onDelete={handleDelete}
+										onShare={handleShare}
+									/>
+								))}
+							</div>
+						)}
 
 						{/* Pagination */}
 						{totalPages > 1 && (
@@ -270,6 +333,36 @@ export const RecentIssues = () => {
 					</>
 				)}
 			</CardContent>
+
+			{/* Modals */}
+			<IssueDetailsModal
+				issue={selectedIssue}
+				isOpen={detailsModalOpen}
+				onClose={() => setDetailsModalOpen(false)}
+				onUpdate={handleUpdate}
+				onDelete={handleDelete}
+				onShare={handleShare}
+			/>
+
+			<UpdateStatusModal
+				issue={selectedIssue}
+				isOpen={updateModalOpen}
+				onClose={() => setUpdateModalOpen(false)}
+				onSave={handleUpdateIssue}
+			/>
+
+			<DeleteConfirmationModal
+				issue={selectedIssue}
+				isOpen={deleteModalOpen}
+				onClose={() => setDeleteModalOpen(false)}
+				onConfirm={handleDeleteIssue}
+			/>
+
+			<ShareReportModal
+				issue={selectedIssue}
+				isOpen={shareModalOpen}
+				onClose={() => setShareModalOpen(false)}
+			/>
 		</Card>
 	);
 };

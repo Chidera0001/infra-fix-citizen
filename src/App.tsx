@@ -13,6 +13,8 @@ import CitizenDashboard from "./pages/CitizenDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import ApiDocs from "./pages/ApiDocs";
 import NotFound from "./pages/NotFound";
+import ReportNow from "./pages/ReportNow";
+import OfflineReportIssue from "./pages/OfflineReportIssue";
 
 const queryClient = new QueryClient();
 
@@ -27,22 +29,31 @@ const App = () => (
 						<Route path="/auth" element={<Auth />} />
 						<Route path="/admin-login" element={<AdminLogin />} />
 						<Route path="/" element={<Index />} />
-						<Route
-							path="/citizen"
-							element={
-								<AuthGuard requiredRole="citizen">
-									<CitizenDashboard />
-								</AuthGuard>
-							}
-						/>
-						<Route
-							path="/admin-citizn"
-							element={
-								<AdminAuthGuard>
-									<AdminDashboard />
-								</AdminAuthGuard>
-							}
-						/>
+						<Route path="/offline-report" element={<OfflineReportIssue />} />
+					<Route
+						path="/citizen"
+						element={
+							<AuthGuard requiredRole="citizen">
+								<CitizenDashboard />
+							</AuthGuard>
+						}
+					/>
+					<Route
+						path="/report-now"
+						element={
+							<AuthGuard requiredRole="citizen">
+								<ReportNow />
+							</AuthGuard>
+						}
+					/>
+					<Route
+						path="/admin-citizn"
+						element={
+							<AdminAuthGuard>
+								<AdminDashboard />
+							</AdminAuthGuard>
+						}
+					/>
 						<Route path="/api-docs" element={<ApiDocs />} />
 						<Route path="*" element={<NotFound />} />
 					</Routes>

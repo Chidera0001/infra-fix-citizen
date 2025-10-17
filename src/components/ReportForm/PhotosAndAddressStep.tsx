@@ -21,6 +21,23 @@ const PhotosAndAddressStep = ({
 }: PhotosAndAddressStepProps) => {
 	const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const files = Array.from(e.target.files || []);
+		
+		// Check total number of photos
+		const totalPhotos = formData.photos.length + files.length;
+		if (totalPhotos > 5) {
+			alert('Maximum 5 photos allowed per report');
+			return;
+		}
+		
+		// Check file size for each photo
+		for (const file of files) {
+			if (file.size > 2 * 1024 * 1024) { // 2MB
+				const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+				alert(`File "${file.name}" is too large (${fileSizeMB}MB). Maximum size is 2MB per image.`);
+				return;
+			}
+		}
+		
 		setFormData({ ...formData, photos: [...formData.photos, ...files] });
 	};
 

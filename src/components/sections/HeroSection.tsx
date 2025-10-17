@@ -45,24 +45,20 @@ const HeroSection = () => {
 				{/* Single column centered layout for better video background experience */}
 				<FadeInWhenVisible>
 					<div className="text-center max-w-4xl mx-auto px-4">
-						<h1 className="mt-4  text-xl sm:text-3xl md:text-4xl lg:text-5xl font-normal text-white mb-4 sm:mb-6 tracking-tight leading-tight drop-shadow-lg">
+						<h1 className="mt-4  text-3xl sm:text-3xl md:text-4xl lg:text-5xl font-normal text-white mb-4 sm:mb-6 tracking-tight leading-tight drop-shadow-lg">
 							Empowering Nigerians to
 							<span className="block bg-gradient-to-r from-green-300 via-green-200 to-blue-300 bg-clip-text text-transparent mt-1">
 								Build Better Communities
 							</span>
 						</h1>
 						<p className="text-base sm:text-lg md:text-xl text-white/90 mb-8 sm:mb-8 leading-relaxed font-medium drop-shadow-md max-w-3xl mx-auto">
-							Citizn connects engaged Nigerian citizens with
-							responsive local government through our
-							professional-grade infrastructure reporting
-							platform. Make your voice heard and see real
-							change happen in your community.
+							Connect with local government and report infrastructure issues to build better communities.
 						</p>
 
 						{/* Call-to-Action Button */}
 						<Button
 							onClick={handleGetStarted}
-							className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-normal py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-sm sm:text-base w-full sm:w-auto"
+							className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 border-0 text-sm sm:text-base w-full sm:w-auto"
 							size="lg"
 						>
 							Start Reporting Now

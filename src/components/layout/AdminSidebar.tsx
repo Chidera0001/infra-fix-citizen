@@ -81,9 +81,11 @@ export const AdminSidebar = ({ activeTab, onTabChange, profile }: AdminSidebarPr
 		<div className="p-6 border-b border-gray-200">
 			<div className="flex items-center space-x-3">
 				<div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-					<span className="text-green-600 font-semibold text-lg">
-						{profile?.full_name?.charAt(0) || profile?.email?.charAt(0) || 'A'}
-					</span>
+					<img 
+						src="/Assets/logo/Trademark.png" 
+						alt="Citizn Logo" 
+						className="h-6 w-auto"
+					/>
 				</div>
 				<div className="flex-1 min-w-0">
 					<p className="text-base font-semibold text-gray-900 truncate">

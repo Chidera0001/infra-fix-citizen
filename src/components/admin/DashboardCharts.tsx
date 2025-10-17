@@ -26,16 +26,17 @@ import { useIssueStatistics } from "@/hooks/use-issues";
 import { PerformanceMetrics } from "./PerformanceMetrics";
 
 export const DashboardCharts = () => {
-	const { data: statistics } = useIssueStatistics();
-	const { data: areaData = [], isLoading: areaLoading } = useQuery({
+	const { data: statistics, isLoading: statsLoading, error: statsError } = useIssueStatistics();
+	const { data: areaData = [], isLoading: areaLoading, error: areaError } = useQuery({
 		queryKey: ['area-statistics'],
 		queryFn: () => adminApi.getAreaStatistics(),
 	});
 	
-	const { data: weeklyTrends = [], isLoading: trendsLoading } = useQuery({
+	const { data: weeklyTrends = [], isLoading: trendsLoading, error: trendsError } = useQuery({
 		queryKey: ['weekly-trends'],
 		queryFn: () => adminApi.getWeeklyTrends(),
 	});
+
 
 	return (
 		<>
@@ -53,6 +54,10 @@ export const DashboardCharts = () => {
 						{trendsLoading ? (
 							<div className="h-[300px] flex items-center justify-center">
 								<p className="text-gray-500">Loading chart...</p>
+							</div>
+						) : trendsError ? (
+							<div className="h-[300px] flex items-center justify-center">
+								<p className="text-red-500">Error loading trends: {trendsError.message}</p>
 							</div>
 						) : (
 							<ResponsiveContainer width="100%" height={300}>
@@ -114,34 +119,64 @@ export const DashboardCharts = () => {
 						<CardDescription className="text-green-600">Current issue breakdown</CardDescription>
 					</CardHeader>
 					<CardContent>
-						<ResponsiveContainer width="100%" height={300}>
-							<PieChart>
-								<Pie
-									data={[
-										{ name: 'Open', value: statistics?.open_issues || 0, color: '#ef4444' },
-										{ name: 'In Progress', value: statistics?.in_progress_issues || 0, color: '#16a34a' },
-										{ name: 'Resolved', value: statistics?.resolved_issues || 0, color: '#16a34a' },
-									].filter(item => item.value > 0)}
-									cx="50%"
-									cy="50%"
-									innerRadius={60}
-									outerRadius={100}
-									fill="#8884d8"
-									paddingAngle={5}
-									dataKey="value"
-									label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-								>
-									{[
-										{ name: 'Open', value: statistics?.open_issues || 0, color: '#ef4444' },
-										{ name: 'In Progress', value: statistics?.in_progress_issues || 0, color: '#22c55e' },
-										{ name: 'Resolved', value: statistics?.resolved_issues || 0, color: '#16a34a' },
-									].filter(item => item.value > 0).map((entry, index) => (
-										<Cell key={`cell-${index}`} fill={entry.color} />
-									))}
-								</Pie>
-								<Tooltip />
-							</PieChart>
-						</ResponsiveContainer>
+						{statsLoading ? (
+							<div className="h-[300px] flex items-center justify-center">
+								<p className="text-gray-500">Loading statistics...</p>
+							</div>
+						) : statsError ? (
+							<div className="h-[300px] flex items-center justify-center">
+								<p className="text-red-500">Error loading statistics: {statsError.message}</p>
+							</div>
+						) : !statistics ? (
+							<div className="h-[300px] flex items-center justify-center">
+								<p className="text-gray-500">No statistics available</p>
+							</div>
+						) : (
+							<ResponsiveContainer width="100%" height={350}>
+								<PieChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+									<Pie
+										data={[
+											{ name: 'Open', value: statistics.open_issues || 0, color: '#ef4444' },
+											{ name: 'In Progress', value: statistics.in_progress_issues || 0, color: '#f59e0b' },
+											{ name: 'Resolved', value: statistics.resolved_issues || 0, color: '#22c55e' },
+										].filter(item => item.value > 0)}
+										cx="50%"
+										cy="50%"
+										innerRadius={50}
+										outerRadius={80}
+										fill="#8884d8"
+										paddingAngle={5}
+										dataKey="value"
+										label={({ name, value }) => {
+											if (value === 0) return '';
+											return `${name}`;
+										}}
+										labelLine={false}
+									>
+										{[
+											{ name: 'Open', value: statistics.open_issues || 0, color: '#ef4444' },
+											{ name: 'In Progress', value: statistics.in_progress_issues || 0, color: '#f59e0b' },
+											{ name: 'Resolved', value: statistics.resolved_issues || 0, color: '#22c55e' },
+										].filter(item => item.value > 0).map((entry, index) => (
+											<Cell key={`cell-${index}`} fill={entry.color} />
+										))}
+									</Pie>
+									<Tooltip 
+										formatter={(value, name) => [`${value} issues`, name]}
+										labelFormatter={() => 'Issue Status'}
+									/>
+									<Legend 
+										verticalAlign="bottom" 
+										height={36}
+										formatter={(value, entry) => (
+											<span style={{ color: entry.color, fontSize: '14px', fontWeight: '500' }}>
+												{value}: {entry.payload.value}
+											</span>
+										)}
+									/>
+								</PieChart>
+							</ResponsiveContainer>
+						)}
 					</CardContent>
 				</Card>
 			</div>
@@ -160,6 +195,10 @@ export const DashboardCharts = () => {
 						{areaLoading ? (
 							<div className="h-[300px] flex items-center justify-center">
 								<p className="text-gray-500">Loading areas...</p>
+							</div>
+						) : areaError ? (
+							<div className="h-[300px] flex items-center justify-center">
+								<p className="text-red-500">Error loading areas: {areaError.message}</p>
 							</div>
 						) : areaData.length === 0 ? (
 							<div className="h-[300px] flex items-center justify-center">

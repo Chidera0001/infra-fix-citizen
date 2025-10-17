@@ -151,7 +151,7 @@ const AdminDashboard = ({ onBack }: AdminDashboardProps) => {
 		(issue) => issue.status === "open"
 	);
 	const inProgressIssues = filteredIssues.filter(
-		(issue) => issue.status === "in-progress"
+		(issue) => issue.status === "in_progress"
 	);
 	const resolvedIssues = filteredIssues.filter(
 		(issue) => issue.status === "resolved"
@@ -400,7 +400,7 @@ const AdminDashboard = ({ onBack }: AdminDashboardProps) => {
 										<SelectItem value="open">
 											Open
 										</SelectItem>
-										<SelectItem value="in-progress">
+										<SelectItem value="in_progress">
 											In Progress
 										</SelectItem>
 										<SelectItem value="resolved">

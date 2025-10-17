@@ -7,7 +7,6 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, MapPin, Plus } from "lucide-react";
 import { useIssues } from "@/hooks/use-issues";
-import CitiznLogo from "@/components/CitiznLogo";
 
 declare global {
   interface Window {
@@ -139,7 +138,11 @@ const CitizenMap = () => {
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Dashboard
               </Button>
-              <CitiznLogo size="sm" />
+              <img 
+                src="/Assets/logo/Citizn-full-logo.png" 
+                alt="Citizn Logo" 
+                className="h-8 w-auto"
+              />
             </div>
           </div>
         </header>

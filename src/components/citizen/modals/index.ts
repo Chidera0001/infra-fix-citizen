@@ -1,0 +1,1 @@
+export { ReportDetailsModal } from './ReportDetailsModal';

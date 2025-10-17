@@ -19,9 +19,9 @@ const IssueMap = ({ onBack, isAdmin = false }: IssueMapProps) => {
 					<div className="flex items-center justify-between">
 						<div className="flex items-center space-x-4">
 							<div>
-								<h1 className="text-xl font-normal text-gray-900">
+								<h2 className="text-l sm:text-xl font-bold text-gray-900">
 									{isAdmin ? "Admin Map View" : "Issue Map"}
-								</h1>
+								</h2>
 								<p className="text-sm text-gray-600">
 									{isAdmin
 										? "Monitor all issues across the community"

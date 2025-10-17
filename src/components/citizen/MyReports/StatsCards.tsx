@@ -10,7 +10,7 @@ export const StatsCards = ({ reports }: StatsCardsProps) => {
 	const stats = {
 		total: reports.length,
 		open: reports.filter(r => r.status === "open").length,
-		inProgress: reports.filter(r => r.status === "in-progress").length,
+		inProgress: reports.filter(r => r.status === "in_progress").length,
 		resolved: reports.filter(r => r.status === "resolved").length,
 	};
 

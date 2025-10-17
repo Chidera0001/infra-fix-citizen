@@ -4,7 +4,7 @@ import {
 	CardContent,
 } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { useCreateIssue } from "@/hooks/use-issues";
+import { useCreateOnlineIssue } from "@/hooks/use-separate-issues";
 import { useAuth } from "@/contexts/AuthContext";
 import { getCurrentLocationWithAddress } from "@/utils/geocoding";
 import {
@@ -41,7 +41,7 @@ const ReportForm = ({ onBack }: ReportFormProps) => {
 	const [locationAddress, setLocationAddress] = useState<string>("");
 	const [showLocationMap, setShowLocationMap] = useState(false);
 	const { toast } = useToast();
-	const createIssueMutation = useCreateIssue();
+	const createOnlineIssueMutation = useCreateOnlineIssue();
 	const { validateForm, cleanTitle } = useFormValidation();
 
 	const totalSteps = 4;
@@ -168,10 +168,10 @@ const ReportForm = ({ onBack }: ReportFormProps) => {
 		try {
 			// Clean the title
 			const cleanedTitle = cleanTitle(formData.title);
-			
+
 			// Ensure title is not empty after cleaning
 			if (!cleanedTitle) {
-				toast({
+		toast({
 					title: "Invalid title",
 					description: "Please provide a valid title with letters or numbers.",
 					variant: "destructive",
@@ -189,10 +189,11 @@ const ReportForm = ({ onBack }: ReportFormProps) => {
 				location_lng: formData.location_lng,
 			};
 			
-			// Create issue in Supabase
-			await createIssueMutation.mutateAsync({
+			// Create issue in Supabase with photos
+			await createOnlineIssueMutation.mutateAsync({
 				issueData,
-				userId: user?.id
+				userId: user?.id,
+				photos: formData.photos
 			});
 
 			// The useCreateIssue hook already shows success toast
@@ -215,7 +216,7 @@ const ReportForm = ({ onBack }: ReportFormProps) => {
 				/>
 			) : (
 				<>
-					{/* Enhanced Header */}
+			{/* Enhanced Header */}
 					<header className="bg-white/95 backdrop-blur-md shadow-lg border-b border-green-200/50">
 						<div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
 							<div className="flex items-center justify-between">
@@ -241,15 +242,15 @@ const ReportForm = ({ onBack }: ReportFormProps) => {
 
 						<Card className="bg-white/95 backdrop-blur-sm border border-green-200/50 shadow-2xl rounded-2xl sm:rounded-3xl overflow-hidden">
 							<CardContent className="px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-								<form onSubmit={handleSubmit} className="space-y-6">
-									{currentStep === 1 && (
+						<form onSubmit={handleSubmit} className="space-y-6">
+							{currentStep === 1 && (
 										<IssueDetailsStep
 											formData={formData}
 											setFormData={setFormData}
 										/>
 									)}
 
-									{currentStep === 2 && (
+							{currentStep === 2 && (
 										<LocationSelectionStep
 											onGetCurrentLocation={getCurrentLocation}
 											onLocationFromMap={handleLocationFromMap}
@@ -280,10 +281,10 @@ const ReportForm = ({ onBack }: ReportFormProps) => {
 										onSubmit={handleSubmit}
 										isSubmitting={isSubmitting}
 									/>
-								</form>
-							</CardContent>
-						</Card>
-					</div>
+						</form>
+					</CardContent>
+				</Card>
+			</div>
 				</>
 			)}
 		</div>

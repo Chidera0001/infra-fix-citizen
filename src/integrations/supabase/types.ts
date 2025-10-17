@@ -91,6 +91,8 @@ export type Database = {
           reporter_id: string | null
           assigned_to: string | null
           upvotes: number
+          notes: string | null
+          resolution_notes: string | null
           created_at: string
           updated_at: string
           resolved_at: string | null
@@ -109,6 +111,8 @@ export type Database = {
           reporter_id?: string | null
           assigned_to?: string | null
           upvotes?: number
+          notes?: string | null
+          resolution_notes?: string | null
           created_at?: string
           updated_at?: string
           resolved_at?: string | null
@@ -127,6 +131,8 @@ export type Database = {
           reporter_id?: string | null
           assigned_to?: string | null
           upvotes?: number
+          notes?: string | null
+          resolution_notes?: string | null
           created_at?: string
           updated_at?: string
           resolved_at?: string | null

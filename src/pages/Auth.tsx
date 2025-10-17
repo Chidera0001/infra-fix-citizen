@@ -95,11 +95,20 @@ const Auth = () => {
 						alt="Citizn Platform" 
 						className="w-full h-full object-cover"
 					/>
-				</div>
+						</div>
 
 				{/* Right side - Auth Form */}
-				<div className="flex-1 flex items-center justify-center p-8">
+				<div className="flex-1 flex items-center justify-center p-4 sm:p-8 overflow-auto scrollbar-hide">
 					<div className="w-full max-w-md">
+						{/* Logo */}
+						<div className={`flex justify-center mb-4 ${mode === "signup" ? "sm:mt-[3rem]" : ""}`}>
+							<img 
+								src="/Assets/logo/Trademark.png" 
+								alt="Citizn Logo" 
+								className="h-10 w-auto"
+							/>
+						</div>
+
 						{/* Mode Toggle */}
 						<div className="flex mb-6 bg-gray-100 rounded-xl p-1">
 							<button
@@ -122,21 +131,21 @@ const Auth = () => {
 							>
 								Sign Up
 							</button>
-						</div>
+								</div>
 
 						<Card className="shadow-2xl border-0">
-							<CardHeader className="text-center">
-								<CardTitle className="text-2xl font-bold text-gray-900">
+							<CardHeader className="text-center pb-4">
+								<CardTitle className="text-xl font-bold text-gray-900">
 									{mode === "signin" ? "Welcome Back" : "Create Account"}
 								</CardTitle>
-								<CardDescription>
-									{mode === "signin" 
+								<CardDescription className="text-sm">
+									{mode === "signin"
 										? "Sign in to your Citizn account" 
 										: "Join Citizn and start making a difference"
 									}
 								</CardDescription>
 							</CardHeader>
-							<CardContent className="space-y-4">
+							<CardContent className="space-y-3 pt-0">
 								{error && (
 									<Alert variant="destructive">
 										<AlertDescription>{error}</AlertDescription>
@@ -177,7 +186,7 @@ const Auth = () => {
 											required
 											className="border-green-300 focus:border-green-500 focus:ring-green-500 rounded-xl"
 										/>
-									</div>
+								</div>
 
 									<div className="space-y-2">
 										<Label htmlFor="password">Password</Label>
@@ -200,7 +209,7 @@ const Auth = () => {
 												{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
 											</button>
 										</div>
-									</div>
+								</div>
 
 									<Button
 										type="submit"
@@ -221,11 +230,11 @@ const Auth = () => {
 								<div className="relative">
 									<div className="absolute inset-0 flex items-center">
 										<span className="w-full border-t border-gray-300" />
-									</div>
+										</div>
 									<div className="relative flex justify-center text-xs uppercase">
 										<span className="bg-white px-2 text-gray-500">Or continue with</span>
+										</div>
 									</div>
-								</div>
 
 								<Button
 									type="button"

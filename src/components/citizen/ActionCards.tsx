@@ -1,5 +1,4 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Plus, MapPin, BarChart3 } from "lucide-react";
 
 interface ActionCardsProps {
 	onReportIssue: () => void;
@@ -20,7 +19,7 @@ export const ActionCards = ({
 			>
 				<CardContent className="p-8 text-center">
 					<div className="inline-flex items-center justify-center w-20 h-20 bg-green-500 rounded-2xl mb-4 group-hover:scale-110 transition-transform duration-300">
-						<Plus className="h-10 w-10 text-white" />
+						<img src="/Assets/icons/Plus.svg" alt="Plus" className="h-10 w-10 brightness-0 invert" />
 					</div>
 					<h3 className="text-xl font-normal text-gray-900 mb-2">
 						Report New Issue
@@ -37,7 +36,7 @@ export const ActionCards = ({
 			>
 				<CardContent className="p-8 text-center">
 					<div className="inline-flex items-center justify-center w-20 h-20 bg-green-500 rounded-2xl mb-4 group-hover:scale-110 transition-transform duration-300">
-						<MapPin className="h-10 w-10 text-white" />
+						<img src="/Assets/icons/Location.svg" alt="Location" className="h-10 w-10 brightness-0 invert" />
 					</div>
 					<h3 className="text-xl font-normal text-gray-900 mb-2">
 						Explore Map
@@ -48,10 +47,13 @@ export const ActionCards = ({
 				</CardContent>
 			</Card>
 			
-			<Card className="cursor-pointer hover:shadow-2xl transition-all duration-300 border-0 group bg-white rounded-2xl overflow-hidden">
+			<Card 
+				className="cursor-pointer hover:shadow-2xl transition-all duration-300 border-0 group bg-white rounded-2xl overflow-hidden"
+				onClick={onViewAnalytics}
+			>
 				<CardContent className="p-8 text-center">
 					<div className="inline-flex items-center justify-center w-20 h-20 bg-green-500 rounded-2xl mb-4 group-hover:scale-110 transition-transform duration-300">
-						<BarChart3 className="h-10 w-10 text-white" />
+						<img src="/Assets/icons/Analytics.svg" alt="Analytics" className="h-10 w-10 brightness-0 invert" />
 					</div>
 					<h3 className="text-xl font-normal text-gray-900 mb-2">
 						View Analytics

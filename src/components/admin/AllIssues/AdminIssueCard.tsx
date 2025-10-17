@@ -29,13 +29,14 @@ interface AdminIssueCardProps {
 	onViewDetails?: (issue: Issue) => void;
 	onUpdate?: (issue: Issue) => void;
 	onDelete?: (issue: Issue) => void;
+	onShare?: (issue: Issue) => void;
 }
 
 const getStatusIcon = (status: string) => {
 	switch (status) {
 		case "open":
 			return <AlertCircle className="h-4 w-4 text-red-500" />;
-		case "in-progress":
+		case "in_progress":
 			return <Clock className="h-4 w-4 text-yellow-500" />;
 		case "resolved":
 			return <CheckCircle className="h-4 w-4 text-green-500" />;
@@ -59,7 +60,7 @@ const getSeverityColor = (severity: string) => {
 	}
 };
 
-export const AdminIssueCard = ({ issue, onViewDetails, onUpdate, onDelete }: AdminIssueCardProps) => {
+export const AdminIssueCard = ({ issue, onViewDetails, onUpdate, onDelete, onShare }: AdminIssueCardProps) => {
 	return (
 		<Card className="border border-gray-200 hover:border-green-300 hover:shadow-md transition-all duration-200">
 			<CardContent className="p-4 sm:p-6">
@@ -111,9 +112,9 @@ export const AdminIssueCard = ({ issue, onViewDetails, onUpdate, onDelete }: Adm
 								variant="outline"
 								size="sm"
 								onClick={() => onViewDetails?.(issue)}
-								className="border-green-300 text-green-700 hover:bg-green-50 flex-1 sm:flex-none"
+								className="border-green-300 text-green-700 hover:bg-green-50 flex-1 sm:flex-none hover:text-green-800"
 							>
-								<Eye className="h-4 w-4 mr-1" />
+						
 								<span className="hidden sm:inline">View Details</span>
 								<span className="sm:hidden">View</span>
 							</Button>
@@ -121,9 +122,8 @@ export const AdminIssueCard = ({ issue, onViewDetails, onUpdate, onDelete }: Adm
 								variant="outline"
 								size="sm"
 								onClick={() => onUpdate?.(issue)}
-								className="border-red-300 text-red-700 hover:bg-blue-50 flex-1 sm:flex-none"
+								className="border-red-300 text-red-700 hover:bg-red-50 flex-1 sm:flex-none hover:text-red-800"
 							>
-								<Edit className="h-4 w-4 mr-1" />
 								<span className="hidden sm:inline">Update</span>
 								<span className="sm:hidden">Edit</span>
 							</Button>
@@ -151,7 +151,7 @@ export const AdminIssueCard = ({ issue, onViewDetails, onUpdate, onDelete }: Adm
 									<Trash2 className="h-4 w-4 mr-2" />
 									Delete Issue
 								</DropdownMenuItem>
-								<DropdownMenuItem>
+								<DropdownMenuItem onClick={() => onShare?.(issue)}>
 									<Share2 className="h-4 w-4 mr-2" />
 									Share Report
 								</DropdownMenuItem>

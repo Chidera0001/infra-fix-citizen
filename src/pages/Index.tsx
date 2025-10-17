@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import ProblemsCards from "@/components/ProblemsCarousel";
 import SolutionSection from "@/components/SolutionSection";
 import FadeInWhenVisible from "@/components/FadeInWhenVisible";
-import { HeroSection, FeaturesSection, FooterSection } from "@/components/sections";
+import { HeroSection, FeaturesSection, FooterSection, ReportNowSection } from "@/components/sections";
 
 const Index = () => {
 	useEffect(() => {
@@ -25,6 +25,13 @@ const Index = () => {
 			<section id="solution">
 				<FadeInWhenVisible>
 					<SolutionSection />
+				</FadeInWhenVisible>
+			</section>
+
+			{/* Instant Report Section */}
+			<section id="instant-report">
+				<FadeInWhenVisible>
+					<ReportNowSection />
 				</FadeInWhenVisible>
 			</section>
 

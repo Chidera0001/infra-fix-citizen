@@ -1,4 +1,4 @@
-import { CheckCircle, Users, Clock, TrendingUp, Heart, Target } from "lucide-react";
+import { Users, Clock, TrendingUp, Heart, Target } from "lucide-react";
 import FadeInWhenVisible from "@/components/FadeInWhenVisible";
 import CountUp from "@/components/ui/CountUp";
 import { useStats } from "@/hooks/use-stats";
@@ -15,13 +15,13 @@ const StatsSection = () => {
 						{/* Loading skeletons */}
 						<div className="contents">
 							<FadeInWhenVisible delay={0.3}>
-								<div className="bg-white/80 backdrop-blur-sm p-4 sm:p-6 rounded-2xl shadow-xl border border-green-200/50">
+								<div className="bg-white/70 backdrop-blur-sm p-4 sm:p-6 rounded-2xl shadow-xl border border-green-200/50">
 									<Skeleton className="h-8 sm:h-12 w-20 mx-auto mb-2" />
 									<Skeleton className="h-4 w-24 mx-auto" />
 								</div>
 							</FadeInWhenVisible>
 							<FadeInWhenVisible delay={0.4}>
-								<div className="bg-white/80 backdrop-blur-sm p-4 sm:p-6 rounded-2xl shadow-xl border border-green-200/50">
+								<div className="bg-white/70 backdrop-blur-sm p-4 sm:p-6 rounded-2xl shadow-xl border border-green-200/50">
 									<Skeleton className="h-8 sm:h-12 w-20 mx-auto mb-2" />
 									<Skeleton className="h-4 w-24 mx-auto" />
 								</div>
@@ -30,7 +30,7 @@ const StatsSection = () => {
 						<div className="col-span-2 sm:col-span-2 lg:col-span-1 flex justify-center">
 							<div className="w-full max-w-sm lg:max-w-none">
 								<FadeInWhenVisible delay={0.5}>
-									<div className="bg-white/80 backdrop-blur-sm p-4 sm:p-6 rounded-2xl shadow-xl border border-green-200/50">
+									<div className="bg-white/70 backdrop-blur-sm p-4 sm:p-6 rounded-2xl shadow-xl border border-green-200/50">
 										<Skeleton className="h-8 sm:h-12 w-20 mx-auto mb-2" />
 										<Skeleton className="h-4 w-24 mx-auto" />
 									</div>
@@ -57,15 +57,18 @@ const StatsSection = () => {
 						<FadeInWhenVisible delay={0.3}>
 							<div className="bg-white/80 backdrop-blur-sm p-4 sm:p-6 rounded-2xl shadow-xl border border-green-200/50 hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2">
 								<div className="flex items-center justify-center mb-3 sm:mb-4">
-									<div className="bg-green-100 p-2 sm:p-3 rounded-xl">
-										<CheckCircle className="h-6 w-6 sm:h-8 sm:w-8 text-green-600" />
+									<div className="bg-[#A6E6C1] p-2 sm:p-3 rounded-xl">
+										<div 
+											className="h-6 w-6 sm:h-8 sm:w-8 bg-[#0A6E2A] mask-[url('/Assets/icons/Tick.svg')] mask-no-repeat mask-center mask-contain"
+											style={{ WebkitMask: "url('/Assets/icons/Tick.svg') no-repeat center / contain" }}
+										/>
 									</div>
 								</div>
 								<h3 className="text-xl sm:text-3xl font-normal text-center text-gray-900 mb-2">
 									<CountUp 
 										end={stats?.issuesResolved || 0} 
 										duration={2000}
-										className="text-xl sm:text-3xl font-normal"
+										className="text-xl sm:text-3xl font-bold"
 									/>
 								</h3>
 								<p className="text-black font-semibold text-sm sm:text-base text-center">
@@ -76,15 +79,18 @@ const StatsSection = () => {
 						<FadeInWhenVisible delay={0.4}>
 							<div className="bg-white/80 backdrop-blur-sm p-4 sm:p-6 rounded-2xl shadow-xl border border-green-200/50 hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2">
 								<div className="flex items-center justify-center mb-3 sm:mb-4">
-									<div className="bg-green-100 p-2 sm:p-3 rounded-xl">
-										<Users className="h-6 w-6 sm:h-8 sm:w-8 text-green-600" />
+									<div className="bg-[#A6E6C1] p-2 sm:p-3 rounded-xl">
+									<div 
+											className="h-6 w-6 sm:h-8 sm:w-8 bg-[#0A6E2A] mask-[url('/Assets/icons/People.svg')] mask-no-repeat mask-center mask-contain"
+											style={{ WebkitMask: "url('/Assets/icons/People.svg') no-repeat center / contain" }}
+										/>
 									</div>
 								</div>
 								<h3 className="text-xl sm:text-3xl font-normal text-center text-gray-900 mb-2">
 									<CountUp 
 										end={stats?.activeCitizens || 0} 
 										duration={2000}
-										className="text-xl sm:text-3xl font-normal"
+										className="text-xl sm:text-3xl font-bold"
 									/>
 								</h3>
 								<p className="text-black font-semibold text-sm sm:text-base text-center">
@@ -100,8 +106,11 @@ const StatsSection = () => {
 							<FadeInWhenVisible delay={0.5}>
 								<div className="bg-white/80 backdrop-blur-sm p-4 sm:p-6 rounded-2xl shadow-xl border border-green-200/50 hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2">
 									<div className="flex items-center justify-center mb-3 sm:mb-4">
-										<div className="bg-green-100 p-2 sm:p-3 rounded-xl">
-											<Clock className="h-6 w-6 sm:h-8 sm:w-8 text-green-600" />
+										<div className="bg-[#A6E6C1] p-2 sm:p-3 rounded-xl">
+											<div 
+												className="h-6 w-6 sm:h-8 sm:w-8 bg-[#0A6E2A] mask-[url('/Assets/icons/Clock.svg')] mask-no-repeat mask-center mask-contain"
+												style={{ WebkitMask: "url('/Assets/icons/Clock.svg') no-repeat center / contain" }}
+											/>
 										</div>
 									</div>
 									<h3 className="text-xl sm:text-3xl font-normal text-center text-gray-900 mb-2">
@@ -110,7 +119,7 @@ const StatsSection = () => {
 											duration={2000}
 											decimals={1}
 											suffix=" hrs"
-											className="text-xl sm:text-3xl font-normal"
+											className="text-xl sm:text-3xl font-bold"
 										/>
 									</h3>
 									<p className="text-black font-semibold text-sm sm:text-base text-center">

@@ -45,14 +45,11 @@ import {
 	MoreHorizontal,
 	Edit,
 	Trash2,
-	UserCheck,
 	UserX,
 	ChevronLeft,
 	ChevronRight,
-	Users,
 	UserCog,
 	Shield,
-	ShieldCheck,
 } from "lucide-react";
 import { useUsers, useUpdateUser, useDeleteUser, useUserStats, type UserFilters } from "@/hooks/use-users";
 import { formatDistanceToNow } from "date-fns";
@@ -163,7 +160,7 @@ export const UserManagement = ({ className }: UserManagementProps) => {
 	const getRoleBadgeVariant = (role: string) => {
 		switch (role) {
 			case "admin":
-				return "destructive";
+				return "secondary";
 			case "moderator":
 				return "default";
 			default:
@@ -175,7 +172,7 @@ export const UserManagement = ({ className }: UserManagementProps) => {
 	const getRoleIcon = (role: string) => {
 		switch (role) {
 			case "admin":
-				return <ShieldCheck className="h-4 w-4" />;
+				return <img src="/Assets/icons/Shield.svg" alt="Admin" className="h-4 w-4" />;
 			case "moderator":
 				return <Shield className="h-4 w-4" />;
 			default:
@@ -199,29 +196,29 @@ export const UserManagement = ({ className }: UserManagementProps) => {
 			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
 				<Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200 shadow-lg">
 					<CardContent className="p-6 text-center">
-						<Users className="h-8 w-8 text-blue-500 mx-auto mb-2" />
+						<img src="/Assets/icons/People.svg" alt="Total Users" className="h-8 w-8 text-blue-500 mx-auto mb-2" />
 						<p className="text-xl font-bold text-gray-900">{userStats?.total || 0}</p>
 						<p className="text-sm text-gray-600 ">Total Users</p>
 					</CardContent>
 				</Card>
 				<Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200 shadow-lg">
 					<CardContent className="p-6 text-center">
-						<UserCheck className="h-8 w-8 text-green-500 mx-auto mb-2" />
+						<img src="/Assets/icons/People.svg" alt="Active Users" className="h-8 w-8 text-green-500 mx-auto mb-2" />
 						<p className="text-xl text-gray-900 font-bold">{userStats?.active || 0}</p>
 						<p className="text-sm text-gray-600 ">Active Users</p>
 					</CardContent>
 				</Card>
 				<Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200 shadow-lg">
 					<CardContent className="p-6 text-center">
-						<ShieldCheck className="h-8 w-8 text-purple-500 mx-auto mb-2" />
+						<img src="/Assets/icons/Shield.svg" alt="Admins" className="h-8 w-8 text-purple-500 mx-auto mb-2" />
 						<p className="text-xl font-bold text-gray-900">{userStats?.admins || 0}</p>
 						<p className="text-sm text-gray-600">Admins</p>
 					</CardContent>
 				</Card>
 				<Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200 shadow-lg">
 					<CardContent className="p-6 text-center">
-						<UserX className="h-8 w-8 text-red-500 mx-auto mb-2" />
-						<p className="text-xl font-bold text-gray-900">{userStats?.inactive || 0}</p>
+					<img src="/Assets/icons/People.svg" alt="Admins" className="h-8 w-8 text-purple-500 mx-auto mb-2" />
+					<p className="text-xl font-bold text-gray-900">{userStats?.inactive || 0}</p>
 						<p className="text-sm text-gray-600">Inactive Users</p>
 					</CardContent>
 				</Card>
@@ -289,7 +286,7 @@ export const UserManagement = ({ className }: UserManagementProps) => {
 						</div>
 					) : users.length === 0 ? (
 						<div className="py-12 text-center">
-							<Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+							<img src="/Assets/icons/People.svg" alt="No users" className="h-12 w-12 text-gray-400 mx-auto mb-4" />
 							<p className="text-gray-500">No users found</p>
 						</div>
 					) : (
@@ -315,7 +312,12 @@ export const UserManagement = ({ className }: UserManagementProps) => {
 											</div>
 										</TableCell>
 										<TableCell>
-											<Badge variant={getRoleBadgeVariant(user.role)} className="flex items-center gap-1 w-fit">
+											<Badge 
+												variant={getRoleBadgeVariant(user.role)} 
+												className={`flex items-center gap-1 w-fit ${
+													user.role === "admin" ? "text-green-700" : ""
+												}`}
+											>
 												{getRoleIcon(user.role)}
 												{user.role || "citizen"}
 											</Badge>

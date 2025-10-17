@@ -21,7 +21,7 @@ interface Issue {
 	title: string;
 	description: string;
 	category: string;
-	status: "open" | "in-progress" | "resolved";
+	status: "open" | "in_progress" | "resolved";
 	urgency: "low" | "medium" | "high";
 	location: string;
 	date: string;
@@ -40,7 +40,7 @@ const IssueCard = ({ issue, showActions = true }: IssueCardProps) => {
 		switch (status) {
 			case "open":
 				return "bg-red-100 text-red-700 border-red-200";
-			case "in-progress":
+			case "in_progress":
 				return "bg-orange-100 text-orange-700 border-orange-200";
 			case "resolved":
 				return "bg-green-100 text-green-700 border-green-200";
@@ -66,7 +66,7 @@ const IssueCard = ({ issue, showActions = true }: IssueCardProps) => {
 		switch (status) {
 			case "open":
 				return <AlertTriangle className="h-4 w-4" />;
-			case "in-progress":
+			case "in_progress":
 				return <Clock className="h-4 w-4" />;
 			case "resolved":
 				return <CheckCircle className="h-4 w-4" />;
@@ -200,7 +200,7 @@ const IssueCard = ({ issue, showActions = true }: IssueCardProps) => {
 				</div>
 
 				{/* Progress Indicator for In-Progress Issues */}
-				{issue.status === "in-progress" && (
+				{issue.status === "in_progress" && (
 					<div className="mt-4 pt-4 border-t border-gray-100">
 						<div className="flex items-center justify-between mb-2">
 							<span className="text-sm font-medium text-black">

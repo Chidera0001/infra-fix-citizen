@@ -43,7 +43,7 @@ const getMarkerColor = (status: string): string => {
   switch (status) {
     case "open":
       return "#ef4444"; // Red
-    case "in-progress":
+    case "in_progress":
       return "#f97316"; // Orange
     case "resolved":
       return "#22c55e"; // Green
@@ -214,7 +214,7 @@ function InteractiveMap({
                     <span class="text-xs ${
                       issue.status === "open"
                         ? "bg-red-100 text-red-700"
-                        : issue.status === "in-progress"
+                        : issue.status === "in_progress"
                         ? "bg-orange-100 text-orange-700"
                         : "bg-green-100 text-green-700"
                     } px-2 py-1 rounded">${issue.status}</span>

@@ -16,7 +16,11 @@ const LoadingPage: React.FC<LoadingPageProps> = ({
         {/* Logo/Brand */}
         <div className="mb-8">
           <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-green-600 to-green-700 rounded-2xl flex items-center justify-center shadow-lg">
-            <span className="text-white font-bold text-2xl">C</span>
+            <img 
+              src="/Assets/logo/Trademark.png" 
+              alt="Citizn Logo" 
+              className="h-8 w-auto brightness-0 invert"
+            />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Citizn</h1>
           <p className="text-gray-600 text-sm">Infrastructure Issue Management</p>

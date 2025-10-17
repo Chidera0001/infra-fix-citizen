@@ -23,25 +23,31 @@ const SolutionSection: React.FC = () => {
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
 				{/* Header */}
 				<div className="text-center mb-12 sm:mb-16 lg:mb-20">
-					<Badge className="mb-6 sm:mb-8 bg-green-100 text-green-700 border-green-200 px-4 py-2 text-sm font-medium">
-						<CheckCircle className="h-4 w-4 mr-2" />
+					<Badge className="mb-6 gap-2 sm:mb-8 bg-green-100 text-green-700 border-green-200 px-4 py-2 text-sm font-medium">
+						<div 
+							className="h-4 w-4 bg-[#0A6E2A] mask-[url('/Assets/icons/Tick.svg')] mask-no-repeat mask-center mask-contain"
+							style={{ WebkitMask: "url('/Assets/icons/Tick.svg') no-repeat center / contain" }}
+						/>
 						Our Solution
 					</Badge>
-					<h3 className="text-l sm:text-2xl md:text-3xl lg:text-4xl font-semibold text-gray-900 mb-6 sm:mb-8 px-4">
+					<h3 className="text-l sm:text-2xl md:text-3xl lg:text-3xl font-semibold text-gray-900 mb-6 sm:mb-8 px-4">
 						Citizn: Bridging Citizens & Government
 					</h3>
 				</div>
 
 				{/* Main Content - Two Column Layout */}
-				<div className="grid grid-cols-1 lg:grid-cols-5 gap-8 sm:gap-12 lg:gap-16 items-center">
+				<div className="grid grid-cols-1 lg:grid-cols-5 gap-8 sm:gap-12 lg:gap-16 items-start">
 					{/* Left Column - Text Content */}
 					<div className="lg:col-span-2 space-y-4 sm:space-y-6">
 						{/* Digital Reporting Platform */}
 						<div className="bg-white/80 backdrop-blur-sm p-4 sm:p-6 rounded-2xl border border-green-200/30 shadow-lg">
 							{/* Icon at the top */}
 							<div className="flex justify-start mb-4">
-								<div className="bg-green-500 p-3 rounded-xl">
-									<Shield className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
+								<div className="bg-[#A6E6C1] p-2 rounded-xl">
+								<div 
+									className="h-6 w-6 bg-[#0A6E2A] mask-[url('/Assets/icons/Shield.svg')] mask-no-repeat mask-center mask-contain"
+									style={{ WebkitMask: "url('/Assets/icons/Shield.svg') no-repeat center / contain" }}
+								/>
 								</div>
 							</div>
 							<h4 className="text-[14px] font-semibold text-gray-900 text-left mb-3 sm:mb-4">
@@ -79,8 +85,11 @@ const SolutionSection: React.FC = () => {
 						<div className="bg-white/80 backdrop-blur-sm p-4 sm:p-6 rounded-2xl border border-green-200/30 shadow-lg">
 							{/* Icon at the top */}
 							<div className="flex justify-start mb-4">
-								<div className="bg-green-500 p-3 rounded-xl">
-									<Users className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
+								<div className="bg-[#A6E6C1] p-2 rounded-xl">
+									<div 
+										className="h-6 w-6 bg-[#0A6E2A] mask-[url('/Assets/icons/People.svg')] mask-no-repeat mask-center mask-contain"
+										style={{ WebkitMask: "url('/Assets/icons/People.svg') no-repeat center / contain" }}
+									/>
 								</div>
 							</div>
 							<h4 className="text-[14px] font-semibold text-gray-900 text-left mb-3 sm:mb-4">
@@ -129,45 +138,15 @@ const SolutionSection: React.FC = () => {
 					</div>
 
 					{/* Right Column - Image Background */}
-					<div className="lg:col-span-3 relative mt-8 lg:mt-0">
+					<div className="lg:col-span-3 relative">
 						<div className="relative w-full h-[300px] sm:h-[400px] lg:h-[600px] rounded-2xl shadow-xl">
 							{/* Background Image */}
 							<img
-								src="/Assets/Images/Platform.png"
+								src="/Assets/Images/LoginSignUp.jpg"
 								alt="Citizn platform interface and resolution process"
 								className="w-full h-full object-contain"
 							/>
-							{/* Dark overlay for better content readability */}
-							<div className="absolute inset-0 bg-black/10 rounded-2xl"></div>
-							{/* Subtle gradient overlay */}
-							<div className="rounded-2xl absolute inset-0 bg-gradient-to-r from-green-900/20 via-transparent to-blue-900/20"></div>
-
-							{/* Floating Stats */}
-							<div className="absolute -bottom-3 -left-3 sm:-bottom-6 sm:-left-6 bg-white p-2 sm:p-3 rounded-lg sm:rounded-xl shadow-lg border border-green-200">
-								<div className="text-center">
-									<div className="text-sm sm:text-lg font-normal text-green-600">
-										2,847
-									</div>
-									<div className="text-xs text-gray-600">
-										Issues Resolved
-									</div>
-								</div>
-							</div>
-							<div className="absolute -top-3 -right-3 sm:-top-6 sm:-right-6 bg-white p-2 sm:p-3 rounded-lg sm:rounded-xl shadow-lg border border-green-200">
-								<div className="text-center">
-									<div className="text-sm sm:text-lg font-normal text-green-600">
-										15,632
-									</div>
-									<div className="text-xs text-gray-600">
-										Active Users
-									</div>
-								</div>
-							</div>
 						</div>
-
-						{/* Decorative Elements */}
-						<div className="absolute top-4 sm:top-8 -left-2 sm:-left-3 w-4 h-4 sm:w-6 sm:h-6 bg-green-300 rounded-full opacity-40"></div>
-						<div className="absolute bottom-8 sm:bottom-16 -right-2 sm:-right-3 w-3 h-3 sm:w-5 sm:h-5 bg-blue-300 rounded-full opacity-40"></div>
 					</div>
 				</div>
 			</div>
