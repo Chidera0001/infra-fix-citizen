@@ -4,7 +4,6 @@ import {
 	Map, 
 	Users, 
 	BarChart3, 
-	Settings, 
 	LogOut,
 	Shield,
 	Activity,
@@ -121,14 +120,6 @@ export const AdminSidebar = ({ activeTab, onTabChange, profile }: AdminSidebarPr
 
 			{/* Footer Actions */}
 			<div className="p-4 border-t border-gray-200 space-y-2">
-				<Button
-					variant="ghost"
-					className="w-full justify-start text-black hover:bg-gray-50"
-					onClick={() => navigate("/admin/settings")}
-				>
-					<Settings className="h-5 w-5 mr-3 text-gray-500" />
-					Settings
-				</Button>
 				<Button
 					variant="ghost"
 					className="w-full justify-start text-red-600 hover:bg-red-50"

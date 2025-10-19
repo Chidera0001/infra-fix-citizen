@@ -185,11 +185,11 @@ export const getCurrentLocation = (): Promise<GeolocationCoordinates> => {
             reject(error);
           }
         },
-      {
-        enableHighAccuracy: true,
-        timeout: 20000,
-        maximumAge: 0,
-      }
+        {
+          enableHighAccuracy: true,
+          timeout: 20000,
+          maximumAge: 0,
+        }
       );
     };
 
@@ -248,4 +248,35 @@ export const getCurrentLocationWithAddress = async (): Promise<{
     coordinates,
     address,
   };
+};
+
+// Helper function to geocode text location to coordinates (for offline users)
+export const geocodeLocation = async (locationText: string): Promise<{lat: number, lng: number} | null> => {
+  try {
+    // Use OpenStreetMap Nominatim for geocoding
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationText)}&limit=1&addressdetails=1&countrycodes=ng`,
+      {
+        headers: {
+          'User-Agent': 'Citizn-App/1.0'
+        }
+      }
+    );
+
+    if (response.ok) {
+      const data = await response.json();
+
+      if (data && data.length > 0) {
+        const result = {
+          lat: parseFloat(data[0].lat),
+          lng: parseFloat(data[0].lon)
+        };
+        return result;
+      }
+    }
+    return null;
+  } catch (error) {
+    console.error('Geocoding error:', error);
+    return null;
+  }
 };

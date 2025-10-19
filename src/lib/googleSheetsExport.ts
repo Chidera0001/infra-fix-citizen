@@ -1,4 +1,4 @@
-import { Issue } from "./mockData";
+import { Issue } from "./supabase-api";
 
 export interface ExportData {
   ID: string;
@@ -6,21 +6,30 @@ export interface ExportData {
   Description: string;
   Category: string;
   Status: string;
-  Urgency: string;
+  Severity: string;
   Location: string;
+  Address: string;
   Date: string;
-  ReportedBy: string;
+  Reporter: string;
   Upvotes: number;
-  Comments: number;
   Latitude: number;
   Longitude: number;
-  Severity: number;
+  Priority: string;
+  CreatedAt: string;
+  UpdatedAt: string;
 }
 
 /**
  * Export data to CSV format for easy import into Google Sheets
  */
 export const exportToCSV = (issues: Issue[], filename?: string): void => {
+  // Validate input
+  if (!issues || issues.length === 0) {
+    console.warn('No issues to export');
+    // You might want to show a toast notification here
+    return;
+  }
+
   // Prepare data for export
   const exportData: ExportData[] = issues.map(issue => ({
     ID: issue.id,
@@ -28,15 +37,17 @@ export const exportToCSV = (issues: Issue[], filename?: string): void => {
     Description: issue.description,
     Category: issue.category,
     Status: issue.status,
-    Urgency: issue.urgency || "N/A",
-    Location: issue.location,
-    Date: issue.date,
-    ReportedBy: issue.reportedBy,
-    Upvotes: issue.upvotes,
-    Comments: issue.comments,
-    Latitude: issue.latitude,
-    Longitude: issue.longitude,
-    Severity: issue.severity
+    Severity: issue.severity,
+    Location: `${issue.location_lat}, ${issue.location_lng}`,
+    Address: issue.address || 'N/A',
+    Date: new Date(issue.created_at).toLocaleDateString(),
+    Reporter: issue.reporter_id,
+    Upvotes: issue.upvotes || 0,
+    Latitude: issue.location_lat,
+    Longitude: issue.location_lng,
+    Priority: issue.priority || 'N/A',
+    CreatedAt: new Date(issue.created_at).toLocaleString(),
+    UpdatedAt: issue.updated_at ? new Date(issue.updated_at).toLocaleString() : 'N/A'
   }));
 
   // Convert to CSV format
@@ -102,19 +113,21 @@ export const formatDataForSheets = (issues: Issue[]): ExportData[] => {
     Description: issue.description,
     Category: issue.category,
     Status: issue.status.charAt(0).toUpperCase() + issue.status.slice(1).replace('-', ' '),
-    Urgency: issue.urgency ? issue.urgency.charAt(0).toUpperCase() + issue.urgency.slice(1) : "N/A",
-    Location: issue.location,
-    Date: new Date(issue.date).toLocaleDateString('en-US', {
+    Severity: issue.severity ? issue.severity.charAt(0).toUpperCase() + issue.severity.slice(1) : "N/A",
+    Location: `${issue.location_lat}, ${issue.location_lng}`,
+    Address: issue.address || 'N/A',
+    Date: new Date(issue.created_at).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
     }),
-    ReportedBy: issue.reportedBy,
-    Upvotes: issue.upvotes,
-    Comments: issue.comments,
-    Latitude: issue.latitude,
-    Longitude: issue.longitude,
-    Severity: issue.severity
+    Reporter: issue.reporter_id,
+    Upvotes: issue.upvotes || 0,
+    Latitude: issue.location_lat,
+    Longitude: issue.location_lng,
+    Priority: issue.priority ? issue.priority.charAt(0).toUpperCase() + issue.priority.slice(1) : "N/A",
+    CreatedAt: new Date(issue.created_at).toLocaleString(),
+    UpdatedAt: issue.updated_at ? new Date(issue.updated_at).toLocaleString() : 'N/A'
   }));
 };
 
@@ -132,9 +145,9 @@ export const getExportStats = (issues: Issue[]) => {
     return acc;
   }, {} as Record<string, number>);
   
-  const urgencies = issues.reduce((acc, issue) => {
-    const urgency = issue.urgency || 'low';
-    acc[urgency] = (acc[urgency] || 0) + 1;
+  const severities = issues.reduce((acc, issue) => {
+    const severity = issue.severity || 'medium';
+    acc[severity] = (acc[severity] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
   
@@ -144,10 +157,10 @@ export const getExportStats = (issues: Issue[]) => {
     inProgressIssues,
     resolvedIssues,
     categories,
-    urgencies,
+    severities,
     dateRange: {
-      earliest: issues.length > 0 ? new Date(Math.min(...issues.map(i => new Date(i.date).getTime()))) : null,
-      latest: issues.length > 0 ? new Date(Math.max(...issues.map(i => new Date(i.date).getTime()))) : null
+      earliest: issues.length > 0 ? new Date(Math.min(...issues.map(i => new Date(i.created_at).getTime()))) : null,
+      latest: issues.length > 0 ? new Date(Math.max(...issues.map(i => new Date(i.created_at).getTime()))) : null
     }
   };
 };
@@ -203,9 +216,9 @@ export const createSummaryReport = (issues: Issue[], filters: {
   report += `\n`;
   
   // Urgency breakdown
-  report += `Issues by Urgency:\n`;
-  Object.entries(stats.urgencies).forEach(([urgency, count]) => {
-    report += `• ${urgency.charAt(0).toUpperCase() + urgency.slice(1)}: ${count}\n`;
+  report += `Issues by Severity:\n`;
+  Object.entries(stats.severities).forEach(([severity, count]) => {
+    report += `• ${severity.charAt(0).toUpperCase() + severity.slice(1)}: ${count}\n`;
   });
   report += `\n`;
   

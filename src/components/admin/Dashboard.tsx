@@ -15,7 +15,7 @@ export const Dashboard = ({ onShowMap }: DashboardProps) => {
 			<div className="mb-6 lg:mb-8">
 				<div className="flex items-center justify-between">
 					<div>
-						<h1 className="text-l sm:text-xl lg:text-xl font-normal text-gray-900 mb-2 lg:mb-3">
+						<h1 className="text-xl sm:text-xl lg:text-3xl font-normal text-gray-900 mb-2 lg:mb-3">
 							Analytics Dashboard
 						</h1>
 					</div>

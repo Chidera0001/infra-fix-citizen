@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { MapPin, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import InteractiveMap from "@/components/InteractiveMap";
 import { reverseGeocode } from "@/utils/geocoding";
+import { L, MAP_CONFIG } from "@/components/maps";
 
 interface LocationSelectionMapProps {
 	onLocationSelected: (coordinates: { lat: number; lng: number }, address: string) => void;
@@ -14,6 +14,10 @@ const LocationSelectionMap = ({
 	onLocationSelected,
 	initialLocation = { lat: 6.5244, lng: 3.3792 }, // Default Lagos coordinates
 }: LocationSelectionMapProps) => {
+	const mapRef = useRef<HTMLDivElement>(null);
+	const mapInstance = useRef<L.Map | null>(null);
+	const markerRef = useRef<L.Marker | null>(null);
+	
 	const [selectedLocation, setSelectedLocation] = useState<{ lat: number; lng: number } | null>(null);
 	const [selectedAddress, setSelectedAddress] = useState<string>("");
 	const [isGettingAddress, setIsGettingAddress] = useState(false);
@@ -26,29 +30,84 @@ const LocationSelectionMap = ({
 		}
 	}, [initialLocation]);
 
-	const handleMapClick = async (coordinates: { lat: number; lng: number }) => {
-		setSelectedLocation(coordinates);
-		setIsGettingAddress(true);
+	useEffect(() => {
+		if (!mapRef.current) return;
 
-		try {
-			const address = await reverseGeocode(coordinates.lat, coordinates.lng);
-			setSelectedAddress(address);
+		// Initialize map
+		const map = L.map(mapRef.current).setView(MAP_CONFIG.defaultCenter, MAP_CONFIG.defaultZoom);
+		
+		// Add tile layer
+		L.tileLayer(MAP_CONFIG.tileLayerUrl, MAP_CONFIG.tileLayerOptions).addTo(map);
+		
+		mapInstance.current = map;
+
+		// Add click listener for location selection
+		map.on('click', async (e: L.LeafletMouseEvent) => {
+			const coordinates = {
+				lat: e.latlng.lat,
+				lng: e.latlng.lng
+			};
 			
-			toast({
-				title: "Location selected",
-				description: `Found: ${address}`,
+			setSelectedLocation(coordinates);
+			setIsGettingAddress(true);
+
+			// Remove existing marker
+			if (markerRef.current) {
+				map.removeLayer(markerRef.current);
+			}
+
+			// Add new marker
+			const selectedIcon = L.divIcon({
+				className: 'selected-marker',
+				html: `
+					<div style="
+						background-color: #3b82f6;
+						width: 20px;
+						height: 20px;
+						border-radius: 50%;
+						border: 3px solid white;
+						box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+					"></div>
+				`,
+				iconSize: [20, 20],
+				iconAnchor: [10, 10]
 			});
-		} catch (error) {
-			setSelectedAddress(`${coordinates.lat.toFixed(6)}, ${coordinates.lng.toFixed(6)}`);
-			toast({
-				title: "Location selected",
-				description: "Address lookup failed, using coordinates",
-				variant: "destructive",
-			});
-		} finally {
-			setIsGettingAddress(false);
-		}
-	};
+
+			markerRef.current = L.marker([coordinates.lat, coordinates.lng], { 
+				icon: selectedIcon 
+			}).addTo(map);
+
+			try {
+				const address = await reverseGeocode(coordinates.lat, coordinates.lng);
+				setSelectedAddress(address);
+				
+				toast({
+					title: "Location selected",
+					description: `Found: ${address}`,
+				});
+			} catch (error) {
+				setSelectedAddress(`${coordinates.lat.toFixed(6)}, ${coordinates.lng.toFixed(6)}`);
+				toast({
+					title: "Location selected",
+					description: "Address lookup failed, using coordinates",
+					variant: "destructive",
+				});
+			} finally {
+				setIsGettingAddress(false);
+			}
+		});
+
+		// Cleanup function
+		return () => {
+			if (mapInstance.current) {
+				if (markerRef.current) {
+					mapInstance.current.removeLayer(markerRef.current);
+				}
+				mapInstance.current.remove();
+				mapInstance.current = null;
+			}
+		};
+	}, []);
 
 	const handleConfirmLocation = () => {
 		if (selectedLocation) {
@@ -86,18 +145,19 @@ const LocationSelectionMap = ({
 
 			{/* Map Container */}
 			<div className="flex-1 w-full relative">
-				<InteractiveMap
-					issues={[]} // No issues to display, just for location selection
-					isAdmin={false}
-					className="h-full w-full"
-					onLocationSelect={handleMapClick}
-					showLocationSelector={true}
-					selectedLocation={selectedLocation}
+				<div
+					ref={mapRef}
+					className="w-full h-full"
+					style={{
+						width: "100%",
+						height: "100%",
+						minHeight: "400px",
+					}}
 				/>
 				
 				{/* Location Info Overlay */}
 				{selectedLocation && (
-					<div className="absolute top-4 left-4 bg-white rounded-lg shadow-lg p-4 max-w-sm">
+					<div className="absolute top-4 left-4 bg-white rounded-lg shadow-lg p-4 max-w-sm z-10">
 						<div className="flex items-start space-x-3">
 							<div className="flex-shrink-0">
 								<MapPin className="h-5 w-5 text-green-600" />

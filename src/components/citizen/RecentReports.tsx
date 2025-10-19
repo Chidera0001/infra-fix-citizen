@@ -261,7 +261,7 @@ export const RecentReports = ({ reports }: RecentReportsProps) => {
 
 				{/* Pagination */}
 				{totalPages > 1 && (
-					<div className="flex-col mt-6 gap-2 flex items-center justify-between">
+					<div className="flex-row mt-6 gap-2 flex items-center justify-between">
 						<div className="text-sm text-gray-500">
 							Showing {startIndex + 1} to {Math.min(startIndex + ITEMS_PER_PAGE, filteredReports.length)} of {filteredReports.length} reports
 						</div>

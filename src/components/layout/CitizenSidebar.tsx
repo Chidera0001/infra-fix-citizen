@@ -1,4 +1,4 @@
-import { Home, FileText, Map, Settings, LogOut, Menu, X, Camera } from "lucide-react";
+import { Home, FileText, Map, LogOut, Menu, X, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import CitiznLogo from "@/components/CitiznLogo";
 import { useAuth } from "@/contexts/AuthContext";
@@ -117,14 +117,6 @@ export const CitizenSidebar = ({ activeTab, onTabChange }: CitizenSidebarProps) 
 
 				{/* Footer Actions */}
 				<div className="p-4 border-t border-gray-200 space-y-2">
-					<Button
-						variant="ghost"
-						className="w-full justify-start text-black hover:bg-gray-50"
-						onClick={() => navigate("/settings")}
-					>
-						<Settings className="h-5 w-5 mr-3 text-gray-500" />
-						Settings
-					</Button>
 					<Button
 						variant="ghost"
 						className="w-full justify-start text-red-600 hover:bg-red-50"

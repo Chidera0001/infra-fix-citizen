@@ -1,4 +1,5 @@
 import type { Issue } from '@/lib/supabase-api';
+import type { ReportData } from '@/lib/reportGenerator';
 
 export function generateReportPDF(report: Issue): void {
 	// Create a new window for PDF generation
@@ -237,6 +238,262 @@ export function generateReportPDF(report: Issue): void {
 
 			<div class="footer">
 				<p>This report was generated from the Citizen Infrastructure Reporting System</p>
+				<p>For questions or updates, please contact your local administration</p>
+			</div>
+
+			<script>
+				// Auto-print when loaded
+				window.onload = function() {
+					setTimeout(function() {
+						window.print();
+					}, 500);
+				};
+			</script>
+		</body>
+		</html>
+	`;
+
+	printWindow.document.write(htmlContent);
+	printWindow.document.close();
+}
+
+export function generateAdminReportPDF(reportData: ReportData): void {
+	// Create a new window for PDF generation
+	const printWindow = window.open('', '_blank');
+	if (!printWindow) {
+		alert('Please allow popups to generate PDF');
+		return;
+	}
+
+	const { summary, metadata } = reportData;
+	const reportType = metadata.filters.reportType;
+
+	// Format date
+	const formatDate = (dateString: string) => {
+		return new Date(dateString).toLocaleDateString('en-US', {
+			year: 'numeric',
+			month: 'long',
+			day: 'numeric',
+			hour: '2-digit',
+			minute: '2-digit'
+		});
+	};
+
+	// Get report type specific styling
+	const getReportTypeStyle = (type: string) => {
+		switch (type) {
+			case "summary": return { color: "#22c55e", bgColor: "#f0fdf4" };
+			case "detailed": return { color: "#3b82f6", bgColor: "#eff6ff" };
+			case "performance": return { color: "#8b5cf6", bgColor: "#faf5ff" };
+			case "trends": return { color: "#f59e0b", bgColor: "#fffbeb" };
+			default: return { color: "#22c55e", bgColor: "#f0fdf4" };
+		}
+	};
+
+	const reportStyle = getReportTypeStyle(reportType);
+
+	// Generate HTML content for PDF
+	const htmlContent = `
+		<!DOCTYPE html>
+		<html>
+		<head>
+			<title>Citizn ${reportType.charAt(0).toUpperCase() + reportType.slice(1)} Report</title>
+			<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+			<style>
+				body {
+					font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+					margin: 0;
+					padding: 20px;
+					color: #333;
+					line-height: 1.6;
+					background-color: white;
+				}
+				.header {
+					border-bottom: 3px solid ${reportStyle.color};
+					padding-bottom: 20px;
+					margin-bottom: 30px;
+					background-color: ${reportStyle.bgColor};
+					padding: 20px;
+					border-radius: 8px;
+				}
+				.logo {
+					font-size: 28px;
+					font-weight: bold;
+					color: ${reportStyle.color};
+					margin-bottom: 10px;
+				}
+				.title {
+					font-size: 24px;
+					font-weight: bold;
+					color: #1f2937;
+					margin-bottom: 10px;
+				}
+				.subtitle {
+					color: #6b7280;
+					font-size: 14px;
+				}
+				.section {
+					margin-bottom: 25px;
+					padding: 20px;
+					border: 1px solid #e5e7eb;
+					border-radius: 8px;
+					background-color: #f9fafb;
+				}
+				.section-title {
+					font-size: 18px;
+					font-weight: bold;
+					color: #1f2937;
+					margin-bottom: 15px;
+					border-bottom: 2px solid ${reportStyle.color};
+					padding-bottom: 5px;
+				}
+				.metrics-grid {
+					display: grid;
+					grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+					gap: 15px;
+					margin-bottom: 20px;
+				}
+				.metric-card {
+					background-color: white;
+					padding: 15px;
+					border-radius: 8px;
+					border-left: 4px solid ${reportStyle.color};
+					box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+				}
+				.metric-value {
+					font-size: 24px;
+					font-weight: bold;
+					color: ${reportStyle.color};
+					margin-bottom: 5px;
+				}
+				.metric-label {
+					font-size: 14px;
+					color: #6b7280;
+				}
+				.info-grid {
+					display: grid;
+					grid-template-columns: 1fr 1fr;
+					gap: 20px;
+				}
+				.info-item {
+					margin-bottom: 10px;
+				}
+				.info-label {
+					font-weight: bold;
+					color: #374151;
+				}
+				.info-value {
+					color: #6b7280;
+					margin-top: 2px;
+				}
+				.badge {
+					display: inline-block;
+					padding: 4px 8px;
+					border-radius: 4px;
+					font-size: 12px;
+					font-weight: bold;
+					margin: 2px;
+				}
+				.badge-critical { background-color: #fee2e2; color: #dc2626; }
+				.badge-high { background-color: #fed7aa; color: #ea580c; }
+				.badge-medium { background-color: #fef3c7; color: #d97706; }
+				.badge-low { background-color: #d1fae5; color: #059669; }
+				.badge-status { background-color: #e0f2fe; color: #0369a1; }
+				.badge-category { background-color: #f3e8ff; color: #7c3aed; }
+				.footer {
+					margin-top: 40px;
+					padding-top: 20px;
+					border-top: 1px solid #e5e7eb;
+					text-align: center;
+					color: #6b7280;
+					font-size: 12px;
+				}
+				@media print {
+					body { margin: 0; padding: 15px; }
+					.section { break-inside: avoid; }
+					.metrics-grid { break-inside: avoid; }
+				}
+			</style>
+		</head>
+		<body>
+			<div class="header">
+				<div class="logo">Citizn</div>
+				<div class="title">${reportType.charAt(0).toUpperCase() + reportType.slice(1)} Report</div>
+				<div class="subtitle">Generated on ${formatDate(metadata.generatedAt)} • Date Range: ${metadata.dateRange}</div>
+			</div>
+
+			<div class="section">
+				<div class="section-title">Key Metrics</div>
+				<div class="metrics-grid">
+					<div class="metric-card">
+						<div class="metric-value">${summary.totalIssues}</div>
+						<div class="metric-label">Total Issues</div>
+					</div>
+					<div class="metric-card">
+						<div class="metric-value">${summary.openIssues}</div>
+						<div class="metric-label">Open Issues</div>
+					</div>
+					<div class="metric-card">
+						<div class="metric-value">${summary.resolvedIssues}</div>
+						<div class="metric-label">Resolved Issues</div>
+					</div>
+					<div class="metric-card">
+						<div class="metric-value">${Math.round(summary.resolutionRate)}%</div>
+						<div class="metric-label">Resolution Rate</div>
+					</div>
+					<div class="metric-card">
+						<div class="metric-value">${Math.round(summary.averageResolutionTime)}</div>
+						<div class="metric-label">Avg Resolution Time (days)</div>
+					</div>
+					<div class="metric-card">
+						<div class="metric-value">${summary.inProgressIssues}</div>
+						<div class="metric-label">In Progress</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="section">
+				<div class="section-title">Category Breakdown</div>
+				<div class="info-grid">
+					${Object.entries(summary.categoryBreakdown).map(([category, count]) => `
+						<div class="info-item">
+							<div class="info-label">${category.replace('_', ' ').toUpperCase()}:</div>
+							<div class="info-value">${count} issues (${Math.round((count / summary.totalIssues) * 100)}%)</div>
+						</div>
+					`).join('')}
+				</div>
+			</div>
+
+			<div class="section">
+				<div class="section-title">Severity Distribution</div>
+				<div class="info-grid">
+					${Object.entries(summary.severityBreakdown).map(([severity, count]) => `
+						<div class="info-item">
+							<div class="info-label">
+								<span class="badge badge-${severity}">${severity.toUpperCase()}</span>
+							</div>
+							<div class="info-value">${count} issues (${Math.round((count / summary.totalIssues) * 100)}%)</div>
+						</div>
+					`).join('')}
+				</div>
+			</div>
+
+			<div class="section">
+				<div class="section-title">Status Distribution</div>
+				<div class="info-grid">
+					${Object.entries(summary.statusBreakdown).map(([status, count]) => `
+						<div class="info-item">
+							<div class="info-label">${status.replace('-', ' ').toUpperCase()}:</div>
+							<div class="info-value">${count} issues (${Math.round((count / summary.totalIssues) * 100)}%)</div>
+						</div>
+					`).join('')}
+				</div>
+			</div>
+
+			<div class="footer">
+				<p><strong>Citizn Infrastructure Reporting System</strong></p>
+				<p>This report was generated on ${formatDate(metadata.generatedAt)}</p>
+				<p>Report Type: ${reportType.charAt(0).toUpperCase() + reportType.slice(1)} | Date Range: ${metadata.dateRange}</p>
 				<p>For questions or updates, please contact your local administration</p>
 			</div>
 

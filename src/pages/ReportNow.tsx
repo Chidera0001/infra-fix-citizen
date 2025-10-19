@@ -1,8 +1,9 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { CameraCapture, InstantReportForm } from "@/components/InstantReport";
 import { getLocationFromPhoto, type LocationData } from "@/utils/exifExtractor";
+import { getCurrentLocationWithAddress, reverseGeocode } from "@/utils/geocoding";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Camera, MapPin, Clock, Zap } from "lucide-react";
+import { ArrowLeft, MapPin, Clock, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -12,41 +13,152 @@ import { CitizenSidebar } from "@/components/layout/CitizenSidebar";
 const ReportNow = () => {
 	const navigate = useNavigate();
 	const { toast } = useToast();
+	const [searchParams] = useSearchParams();
 	const [capturedPhoto, setCapturedPhoto] = useState<File | null>(null);
 	const [locationData, setLocationData] = useState<LocationData | null>(null);
 	const [isExtractingLocation, setIsExtractingLocation] = useState(false);
 	const [activeTab, setActiveTab] = useState<string>("report-now");
+	const [locationSource, setLocationSource] = useState<'photo' | 'gps' | 'map'>('gps');
+	const [isGettingCurrentLocation, setIsGettingCurrentLocation] = useState(false);
+
+	// Handle URL parameters for map-click scenarios
+	useEffect(() => {
+		const lat = searchParams.get('lat');
+		const lng = searchParams.get('lng');
+		
+		if (lat && lng) {
+			// Scenario 3: Clicking Map to Report
+			const latitude = parseFloat(lat);
+			const longitude = parseFloat(lng);
+			
+			// Set location data immediately with coordinates
+			setLocationData({
+				latitude,
+				longitude,
+				address: `Loading address...` // Temporary placeholder
+			});
+			setLocationSource('map');
+			
+			// Reverse geocode to get proper address
+			reverseGeocode(latitude, longitude)
+				.then((address) => {
+					setLocationData(prev => ({
+						...prev!,
+						address: address
+					}));
+				})
+				.catch((error) => {
+					console.error('Error reverse geocoding:', error);
+					// Fallback to coordinates if reverse geocoding fails
+					setLocationData(prev => ({
+						...prev!,
+						address: `Location: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`
+					}));
+				});
+			
+			toast({
+				title: "Location Pre-filled!",
+				description: "Location selected from map",
+			});
+		}
+		// Note: We don't automatically get current location on page load
+		// Location will only be obtained when user takes a photo without GPS data
+	}, [searchParams, toast]);
+
+	const getCurrentLocation = async () => {
+		setIsGettingCurrentLocation(true);
+		try {
+			const location = await getCurrentLocationWithAddress();
+			if (location) {
+				setLocationData({
+					latitude: location.coordinates.latitude,
+					longitude: location.coordinates.longitude,
+					address: location.address
+				});
+				setLocationSource('gps');
+			}
+		} catch (error) {
+			console.error('Error getting current location:', error);
+		} finally {
+			setIsGettingCurrentLocation(false);
+		}
+	};
 
 	const handlePhotoCapture = async (file: File) => {
 		setCapturedPhoto(file);
 		setIsExtractingLocation(true);
 
 		try {
-			// Extract location from photo EXIF
-			const location = await getLocationFromPhoto(file);
-			
-			if (location) {
-				setLocationData(location);
+			// Location Priority Hierarchy:
+			// 1. Map-selected location (highest priority) - NEVER overwrite
+			// 2. Photo GPS data (medium priority)
+			// 3. Current GPS location (lowest priority)
+
+			// If user already selected location from map, preserve it regardless of photo GPS data
+			if (locationSource === 'map' && locationData) {
 				toast({
-					title: "Location Detected!",
-					description: "Address automatically extracted from photo",
+					title: "Location Preserved",
+					description: "Using the location you selected from the map (overriding photo GPS)",
+					variant: "default"
 				});
 			} else {
+				// Try to extract location from photo GPS data
+				const photoLocation = await getLocationFromPhoto(file);
+				
+				if (photoLocation) {
+					// Scenario 1: Photo has GPS data - use it (unless map location exists)
+					setLocationData(photoLocation);
+					setLocationSource('photo');
+					toast({
+						title: "Location Detected!",
+						description: "Address automatically extracted from photo GPS data",
+					});
+				} else {
+					// Scenario 2: Photo has no GPS data
+					// Only get current GPS location if no location was previously selected
+					if (!locationData || locationSource !== 'map') {
+						const currentLocation = await getCurrentLocationWithAddress();
+						if (currentLocation) {
+							setLocationData({
+								latitude: currentLocation.coordinates.latitude,
+								longitude: currentLocation.coordinates.longitude,
+								address: currentLocation.address
+							});
+							setLocationSource('gps');
+							toast({
+								title: "Using Current Location",
+								description: "Will use your current GPS location instead",
+								variant: "default"
+							});
+						} else {
+							setLocationData(null);
+							toast({
+								title: "No Location Data",
+								description: "Please enter the address manually",
+								variant: "default"
+							});
+						}
+					} else {
+						// User had already selected a location from the map, keep it
+						toast({
+							title: "Location Preserved",
+							description: "Using the location you selected from the map",
+							variant: "default"
+						});
+					}
+				}
+			}
+		} catch (error) {
+			console.error("Error extracting location:", error);
+			// Don't overwrite existing location data if there was an error
+			if (!locationData) {
 				setLocationData(null);
 				toast({
-					title: "No Location Data",
+					title: "Location Extraction Failed",
 					description: "Please enter the address manually",
 					variant: "default"
 				});
 			}
-		} catch (error) {
-			console.error("Error extracting location:", error);
-			setLocationData(null);
-			toast({
-				title: "Location Extraction Failed",
-				description: "Please enter the address manually",
-				variant: "default"
-			});
 		} finally {
 			setIsExtractingLocation(false);
 		}
@@ -57,7 +169,24 @@ const ReportNow = () => {
 			URL.revokeObjectURL(URL.createObjectURL(capturedPhoto));
 		}
 		setCapturedPhoto(null);
-		setLocationData(null);
+		// Only clear location data if it wasn't selected from map
+		if (locationSource !== 'map') {
+			setLocationData(null);
+			setLocationSource('gps');
+		}
+	};
+
+	const getLocationBadge = () => {
+		switch (locationSource) {
+			case 'photo':
+				return { text: 'Auto-detected: Camera', color: 'bg-blue-100 text-blue-700 border-blue-200' };
+			case 'gps':
+				return { text: 'Auto-detected: Location', color: 'bg-green-100 text-green-700 border-green-200' };
+			case 'map':
+				return { text: 'Auto-detected: Map', color: 'bg-green-100 text-green-700 border-green-200' };
+			default:
+				return { text: 'Auto-detected: Location', color: 'bg-green-100 text-green-700 border-green-200' };
+		}
 	};
 
 	const handleBack = () => {
@@ -72,7 +201,6 @@ const ReportNow = () => {
 
 	return (
 		<div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-indigo-50 flex">
-			{/* Sidebar */}
 			<CitizenSidebar
 				activeTab="report-now"
 				onTabChange={handleTabChange}
@@ -80,33 +208,9 @@ const ReportNow = () => {
 
 			{/* Main Content Area */}
 			<div className="flex-1">
-				{/* Header */}
-				{/* <header className="bg-white/95 backdrop-blur-md shadow-sm border-b border-green-200/50 sticky top-0 z-40">
-					<div className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
-						<div className="flex items-center gap-4 justify-around">
-							<div className="flex-1">
-								<div className="flex items-center gap-3">
-									<div>
-										<h1 className="text-l sm:text-xl font-bold text-gray-900">
-											Instant Report
-										</h1>
-										<p className="text-sm text-gray-600">
-											Snap, Report, Done - In seconds
-										</p>
-									</div>
-								</div>
-							</div>
-							<Badge className="bg-green-100 text-green-700 border-green-200 px-3 py-1">
-								<Zap className="h-3 w-3 mr-1" />
-								Quick Action
-							</Badge>
-						</div>
-					</div>
-				</header> */}
-
 				{/* Main Content */}
 				<main className="px-4 sm:px-6 lg:px-8 py-8">
-					{isExtractingLocation ? (
+					{(isExtractingLocation || isGettingCurrentLocation) ? (
 						<div className="max-w-2xl mx-auto">
 							<div className="bg-white rounded-2xl shadow-lg border border-green-200/30 p-8 sm:p-12">
 								<div className="text-center space-y-6">
@@ -118,10 +222,10 @@ const ReportNow = () => {
 									</div>
 									<div>
 										<h3 className="text-xl font-semibold text-gray-900 mb-2">
-											Detecting Location...
+											{isExtractingLocation ? 'Detecting Location...' : 'Getting Current Location...'}
 										</h3>
 										<p className="text-gray-600">
-											Extracting GPS data from your photo
+											{isExtractingLocation ? 'Extracting GPS data from your photo' : 'Accessing your current GPS location'}
 										</p>
 									</div>
 									<div className="bg-green-50 rounded-lg p-4">
@@ -137,6 +241,7 @@ const ReportNow = () => {
 							<InstantReportForm
 								photo={capturedPhoto}
 								initialLocation={locationData}
+								locationSource={locationSource}
 								onRetake={handleRetake}
 							/>
 						</div>
@@ -171,6 +276,7 @@ const ReportNow = () => {
 								</div>
 							</div>
 
+
 							{/* Camera Capture Card */}
 							<div className="bg-white rounded-2xl shadow-lg border border-green-200/30 overflow-hidden">
 								<div className="p-6 sm:p-8">
@@ -179,20 +285,6 @@ const ReportNow = () => {
 										onCancel={handleBack}
 									/>
 								</div>
-							</div>
-
-							{/* Alternative Option */}
-							<div className="text-center bg-white/60 backdrop-blur-sm rounded-xl p-6 border border-gray-200/50">
-								<p className="text-gray-600 mb-3">
-									Need more details or want to provide additional information?
-								</p>
-								<Button
-									variant="outline"
-									onClick={() => navigate("/citizen")}
-									className="border-green-200 text-green-700 hover:bg-green-50 hover:border-green-300"
-								>
-									Use Full Report Form
-								</Button>
 							</div>
 						</div>
 					)}
@@ -203,4 +295,3 @@ const ReportNow = () => {
 };
 
 export default ReportNow;
-

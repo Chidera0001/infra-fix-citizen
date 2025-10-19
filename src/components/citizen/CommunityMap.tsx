@@ -1,17 +1,18 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MapPin } from "lucide-react";
-import InteractiveMap from "@/components/InteractiveMap";
 import type { Issue } from "@/lib/supabase-api";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import InteractiveMap from "@/components/InteractiveMap";
 
 interface CommunityMapProps {
 	issues: Issue[];
 	isLoading: boolean;
 	onShowMap: () => void;
+	onMapClick?: (coordinates: { lat: number; lng: number }) => void;
 }
 
-export const CommunityMap = ({ issues, isLoading, onShowMap }: CommunityMapProps) => {
+export const CommunityMap = ({ issues, isLoading, onShowMap, onMapClick }: CommunityMapProps) => {
 	return (
 		<Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl mb-10">
 			<CardHeader className="pb-6">
@@ -21,8 +22,7 @@ export const CommunityMap = ({ issues, isLoading, onShowMap }: CommunityMapProps
 							Community Issues Map
 						</CardTitle>
 						<CardDescription className="text-gray-600 text-m">
-							See all reported issues in your area. Click
-							on any location to report a new issue.
+							Click anywhere on the map to report a new issue at that location.
 						</CardDescription>
 					</div>
 					<div className="flex items-center space-x-3">
@@ -52,6 +52,7 @@ export const CommunityMap = ({ issues, isLoading, onShowMap }: CommunityMapProps
 							issues={issues}
 							isAdmin={false}
 							className="h-full w-full"
+							onLocationSelect={onMapClick}
 						/>
 					)}
 				</div>

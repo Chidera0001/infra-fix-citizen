@@ -89,7 +89,14 @@ const CitizenDashboard = () => {
 			<div className="flex h-screen overflow-hidden bg-gradient-to-br from-green-50 via-blue-50 to-indigo-50">
 				<CitizenSidebar activeTab={activeTab} onTabChange={handleTabChange} />
 				<div className="flex-1 overflow-y-auto">
-					<IssueMap onBack={handleBackToDashboard} isAdmin={false} />
+					<IssueMap 
+						onBack={handleBackToDashboard} 
+						isAdmin={false}
+						onLocationSelect={(coordinates) => {
+							// Navigate to report now with pre-filled location
+							window.location.href = `/report-now?lat=${coordinates.lat}&lng=${coordinates.lng}`;
+						}}
+					/>
 								</div>
 							</div>
 		);
@@ -102,7 +109,7 @@ const CitizenDashboard = () => {
 				<MyReports
 					reports={myReports}
 					isLoading={isLoading}
-					onReportIssue={() => setShowReportForm(true)}
+					onReportIssue={() => window.location.href = '/report-now'}
 				/>
 			);
 		}
@@ -115,7 +122,7 @@ const CitizenDashboard = () => {
 				statistics={statistics}
 				isLoading={isLoading}
 				userId={profile?.id}
-				onReportIssue={() => setShowReportForm(true)}
+				onReportIssue={() => window.location.href = '/report-now'}
 				onExploreMap={() => setShowMap(true)}
 				onViewAnalytics={() => {}} // TODO: Implement analytics view
 				onShowMap={() => setShowMap(true)}

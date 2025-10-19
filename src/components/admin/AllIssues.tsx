@@ -198,12 +198,9 @@ export const AllIssues = () => {
 		<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 pt-16 lg:pt-8">
 			{/* Header Section */}
 			<div className="mb-6 sm:mb-8">
-				<h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
+				<div className="text-xl sm:text-xl lg:text-3xl font-normal text-gray-900 mb-2 lg:mb-3">
 					All Issues
-				</h1>
-				<p className="text-gray-600 text-sm sm:text-lg">
-					Manage and track all reported infrastructure issues
-				</p>
+				</div>
 			</div>
 
 			{/* Stats Cards */}

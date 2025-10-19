@@ -6,9 +6,10 @@ import LoadingSpinner from "@/components/ui/LoadingSpinner";
 interface IssueMapProps {
 	onBack: () => void;
 	isAdmin?: boolean;
+	onLocationSelect?: (coordinates: { lat: number; lng: number }) => void;
 }
 
-const IssueMap = ({ onBack, isAdmin = false }: IssueMapProps) => {
+const IssueMap = ({ onBack, isAdmin = false, onLocationSelect }: IssueMapProps) => {
 	const { data: issues = [], isLoading } = useIssues({ limit: 100 });
 	
 	return (
@@ -24,7 +25,7 @@ const IssueMap = ({ onBack, isAdmin = false }: IssueMapProps) => {
 								</h2>
 								<p className="text-sm text-gray-600">
 									{isAdmin
-										? "Monitor all issues across the community"
+										? ""
 										: "View all reported issues by location"}
 								</p>
 							</div>
@@ -43,6 +44,7 @@ const IssueMap = ({ onBack, isAdmin = false }: IssueMapProps) => {
 					<InteractiveMap
 						issues={issues}
 						isAdmin={isAdmin}
+						onLocationSelect={onLocationSelect}
 						className="h-full w-full"
 					/>
 				)}

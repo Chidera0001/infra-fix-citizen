@@ -62,6 +62,10 @@ export const Dashboard = ({
 				issues={allIssues}
 				isLoading={isLoading}
 				onShowMap={onShowMap}
+				onMapClick={(coordinates) => {
+					// Navigate to report now with pre-filled location
+					window.location.href = `/report-now?lat=${coordinates.lat}&lng=${coordinates.lng}`;
+				}}
 			/>
 
 			{/* Enhanced My Recent Reports */}

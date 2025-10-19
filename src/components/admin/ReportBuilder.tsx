@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -6,68 +7,137 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { BarChart3, Download, Settings } from "lucide-react";
+import { BarChart3, Download, Settings, Loader2, CheckCircle } from "lucide-react";
+import { ReportTypes } from "./ReportTypes";
+import { DateRangeFilter } from "./DateRangeFilter";
+import { CategoryFilter } from "./CategoryFilter";
+import { ExportFormatSelector } from "./ExportFormatSelector";
+import { AdvancedFiltersModal } from "./AdvancedFiltersModal";
+import { ReportPreview } from "./ReportPreview";
+import { ReportFilters } from "@/lib/reportGenerator";
+import { useReportGeneration } from "@/hooks/use-report-generation";
 
 export const ReportBuilder = () => {
+	const { 
+		isGenerating, 
+		isExporting, 
+		reportData, 
+		generateReport, 
+		exportReport 
+	} = useReportGeneration();
+	
+	// Report configuration state
+	const [reportType, setReportType] = useState("summary");
+	const [dateRange, setDateRange] = useState("30d");
+	const [customStartDate, setCustomStartDate] = useState("");
+	const [customEndDate, setCustomEndDate] = useState("");
+	const [category, setCategory] = useState("all");
+	const [exportFormat, setExportFormat] = useState("pdf");
+	const [advancedFilters, setAdvancedFilters] = useState<any>({});
+
+	const handleGenerateReport = async () => {
+		const filters: ReportFilters = {
+			reportType,
+			dateRange,
+			customStartDate: dateRange === "custom" ? customStartDate : undefined,
+			customEndDate: dateRange === "custom" ? customEndDate : undefined,
+			category,
+			exportFormat,
+			advancedFilters
+		};
+
+		await generateReport(filters);
+	};
+
+	const handleExportReport = async () => {
+		await exportReport(exportFormat);
+	};
+
+	const handleCustomDateChange = (startDate: string, endDate: string) => {
+		setCustomStartDate(startDate);
+		setCustomEndDate(endDate);
+	};
+
+	const handleAdvancedFiltersChange = (filters: any) => {
+		setAdvancedFilters(filters);
+	};
+
 	return (
-		<Card className="bg-white border-0 shadow-xl rounded-2xl mb-6">
-			<CardHeader>
-				<CardTitle className="text-xl font-normal text-gray-900">Report Builder</CardTitle>
-				<CardDescription>Generate comprehensive reports with custom filters</CardDescription>
+		<Card className="bg-white border-0 shadow-lg rounded-xl mb-6 hover:shadow-xl transition-shadow duration-200">
+			<CardHeader className="px-6 py-5">
+				<CardTitle className="text-xl font-semibold text-gray-900">Report Builder</CardTitle>
+				<CardDescription className="text-sm text-gray-600 mt-1">Generate comprehensive reports with custom filters</CardDescription>
 			</CardHeader>
-			<CardContent>
-				<div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-					<div>
-						<label className="block text-sm font-medium text-black mb-2">Report Type</label>
-						<select className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
-							<option value="summary">Summary Report</option>
-							<option value="detailed">Detailed Report</option>
-							<option value="performance">Performance Report</option>
-							<option value="trends">Trends Analysis</option>
-						</select>
-					</div>
-					<div>
-						<label className="block text-sm font-medium text-black mb-2">Date Range</label>
-						<select className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
-							<option value="7d">Last 7 days</option>
-							<option value="30d">Last 30 days</option>
-							<option value="90d">Last 90 days</option>
-							<option value="custom">Custom range</option>
-						</select>
-					</div>
-					<div>
-						<label className="block text-sm font-medium text-black mb-2">Category</label>
-						<select className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
-							<option value="all">All Categories</option>
-							<option value="infrastructure">Infrastructure</option>
-							<option value="utilities">Utilities</option>
-							<option value="transportation">Transportation</option>
-							<option value="environment">Environment</option>
-						</select>
-					</div>
-					<div>
-						<label className="block text-sm font-medium text-black mb-2">Export Format</label>
-						<select className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
-							<option value="pdf">PDF</option>
-							<option value="csv">CSV</option>
-							<option value="excel">Excel</option>
-							<option value="json">JSON</option>
-						</select>
-					</div>
+			<CardContent className="space-y-6 px-6 pb-6">
+				{/* Report Type Selection */}
+				<div>
+					<h3 className="text-sm font-medium text-gray-900 mb-3">Select Report Type</h3>
+					<ReportTypes selectedType={reportType} onTypeChange={setReportType} />
 				</div>
-				<div className="flex flex-wrap gap-3">
-					<Button className="bg-green-600 hover:bg-green-700">
-						<BarChart3 className="h-4 w-4 mr-2" />
-						Generate Report
+
+				{/* Filters Grid - Mobile First */}
+				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+					<DateRangeFilter
+						selectedRange={dateRange}
+						onRangeChange={setDateRange}
+						customStartDate={customStartDate}
+						customEndDate={customEndDate}
+						onCustomDateChange={handleCustomDateChange}
+					/>
+					<CategoryFilter
+						selectedCategory={category}
+						onCategoryChange={setCategory}
+					/>
+					<ExportFormatSelector
+						selectedFormat={exportFormat}
+						onFormatChange={setExportFormat}
+					/>
+				</div>
+
+				{/* Report Summary */}
+				{reportData && (
+					<ReportPreview 
+						reportData={reportData}
+						onExport={handleExportReport}
+						isExporting={isExporting}
+					/>
+				)}
+
+				{/* Action Buttons - Mobile Responsive */}
+				<div className="flex flex-col sm:flex-row gap-3 pt-2">
+					<Button 
+						onClick={handleGenerateReport}
+						disabled={isGenerating}
+						className="bg-green-600 hover:bg-green-700 text-white font-medium px-6 py-2.5 w-full sm:w-auto transition-all duration-200 hover:shadow-md"
+					>
+						{isGenerating ? (
+							<Loader2 className="h-4 w-4 mr-2 animate-spin" />
+						) : (
+							<BarChart3 className="h-4 w-4 mr-2" />
+						)}
+						{isGenerating ? "Generating..." : "Generate Report"}
 					</Button>
-					<Button variant="outline" className="border-green-300 text-green-700 hover:bg-green-50">
-						<Download className="h-4 w-4 mr-2" />
-						Export Data
+					
+					<Button 
+						variant="outline" 
+						className="border-green-300 text-green-700 hover:bg-green-50 hover:border-green-400 font-medium px-6 py-2.5 w-full sm:w-auto transition-all duration-200"
+						onClick={handleExportReport}
+						disabled={isExporting || !reportData}
+					>
+						{isExporting ? (
+							<Loader2 className="h-4 w-4 mr-2 animate-spin" />
+						) : (
+							<Download className="h-4 w-4 mr-2" />
+						)}
+						{isExporting ? "Exporting..." : "Export Data"}
 					</Button>
-					<Button variant="outline" className="border-gray-300 text-black hover:bg-gray-50">
-						<Settings className="h-4 w-4 mr-2" />
-						Advanced Filters
-					</Button>
+					
+					<div className="w-full sm:w-auto">
+						<AdvancedFiltersModal
+							onFiltersChange={handleAdvancedFiltersChange}
+							currentFilters={advancedFilters}
+						/>
+					</div>
 				</div>
 			</CardContent>
 		</Card>
