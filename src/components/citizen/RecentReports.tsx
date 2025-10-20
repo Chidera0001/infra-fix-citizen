@@ -176,7 +176,7 @@ export const RecentReports = ({ reports }: RecentReportsProps) => {
           </div>
 
           {/* Filters */}
-          <div className='grid grid-cols-1 gap-3 sm:grid-cols-3'>
+          <div className='flex flex-row gap-2 sm:gap-3'>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className='rounded-xl border-gray-300'>
                 <SelectValue placeholder='Status' />

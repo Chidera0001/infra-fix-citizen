@@ -133,9 +133,6 @@ export const MyReports = ({
             <h2 className='mb-2 text-xl font-bold text-gray-900 sm:text-2xl'>
               My Reports
             </h2>
-            <p className='text-sm text-gray-600'>
-              Track and manage all your submitted infrastructure reports
-            </p>
           </div>
           <Button
             onClick={onReportIssue}
