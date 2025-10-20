@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import AuthGuard from "./components/auth/AuthGuard";
 import AdminAuthGuard from "./components/admin/AdminAuthGuard";
+import { PWAUpdatePrompt } from "@/components/PWAUpdatePrompt";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import AdminLogin from "./pages/AdminLogin";
@@ -58,6 +59,7 @@ const App = () => (
 						<Route path="*" element={<NotFound />} />
 					</Routes>
 				</BrowserRouter>
+				<PWAUpdatePrompt />
 			</AuthProvider>
 		</TooltipProvider>
 	</QueryClientProvider>
