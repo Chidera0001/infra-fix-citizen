@@ -1,318 +1,377 @@
-import { useState, useMemo } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useState, useMemo } from 'react';
 import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
-import { Search, XCircle, LayoutList, LayoutGrid } from "lucide-react";
-import { ReportCard, ReportGridCard } from "./MyReports/index";
-import { ReportDetailsModal } from "@/components/citizen/modals/ReportDetailsModal";
-import { generateReportPDF, shareReport } from "@/utils/pdfGenerator";
-import type { Issue } from "@/lib/supabase-api";
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Search, XCircle, LayoutList, LayoutGrid } from 'lucide-react';
+import { ReportCard, ReportGridCard } from './MyReports/index';
+import { ReportDetailsModal } from '@/components/citizen/modals/ReportDetailsModal';
+import { generateReportPDF, shareReport } from '@/utils/pdfGenerator';
+import type { Issue } from '@/lib/supabase-api';
 
 interface RecentReportsProps {
-	reports: Issue[];
+  reports: Issue[];
 }
 
 const ITEMS_PER_PAGE = 3;
 
 export const RecentReports = ({ reports }: RecentReportsProps) => {
-	const [searchTerm, setSearchTerm] = useState("");
-	const [statusFilter, setStatusFilter] = useState<string>("all");
-	const [categoryFilter, setCategoryFilter] = useState<string>("all");
-	const [sortBy, setSortBy] = useState<string>("newest");
-	const [currentPage, setCurrentPage] = useState(1);
-	const [viewMode, setViewMode] = useState<"list" | "grid">("grid");
-	
-	// Modal states
-	const [selectedReport, setSelectedReport] = useState<Issue | null>(null);
-	const [detailsModalOpen, setDetailsModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<string>('newest');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
 
-	// Filter and search logic
-	const filteredReports = useMemo(() => {
-		let filtered = reports.filter((report) => {
-			const matchesSearch = report.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-								 report.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-								 report.address?.toLowerCase().includes(searchTerm.toLowerCase());
-			
-			const matchesStatus = statusFilter === "all" || report.status === statusFilter;
-			const matchesCategory = categoryFilter === "all" || report.category === categoryFilter;
-			
-			return matchesSearch && matchesStatus && matchesCategory;
-		});
+  // Modal states
+  const [selectedReport, setSelectedReport] = useState<Issue | null>(null);
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
 
-		// Sort logic
-		filtered.sort((a, b) => {
-			switch (sortBy) {
-				case "newest":
-					return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-				case "oldest":
-					return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-				case "priority":
-					const priorityOrder = { critical: 3, high: 2, medium: 1, low: 0 };
-					return (priorityOrder[b.severity as keyof typeof priorityOrder] || 0) - 
-						   (priorityOrder[a.severity as keyof typeof priorityOrder] || 0);
-				case "status":
-					return a.status.localeCompare(b.status);
-				default:
-					return 0;
-			}
-		});
+  // Filter and search logic
+  const filteredReports = useMemo(() => {
+    let filtered = reports.filter(report => {
+      const matchesSearch =
+        report.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        report.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        report.address?.toLowerCase().includes(searchTerm.toLowerCase());
 
-		return filtered;
-	}, [reports, searchTerm, statusFilter, categoryFilter, sortBy]);
+      const matchesStatus =
+        statusFilter === 'all' || report.status === statusFilter;
+      const matchesCategory =
+        categoryFilter === 'all' || report.category === categoryFilter;
 
-	// Pagination logic
-	const totalPages = Math.ceil(filteredReports.length / ITEMS_PER_PAGE);
-	const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-	const paginatedReports = filteredReports.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+      return matchesSearch && matchesStatus && matchesCategory;
+    });
 
-	// Reset to first page when filters change
-	useMemo(() => {
-		setCurrentPage(1);
-	}, [searchTerm, statusFilter, categoryFilter, sortBy]);
+    // Sort logic
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'newest':
+          return (
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          );
+        case 'oldest':
+          return (
+            new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+          );
+        case 'priority':
+          const priorityOrder = { critical: 3, high: 2, medium: 1, low: 0 };
+          return (
+            (priorityOrder[b.severity as keyof typeof priorityOrder] || 0) -
+            (priorityOrder[a.severity as keyof typeof priorityOrder] || 0)
+          );
+        case 'status':
+          return a.status.localeCompare(b.status);
+        default:
+          return 0;
+      }
+    });
 
-	const handlePageChange = (page: number) => {
-		setCurrentPage(page);
-	};
+    return filtered;
+  }, [reports, searchTerm, statusFilter, categoryFilter, sortBy]);
 
-	// Action handlers
-	const handleViewDetails = (report: Issue) => {
-		setSelectedReport(report);
-		setDetailsModalOpen(true);
-	};
+  // Pagination logic
+  const totalPages = Math.ceil(filteredReports.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedReports = filteredReports.slice(
+    startIndex,
+    startIndex + ITEMS_PER_PAGE
+  );
 
-	const handleShareReport = (report: Issue) => {
-		shareReport(report);
-	};
+  // Reset to first page when filters change
+  useMemo(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter, categoryFilter, sortBy]);
 
-	const handleDownloadPDF = (report: Issue) => {
-		generateReportPDF(report);
-	};
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
-	const handleCloseModal = () => {
-		setDetailsModalOpen(false);
-		setSelectedReport(null);
-	};
+  // Action handlers
+  const handleViewDetails = (report: Issue) => {
+    setSelectedReport(report);
+    setDetailsModalOpen(true);
+  };
 
-	return (
-		<Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl">
-			<CardHeader className="pb-6">
-				<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-					<div>
-						<CardTitle className="text-xl font-normal">
-							My Recent Reports
-						</CardTitle>
-						<CardDescription className="text-gray-600 text-m">
-							Track the progress of your submitted issues
-							in your Nigerian community
-						</CardDescription>
-					</div>
-					<div className="flex items-center gap-3">
-						{/* View Toggle */}
-						<div className="flex items-center gap-1 border border-gray-200 rounded-lg p-1">
-							<Button
-								variant={viewMode === "list" ? "default" : "ghost"}
-								size="sm"
-								onClick={() => setViewMode("list")}
-								className={`px-3 ${viewMode === "list" ? "bg-green-600 hover:bg-green-700" : ""}`}
-							>
-								<LayoutList className="h-4 w-4" />
-							</Button>
-							<Button
-								variant={viewMode === "grid" ? "default" : "ghost"}
-								size="sm"
-								onClick={() => setViewMode("grid")}
-								className={`px-3 ${viewMode === "grid" ? "bg-green-600 hover:bg-green-700" : ""}`}
-							>
-								<LayoutGrid className="h-4 w-4" />
-							</Button>
-						</div>
-						<Badge
-							variant="secondary"
-							className="bg-green-50 text-green-700 border-green-200"
-						>
-							{filteredReports.length} Reports
-						</Badge>
-					</div>
-				</div>
-			</CardHeader>
-			<CardContent>
-				{/* Search and Filter Section */}
-				<div className="mb-6 space-y-4">
-					{/* Search */}
-					<div className="relative">
-						<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-						<Input
-							placeholder="Search reports..."
-							value={searchTerm}
-							onChange={(e) => setSearchTerm(e.target.value)}
-							className="pl-10 border-gray-300 focus:border-green-500 focus:ring-green-500 rounded-xl"
-						/>
-					</div>
+  const handleShareReport = (report: Issue) => {
+    shareReport(report);
+  };
 
-					{/* Filters */}
-					<div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-						<Select value={statusFilter} onValueChange={setStatusFilter}>
-							<SelectTrigger className="border-gray-300 rounded-xl">
-								<SelectValue placeholder="Status" />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="all">All Status</SelectItem>
-								<SelectItem value="open">Open</SelectItem>
-								<SelectItem value="in_progress">In Progress</SelectItem>
-								<SelectItem value="resolved">Resolved</SelectItem>
-							</SelectContent>
-						</Select>
+  const handleDownloadPDF = (report: Issue) => {
+    generateReportPDF(report);
+  };
 
-						<Select value={categoryFilter} onValueChange={setCategoryFilter}>
-							<SelectTrigger className="border-gray-300 rounded-xl">
-								<SelectValue placeholder="Category" />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="all">All Categories</SelectItem>
-								<SelectItem value="pothole">Pothole</SelectItem>
-								<SelectItem value="street_lighting">Street Lighting</SelectItem>
-								<SelectItem value="water_supply">Water Supply</SelectItem>
-								<SelectItem value="traffic_signal">Traffic Signal</SelectItem>
-								<SelectItem value="drainage">Drainage</SelectItem>
-								<SelectItem value="sidewalk">Sidewalk</SelectItem>
-								<SelectItem value="other">Other</SelectItem>
-							</SelectContent>
-						</Select>
+  const handleCloseModal = () => {
+    setDetailsModalOpen(false);
+    setSelectedReport(null);
+  };
 
-						<Select value={sortBy} onValueChange={setSortBy}>
-							<SelectTrigger className="border-gray-300 rounded-xl">
-								<SelectValue placeholder="Sort by" />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="newest">Newest First</SelectItem>
-								<SelectItem value="oldest">Oldest First</SelectItem>
-								<SelectItem value="priority">Priority</SelectItem>
-								<SelectItem value="status">Status</SelectItem>
-							</SelectContent>
-						</Select>
-					</div>
+  return (
+    <Card className='border-0 bg-inherit shadow-none'>
+      <CardHeader className='pb-6'>
+        <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
+          <div>
+            <CardTitle className='text-xl font-normal'>
+              My Recent Reports
+            </CardTitle>
+            <CardDescription className='text-m text-gray-600'>
+              Track the progress of your submitted issues in your Nigerian
+              community
+            </CardDescription>
+          </div>
+          <div className='flex items-center gap-3'>
+            {/* View Toggle */}
+            <div className='flex items-center gap-1 rounded-lg border border-gray-200 p-1'>
+              <Button
+                variant={viewMode === 'list' ? 'default' : 'ghost'}
+                size='sm'
+                onClick={() => setViewMode('list')}
+                className={`px-3 ${viewMode === 'list' ? 'bg-green-600 hover:bg-green-700' : ''}`}
+              >
+                <LayoutList className='h-4 w-4' />
+              </Button>
+              <Button
+                variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                size='sm'
+                onClick={() => setViewMode('grid')}
+                className={`px-3 ${viewMode === 'grid' ? 'bg-green-600 hover:bg-green-700' : ''}`}
+              >
+                <LayoutGrid className='h-4 w-4' />
+              </Button>
+            </div>
+            <Badge
+              variant='secondary'
+              className='border-green-200 bg-green-50 text-green-700'
+            >
+              {filteredReports.length} Reports
+            </Badge>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {/* Search and Filter Section */}
+        <div className='mb-6 space-y-4'>
+          {/* Search */}
+          <div className='relative'>
+            <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400' />
+            <Input
+              placeholder='Search reports...'
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              className='rounded-xl border-gray-300 pl-10 focus:border-green-500 focus:ring-green-500'
+            />
+          </div>
 
-					{/* Active Filters Display */}
-					{(searchTerm || statusFilter !== "all" || categoryFilter !== "all") && (
-						<div className="flex flex-wrap gap-2">
-							<span className="text-sm text-gray-600">Active filters:</span>
-							{searchTerm && (
-								<Badge variant="secondary" className="bg-blue-100 text-blue-800">
-									Search: "{searchTerm}"
-									<XCircle 
-										className="h-3 w-3 ml-1 cursor-pointer" 
-										onClick={() => setSearchTerm("")}
-									/>
-								</Badge>
-							)}
-							{statusFilter !== "all" && (
-								<Badge variant="secondary" className="bg-green-100 text-green-800">
-									Status: {statusFilter}
-									<XCircle 
-										className="h-3 w-3 ml-1 cursor-pointer" 
-										onClick={() => setStatusFilter("all")}
-									/>
-								</Badge>
-							)}
-							{categoryFilter !== "all" && (
-								<Badge variant="secondary" className="bg-purple-100 text-purple-800">
-									Category: {categoryFilter.replace("_", " ")}
-									<XCircle 
-										className="h-3 w-3 ml-1 cursor-pointer" 
-										onClick={() => setCategoryFilter("all")}
-									/>
-								</Badge>
-							)}
-						</div>
-					)}
-				</div>
+          {/* Filters */}
+          <div className='grid grid-cols-1 gap-3 sm:grid-cols-3'>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className='rounded-xl border-gray-300'>
+                <SelectValue placeholder='Status' />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='all'>All Status</SelectItem>
+                <SelectItem value='open'>Open</SelectItem>
+                <SelectItem value='in_progress'>In Progress</SelectItem>
+                <SelectItem value='resolved'>Resolved</SelectItem>
+              </SelectContent>
+            </Select>
 
-				{/* Reports List or Grid */}
-				{viewMode === "list" ? (
-					<div className="space-y-4">
-						{paginatedReports.map((report) => (
-							<ReportCard
-								key={report.id}
-								report={report}
-								onViewDetails={handleViewDetails}
-								onShare={handleShareReport}
-								onDownloadPDF={handleDownloadPDF}
-							/>
-						))}
-					</div>
-				) : (
-					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-						{paginatedReports.map((report) => (
-							<ReportGridCard
-								key={report.id}
-								report={report}
-							/>
-						))}
-					</div>
-				)}
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger className='rounded-xl border-gray-300'>
+                <SelectValue placeholder='Category' />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='all'>All Categories</SelectItem>
+                <SelectItem value='pothole'>Pothole</SelectItem>
+                <SelectItem value='street_lighting'>Street Lighting</SelectItem>
+                <SelectItem value='water_supply'>Water Supply</SelectItem>
+                <SelectItem value='traffic_signal'>Traffic Signal</SelectItem>
+                <SelectItem value='drainage'>Drainage</SelectItem>
+                <SelectItem value='sidewalk'>Sidewalk</SelectItem>
+                <SelectItem value='other'>Other</SelectItem>
+              </SelectContent>
+            </Select>
 
-				{/* Pagination */}
-				{totalPages > 1 && (
-					<div className="flex-row mt-6 gap-2 flex items-center justify-between">
-						<div className="text-sm text-gray-500">
-							Showing {startIndex + 1} to {Math.min(startIndex + ITEMS_PER_PAGE, filteredReports.length)} of {filteredReports.length} reports
-						</div>
-						<div className="flex items-center gap-2">
-							<button
-								onClick={() => handlePageChange(Math.max(currentPage - 1, 1))}
-								disabled={currentPage === 1}
-								className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-							>
-								Previous
-							</button>
-							
-							<div className="flex items-center gap-1">
-								{Array.from({ length: Math.min(3, totalPages) }, (_, i) => {
-									const pageNum = i + 1;
-									return (
-										<button
-											key={pageNum}
-											onClick={() => handlePageChange(pageNum)}
-											className={`px-3 py-1 text-sm rounded-md ${
-												currentPage === pageNum 
-													? "bg-green-600 text-white" 
-													: "border border-gray-300 hover:bg-gray-50"
-											}`}
-										>
-											{pageNum}
-										</button>
-									);
-								})}
-							</div>
-							
-							<button
-								onClick={() => handlePageChange(Math.min(currentPage + 1, totalPages))}
-								disabled={currentPage === totalPages}
-								className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-							>
-								Next
-							</button>
-						</div>
-					</div>
-				)}
-			</CardContent>
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className='rounded-xl border-gray-300'>
+                <SelectValue placeholder='Sort by' />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='newest'>Newest First</SelectItem>
+                <SelectItem value='oldest'>Oldest First</SelectItem>
+                <SelectItem value='priority'>Priority</SelectItem>
+                <SelectItem value='status'>Status</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-			{/* Report Details Modal */}
-			<ReportDetailsModal
-				report={selectedReport}
-				isOpen={detailsModalOpen}
-				onClose={handleCloseModal}
-				onShare={handleShareReport}
-				onDownloadPDF={handleDownloadPDF}
-			/>
-		</Card>
-	);
+          {/* Active Filters Display */}
+          {(searchTerm ||
+            statusFilter !== 'all' ||
+            categoryFilter !== 'all') && (
+            <div className='flex flex-wrap gap-2'>
+              <span className='text-sm text-gray-600'>Active filters:</span>
+              {searchTerm && (
+                <Badge
+                  variant='secondary'
+                  className='bg-blue-100 text-blue-800'
+                >
+                  Search: "{searchTerm}"
+                  <XCircle
+                    className='ml-1 h-3 w-3 cursor-pointer'
+                    onClick={() => setSearchTerm('')}
+                  />
+                </Badge>
+              )}
+              {statusFilter !== 'all' && (
+                <Badge
+                  variant='secondary'
+                  className='bg-green-100 text-green-800'
+                >
+                  Status: {statusFilter}
+                  <XCircle
+                    className='ml-1 h-3 w-3 cursor-pointer'
+                    onClick={() => setStatusFilter('all')}
+                  />
+                </Badge>
+              )}
+              {categoryFilter !== 'all' && (
+                <Badge
+                  variant='secondary'
+                  className='bg-purple-100 text-purple-800'
+                >
+                  Category: {categoryFilter.replace('_', ' ')}
+                  <XCircle
+                    className='ml-1 h-3 w-3 cursor-pointer'
+                    onClick={() => setCategoryFilter('all')}
+                  />
+                </Badge>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Reports List or Grid */}
+        {viewMode === 'list' ? (
+          <div className='space-y-4'>
+            {paginatedReports.map(report => (
+              <ReportCard
+                key={report.id}
+                report={report}
+                onViewDetails={handleViewDetails}
+                onShare={handleShareReport}
+                onDownloadPDF={handleDownloadPDF}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3'>
+            {paginatedReports.map(report => (
+              <ReportGridCard key={report.id} report={report} />
+            ))}
+          </div>
+        )}
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className='mt-6 flex flex-col items-center justify-between gap-4 sm:flex-row'>
+            <div className='text-center text-sm text-gray-500 sm:text-left'>
+              Showing {startIndex + 1} to{' '}
+              {Math.min(startIndex + ITEMS_PER_PAGE, filteredReports.length)} of{' '}
+              {filteredReports.length} reports
+            </div>
+            <div className='flex items-center gap-2'>
+              <button
+                onClick={() => handlePageChange(Math.max(currentPage - 1, 1))}
+                disabled={currentPage === 1}
+                className='rounded-md border border-gray-300 px-3 py-1 text-sm hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50'
+              >
+                <span className='hidden sm:inline'>Previous</span>
+                <span className='sm:hidden'>Prev</span>
+              </button>
+
+              <div className='flex items-center gap-1'>
+                {Array.from(
+                  {
+                    length: Math.min(
+                      totalPages > 4 ? 3 : totalPages,
+                      totalPages
+                    ),
+                  },
+                  (_, i) => {
+                    let pageNum;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else {
+                      // Show current page and surrounding pages
+                      const start = Math.max(1, currentPage - 1);
+                      pageNum = start + i;
+                      if (pageNum > totalPages) return null;
+                    }
+
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => handlePageChange(pageNum)}
+                        className={`min-w-[2.5rem] rounded-md px-3 py-1 text-sm ${
+                          currentPage === pageNum
+                            ? 'bg-green-600 text-white'
+                            : 'border border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  }
+                )}
+                {totalPages > 5 && currentPage < totalPages - 2 && (
+                  <span className='px-2 text-gray-400'>...</span>
+                )}
+                {totalPages > 5 && currentPage < totalPages && (
+                  <button
+                    onClick={() => handlePageChange(totalPages)}
+                    className='min-w-[2.5rem] rounded-md border border-gray-300 px-3 py-1 text-sm hover:bg-gray-50'
+                  >
+                    {totalPages}
+                  </button>
+                )}
+              </div>
+
+              <button
+                onClick={() =>
+                  handlePageChange(Math.min(currentPage + 1, totalPages))
+                }
+                disabled={currentPage === totalPages}
+                className='rounded-md border border-gray-300 px-3 py-1 text-sm hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50'
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
+      </CardContent>
+
+      {/* Report Details Modal */}
+      <ReportDetailsModal
+        report={selectedReport}
+        isOpen={detailsModalOpen}
+        onClose={handleCloseModal}
+        onShare={handleShareReport}
+        onDownloadPDF={handleDownloadPDF}
+      />
+    </Card>
+  );
 };
