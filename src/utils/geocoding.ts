@@ -1,144 +1,56 @@
 /**
- * Reverse geocoding utility using OpenStreetMap Nominatim
+ * Reverse geocoding utility using Geoapify API
  * Converts coordinates to human-readable addresses
  */
+
+// Geoapify API configuration
+const GEOAPIFY_API_KEY = '10bd2866d8904435b93ede2f3fb8bd0d';
+const GEOAPIFY_BASE_URL = 'https://api.geoapify.com/v1/geocode/reverse';
 
 // Global flag to prevent multiple simultaneous location requests
 let isLocationRequestInProgress = false;
 
 /**
- * Convert coordinates to human-readable address using OpenStreetMap
+ * Convert coordinates to human-readable address using Geoapify API
  */
 export const reverseGeocode = async (
   latitude: number,
   longitude: number
 ): Promise<string> => {
-  // Try multiple geocoding services in order of preference
-  const services = [
-    // Service 1: OpenStreetMap with CORS proxy
-    async () => {
-      try {
-        const proxyUrl = 'https://api.allorigins.win/raw?url=';
-        const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1&extratags=1&namedetails=1&accept-language=en`;
-        
-        const response = await fetch(proxyUrl + encodeURIComponent(nominatimUrl), {
-          headers: {
-            'User-Agent': 'Citizn-App/1.0'
-          }
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          if (data.display_name) {
-            // Check for street-level detail
-            const streetName = data.name || data.address?.road || data.namedetails?.name;
-            
-            if (streetName) {
-              return data.display_name;
-            }
-            
-            // Build address from components if no street detail
-            const addr = data.address;
-            let detailedAddress = '';
-            
-            if (addr.house_number) detailedAddress += addr.house_number + ' ';
-            if (addr.road) detailedAddress += addr.road + ', ';
-            if (addr.suburb) detailedAddress += addr.suburb + ', ';
-            if (addr.city_district) detailedAddress += addr.city_district + ', ';
-            if (addr.city) detailedAddress += addr.city;
-            
-            if (detailedAddress.trim()) {
-              return detailedAddress.trim().replace(/,\s*$/, '');
-            }
-            
-            // Try Rwanda-specific field names
-            let rwandaAddress = '';
-            if (addr.village) rwandaAddress += addr.village + ', ';
-            if (addr.county) rwandaAddress += addr.county + ', ';
-            if (addr.state) rwandaAddress += addr.state;
-            
-            if (rwandaAddress.trim()) {
-              return rwandaAddress.trim().replace(/,\s*$/, '');
-            }
-            
-            // Final fallback - use display_name
-            return data.display_name;
-          }
-        }
-      } catch (error) {
-        throw new Error('OpenStreetMap failed');
+  try {
+    const response = await fetch(
+      `${GEOAPIFY_BASE_URL}?lat=${latitude}&lon=${longitude}&apiKey=${GEOAPIFY_API_KEY}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       }
-    },
-    
-    // Service 2: BigDataCloud (free tier)
-    async () => {
-      try {
-        const response = await fetch(
-          `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
-        );
-        
-        if (response.ok) {
-          const data = await response.json();
-          if (data.localityInfo && data.localityInfo.administrative) {
-            const admin = data.localityInfo.administrative;
-            let address = '';
-            
-            if (data.locality) address += data.locality + ', ';
-            if (admin[0]?.name) address += admin[0].name + ', ';
-            if (admin[1]?.name) address += admin[1].name + ', ';
-            if (admin[2]?.name) address += admin[2].name;
-            
-            return address.trim().replace(/,\s*$/, '');
-          }
-        }
-      } catch (error) {
-        throw new Error('BigDataCloud failed');
-      }
-    },
-    
-    // Service 3: Free IPGeolocation API
-    async () => {
-      try {
-        const response = await fetch(
-          `https://api.ipgeolocation.io/reverse-geocoding?lat=${latitude}&lon=${longitude}&apiKey=free`
-        );
-        
-        if (response.ok) {
-          const data = await response.json();
-          if (data.address) {
-            const addr = data.address;
-            let address = '';
-            
-            if (addr.street_number) address += addr.street_number + ' ';
-            if (addr.street) address += addr.street + ', ';
-            if (addr.city) address += addr.city + ', ';
-            if (addr.state) address += addr.state + ', ';
-            if (addr.country) address += addr.country;
-            
-            return address.trim().replace(/,\s*$/, '');
-          }
-        }
-      } catch (error) {
-        throw new Error('IPGeolocation failed');
-      }
-    }
-  ];
+    );
 
-  // Try each service in order
-  for (const service of services) {
-    try {
-      const result = await service();
-      if (result && result.trim()) {
-        return result;
-      }
-    } catch (error) {
-      // Continue to next service
-      continue;
+    if (!response.ok) {
+      throw new Error(`Geoapify API error: ${response.status}`);
     }
+
+    const data = await response.json();
+
+    // Check if we have features and at least one result
+    if (data.features && data.features.length > 0) {
+      const firstFeature = data.features[0];
+
+      // Use the formatted address from Geoapify
+      if (firstFeature.properties?.formatted) {
+        return firstFeature.properties.formatted;
+      }
+    }
+
+    // Fallback to coordinates if no formatted address found
+    return `Location: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+  } catch (error) {
+    console.error('Reverse geocoding error:', error);
+    // Fallback to coordinates on error
+    return `Location: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
   }
-
-  // Final fallback to formatted coordinates
-  return `Location: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
 };
 
 /**
@@ -171,14 +83,14 @@ export const getCurrentLocation = (): Promise<GeolocationCoordinates> => {
     // Try using watchPosition as a fallback - it's more reliable in some browsers
     const useWatchPosition = () => {
       watchId = navigator.geolocation.watchPosition(
-        (position) => {
+        position => {
           if (!hasResolved) {
             hasResolved = true;
             cleanup();
             resolve(position.coords);
           }
         },
-        (error) => {
+        error => {
           if (!hasResolved) {
             hasResolved = true;
             cleanup();
@@ -195,14 +107,14 @@ export const getCurrentLocation = (): Promise<GeolocationCoordinates> => {
 
     // First try getCurrentPosition
     navigator.geolocation.getCurrentPosition(
-      (position) => {
+      position => {
         if (!hasResolved) {
           hasResolved = true;
           cleanup();
           resolve(position.coords);
         }
       },
-      (error) => {
+      error => {
         // If getCurrentPosition fails, try watchPosition as fallback
         if (!hasResolved) {
           useWatchPosition();
@@ -234,16 +146,19 @@ export const getCurrentLocationWithAddress = async (): Promise<{
   address: string;
 }> => {
   const coordinates = await getCurrentLocation();
-  
-  // Try to get address, but don't fail if geocoding doesn't work
+
+  // Try to get address using Geoapify, but don't fail if geocoding doesn't work
   let address = `Location: ${coordinates.latitude.toFixed(4)}, ${coordinates.longitude.toFixed(4)}`;
   try {
-    const geocodedAddress = await reverseGeocode(coordinates.latitude, coordinates.longitude);
+    const geocodedAddress = await reverseGeocode(
+      coordinates.latitude,
+      coordinates.longitude
+    );
     address = geocodedAddress;
   } catch (geocodingError) {
     // Silent fallback to coordinates
   }
-  
+
   return {
     coordinates,
     address,
@@ -251,32 +166,37 @@ export const getCurrentLocationWithAddress = async (): Promise<{
 };
 
 // Helper function to geocode text location to coordinates (for offline users)
-export const geocodeLocation = async (locationText: string): Promise<{lat: number, lng: number} | null> => {
+export const geocodeLocation = async (
+  locationText: string
+): Promise<{ lat: number; lng: number } | null> => {
   try {
-    // Use OpenStreetMap Nominatim for geocoding
+    // Use Geoapify for forward geocoding as well
     const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationText)}&limit=1&addressdetails=1&countrycodes=ng`,
+      `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(locationText)}&apiKey=${GEOAPIFY_API_KEY}&limit=1`,
       {
+        method: 'GET',
         headers: {
-          'User-Agent': 'Citizn-App/1.0'
-        }
+          'Content-Type': 'application/json',
+        },
       }
     );
 
     if (response.ok) {
       const data = await response.json();
 
-      if (data && data.length > 0) {
-        const result = {
-          lat: parseFloat(data[0].lat),
-          lng: parseFloat(data[0].lon)
+      if (data.features && data.features.length > 0) {
+        const firstFeature = data.features[0];
+        const coordinates = firstFeature.geometry.coordinates;
+
+        return {
+          lat: coordinates[1], // Geoapify returns [lon, lat]
+          lng: coordinates[0],
         };
-        return result;
       }
     }
     return null;
   } catch (error) {
-    console.error('Geocoding error:', error);
+    console.error('Forward geocoding error:', error);
     return null;
   }
 };
