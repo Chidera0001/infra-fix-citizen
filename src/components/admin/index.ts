@@ -1,22 +1,20 @@
-export { Analytics } from './Analytics';
-export { Dashboard } from './Dashboard';
-export { AllIssues } from './AllIssues';
-export { Users } from './Users';
-export { ReportBuilder } from './ReportBuilder';
-export { PerformanceInsights } from './PerformanceInsights';
-export { AdvancedAnalyticsGrid } from './AdvancedAnalyticsGrid';
-export { ResponseTimeAnalysis } from './ResponseTimeAnalysis';
-export { ResolutionRateTrends } from './ResolutionRateTrends';
-export { UserSatisfaction } from './UserSatisfaction';
-export { IssueVolumeBySeverity } from './IssueVolumeBySeverity';
-export { PerformanceSummary } from './PerformanceSummary';
-export { PerformanceMetrics } from './PerformanceMetrics';
-export { DashboardMetrics } from './DashboardMetrics';
-export { DashboardCharts } from './DashboardCharts';
-export { RecentIssues } from './RecentIssues';
-export { ReportTypes } from './ReportTypes';
-export { DateRangeFilter } from './DateRangeFilter';
-export { CategoryFilter } from './CategoryFilter';
-export { ExportFormatSelector } from './ExportFormatSelector';
-export { AdvancedFiltersModal } from './AdvancedFiltersModal';
-export { ReportPreview } from './ReportPreview';
+// Dashboard components
+export * from './dashboard';
+
+// Analytics components
+export * from './analytics';
+
+// Reports components
+export * from './reports';
+
+// Issues components
+export * from './issues';
+
+// Users components
+export * from './users';
+
+// Shared modals
+export * from './modals';
+
+// Auth components
+export { default as AdminAuthGuard } from './AdminAuthGuard';

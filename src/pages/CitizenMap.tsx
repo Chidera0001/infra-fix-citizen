@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, MapPin, Plus } from "lucide-react";
 import { useIssues } from "@/hooks/use-issues";
-import { L, MAP_CONFIG } from "@/components/maps";
+import { L, MAP_CONFIG } from "@/components/maps/maps";
 
 const CitizenMap = () => {
   const navigate = useNavigate();

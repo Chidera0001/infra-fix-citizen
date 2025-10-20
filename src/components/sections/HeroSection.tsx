@@ -2,7 +2,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import Navbar from "@/components/Navbar";
-import FadeInWhenVisible from "@/components/FadeInWhenVisible";
+import FadeInWhenVisible from "@/components/shared/FadeInWhenVisible";
 import { useNavigate } from "react-router-dom";
 import StatsSection from "./StatsSection";
 

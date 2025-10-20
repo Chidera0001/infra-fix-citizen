@@ -23,7 +23,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { adminApi } from "@/lib/supabase-api";
 import { useIssueStatistics } from "@/hooks/use-issues";
-import { PerformanceMetrics } from "./PerformanceMetrics";
+import { PerformanceMetrics } from "../analytics/PerformanceMetrics";
 
 export const DashboardCharts = () => {
 	const { data: statistics, isLoading: statsLoading, error: statsError } = useIssueStatistics();

@@ -1,4 +1,4 @@
-import { UserManagement } from "@/components/UserManagement";
+import { UserManagement } from "./UserManagement";
 
 export const Users = () => {
 	return (

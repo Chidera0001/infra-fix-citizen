@@ -1,5 +1,5 @@
 import { Users, Clock, TrendingUp, Heart, Target } from "lucide-react";
-import FadeInWhenVisible from "@/components/FadeInWhenVisible";
+import FadeInWhenVisible from "@/components/shared/FadeInWhenVisible";
 import CountUp from "@/components/ui/CountUp";
 import { useStats } from "@/hooks/use-stats";
 import { Skeleton } from "@/components/ui/skeleton";

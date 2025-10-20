@@ -9,10 +9,10 @@ import {
 } from "@/components/ui/card";
 import { BarChart3, Download, Settings, Loader2, CheckCircle } from "lucide-react";
 import { ReportTypes } from "./ReportTypes";
-import { DateRangeFilter } from "./DateRangeFilter";
-import { CategoryFilter } from "./CategoryFilter";
-import { ExportFormatSelector } from "./ExportFormatSelector";
-import { AdvancedFiltersModal } from "./AdvancedFiltersModal";
+import { DateRangeFilter } from "./filters/DateRangeFilter";
+import { CategoryFilter } from "./filters/CategoryFilter";
+import { ExportFormatSelector } from "./filters/ExportFormatSelector";
+import { AdvancedFiltersModal } from "./filters/AdvancedFiltersModal";
 import { ReportPreview } from "./ReportPreview";
 import { ReportFilters } from "@/lib/reportGenerator";
 import { useReportGeneration } from "@/hooks/use-report-generation";

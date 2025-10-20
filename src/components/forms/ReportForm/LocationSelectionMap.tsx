@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { MapPin, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { reverseGeocode } from "@/utils/geocoding";
-import { L, MAP_CONFIG } from "@/components/maps";
+import { L, MAP_CONFIG } from "@/components/maps/maps";
 
 interface LocationSelectionMapProps {
 	onLocationSelected: (coordinates: { lat: number; lng: number }, address: string) => void;

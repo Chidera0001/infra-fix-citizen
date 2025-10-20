@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { L, MAP_CONFIG } from "@/components/maps";
+import { L, MAP_CONFIG } from "@/components/maps/maps";
 import { 
   groupIssuesByLocation, 
   createMarkerIcon, 
   addMarkerInteractions 
-} from "@/components/map-helpers";
+} from "./map-helpers";
 import type { Issue } from "@/lib/supabase-api";
 
 interface InteractiveMapProps {

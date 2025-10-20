@@ -5,22 +5,22 @@ import { LayoutList, LayoutGrid } from "lucide-react";
 import { useIssues, useUpdateIssue, useDeleteIssue } from "@/hooks/use-issues";
 import { useToast } from "@/hooks/use-toast";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import { Issue } from "@/types";
 import { 
 	IssueDetailsModal, 
 	UpdateStatusModal, 
 	DeleteConfirmationModal, 
 	ShareReportModal 
-} from "./modals";
+} from "../modals";
 import {
 	AdminStatsCards,
-	AdminSearchAndFilters as AdminSearchAndFiltersOld,
 	AdminIssueCard,
 	AdminIssueGridCard,
 	AdminIssueActions,
 	AdminPagination,
 	AdminEmptyState,
-} from "./AllIssues/index";
-import { AdminSearchAndFilters } from "./AdminSearchAndFilters";
+	AdminSearchAndFilters,
+} from "./components";
 
 const ITEMS_PER_PAGE = 6;
 

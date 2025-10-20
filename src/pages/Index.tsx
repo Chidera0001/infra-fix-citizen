@@ -1,7 +1,7 @@
 import { useEffect } from "react";
-import ProblemsCards from "@/components/ProblemsCarousel";
-import SolutionSection from "@/components/SolutionSection";
-import FadeInWhenVisible from "@/components/FadeInWhenVisible";
+import ProblemsCards from "@/components/shared/ProblemsCarousel";
+import SolutionSection from "@/components/sections/SolutionSection";
+import FadeInWhenVisible from "@/components/shared/FadeInWhenVisible";
 import { HeroSection, FeaturesSection, FooterSection, ReportNowSection } from "@/components/sections";
 
 const Index = () => {

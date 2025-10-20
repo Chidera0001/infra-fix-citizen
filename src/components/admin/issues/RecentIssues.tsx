@@ -17,8 +17,8 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Search, XCircle, LayoutList, LayoutGrid } from "lucide-react";
-import { AdminIssueCard, AdminIssueGridCard } from "./AllIssues/index";
-import { AdminSearchAndFilters } from "./AdminSearchAndFilters";
+import { AdminIssueCard, AdminIssueGridCard } from "./components";
+import { AdminSearchAndFilters } from "./components";
 import { useIssues, useUpdateIssue, useDeleteIssue } from "@/hooks/use-issues";
 import { useToast } from "@/hooks/use-toast";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
@@ -27,7 +27,7 @@ import {
 	UpdateStatusModal, 
 	DeleteConfirmationModal, 
 	ShareReportModal 
-} from "./modals";
+} from "../modals";
 import type { Issue } from "@/lib/supabase-api";
 
 const ITEMS_PER_PAGE = 5;

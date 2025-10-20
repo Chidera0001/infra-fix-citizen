@@ -11,7 +11,7 @@ import {
 	DetailedReport, 
 	PerformanceReport, 
 	TrendsReport 
-} from "./reports";
+} from "./types";
 
 interface ReportPreviewProps {
 	reportData: ReportData;

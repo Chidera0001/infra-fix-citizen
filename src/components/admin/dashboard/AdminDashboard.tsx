@@ -38,7 +38,7 @@ import {
 	FileText,
 	BarChart,
 } from "lucide-react";
-import IssueCard from "@/components/IssueCard";
+import IssueCard from "@/components/shared/IssueCard";
 import { useIssues } from "@/hooks/use-issues";
 import {
 	exportToCSV,

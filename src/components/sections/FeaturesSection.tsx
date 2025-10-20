@@ -1,6 +1,6 @@
 import { Camera, AlertTriangle, CheckCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import FadeInWhenVisible from "@/components/FadeInWhenVisible";
+import FadeInWhenVisible from "@/components/shared/FadeInWhenVisible";
 
 const FeaturesSection = () => {
 	return (

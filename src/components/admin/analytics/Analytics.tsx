@@ -1,4 +1,4 @@
-import { ReportBuilder } from "./ReportBuilder";
+import { ReportBuilder } from "../reports/ReportBuilder";
 import { PerformanceInsights } from "./PerformanceInsights";
 import { AdvancedAnalyticsGrid } from "./AdvancedAnalyticsGrid";
 

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import ReportForm from "@/components/ReportForm";
-import IssueMap from "@/components/IssueMap";
+import ReportForm from "@/components/forms/ReportForm";
+import IssueMap from "@/components/maps/IssueMap";
 import { useIssues, useIssueStatistics } from "@/hooks/use-issues";
 import { useCurrentProfile } from "@/hooks/use-profile";
 import { useAutoSync } from "@/hooks/use-auto-sync";

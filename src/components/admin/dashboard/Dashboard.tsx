@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { MapPin } from "lucide-react";
 import { DashboardMetrics } from "./DashboardMetrics";
 import { DashboardCharts } from "./DashboardCharts";
-import { RecentIssues } from "./RecentIssues";
+import { RecentIssues } from "../issues/RecentIssues";
 
 interface DashboardProps {
 	onShowMap: () => void;

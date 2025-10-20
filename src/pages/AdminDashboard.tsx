@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import IssueMap from "@/components/IssueMap";
+import IssueMap from "@/components/maps/IssueMap";
 import { useToast } from "@/hooks/use-toast";
 import { useCurrentProfile } from "@/hooks/use-profile";
 import { useAuth } from "@/contexts/AuthContext";

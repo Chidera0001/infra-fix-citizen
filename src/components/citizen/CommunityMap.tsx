@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { MapPin } from "lucide-react";
 import type { Issue } from "@/lib/supabase-api";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
-import InteractiveMap from "@/components/InteractiveMap";
+import InteractiveMap from "@/components/maps/InteractiveMap";
 
 interface CommunityMapProps {
 	issues: Issue[];

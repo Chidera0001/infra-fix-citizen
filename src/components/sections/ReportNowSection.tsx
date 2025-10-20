@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOnlineStatus } from "@/hooks/use-online-status";
 import { useCreateOnlineIssue, useCreateOfflineIssue } from "@/hooks/use-separate-issues";
-import FadeInWhenVisible from "@/components/FadeInWhenVisible";
+import FadeInWhenVisible from "@/components/shared/FadeInWhenVisible";
 import ReportNowBackground from "@/components/backgrounds/ReportNowBackground";
 
 const ReportNowSection = () => {
