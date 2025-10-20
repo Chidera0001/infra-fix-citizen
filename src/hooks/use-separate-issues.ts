@@ -9,7 +9,15 @@ export function useCreateOnlineIssue() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ issueData, userId, photos }: { issueData: any; userId?: string; photos?: File[] }) => {
+    mutationFn: async ({
+      issueData,
+      userId,
+      photos,
+    }: {
+      issueData: any;
+      userId?: string;
+      photos?: File[];
+    }) => {
       // Always make API call - this is for online only
       return issuesApi.createIssue(issueData, userId, photos);
     },
@@ -40,23 +48,31 @@ export function useCreateOfflineIssue() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ issueData, userId, photos }: { issueData: any; userId?: string; photos?: File[] }) => {
+    mutationFn: async ({
+      issueData,
+      userId,
+      photos,
+    }: {
+      issueData: any;
+      userId?: string;
+      photos?: File[];
+    }) => {
       // Always save to IndexedDB - this is for offline only
       const reportId = await offlineStorage.savePendingReport({
         issueData,
         userId,
-        photos: photos || []
+        photos: photos || [],
       });
-      
+
       return { id: reportId, offline: true };
     },
-    onSuccess: (data) => {
+    onSuccess: data => {
       // Invalidate pending reports query to refresh the list
       queryClient.invalidateQueries({ queryKey: ['pending-reports'] });
-      
+
       toast({
         title: 'Report Saved Offline',
-        description: 'Your report will be submitted when you\'re back online',
+        description: "Your report will be submitted when you're back online",
       });
     },
     onError: (error: Error) => {

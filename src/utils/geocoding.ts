@@ -170,6 +170,8 @@ export const geocodeLocation = async (
   locationText: string
 ): Promise<{ lat: number; lng: number } | null> => {
   try {
+    console.log('Forward geocoding request:', locationText);
+    
     // Use Geoapify for forward geocoding as well
     const response = await fetch(
       `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(locationText)}&apiKey=${GEOAPIFY_API_KEY}&limit=1`,
@@ -181,22 +183,88 @@ export const geocodeLocation = async (
       }
     );
 
-    if (response.ok) {
-      const data = await response.json();
-
-      if (data.features && data.features.length > 0) {
-        const firstFeature = data.features[0];
-        const coordinates = firstFeature.geometry.coordinates;
-
-        return {
-          lat: coordinates[1], // Geoapify returns [lon, lat]
-          lng: coordinates[0],
-        };
-      }
+    if (!response.ok) {
+      throw new Error(`Geoapify forward geocoding API error: ${response.status}`);
     }
+
+    const data = await response.json();
+    console.log('Forward geocoding response:', data);
+
+    if (data.features && data.features.length > 0) {
+      const firstFeature = data.features[0];
+      const coordinates = firstFeature.geometry.coordinates;
+
+      console.log('Forward geocoding result:', {
+        address: locationText,
+        coordinates: coordinates,
+        lat: coordinates[1],
+        lng: coordinates[0],
+        confidence: firstFeature.properties?.rank?.confidence || 'unknown'
+      });
+
+      return {
+        lat: coordinates[1], // Geoapify returns [lon, lat]
+        lng: coordinates[0],
+      };
+    }
+    
+    console.log('No geocoding results found for:', locationText);
     return null;
   } catch (error) {
     console.error('Forward geocoding error:', error);
+    return null;
+  }
+};
+
+// Enhanced function to geocode address and get full location data
+export const geocodeAddressToLocation = async (
+  addressText: string
+): Promise<{
+  latitude: number;
+  longitude: number;
+  address: string;
+  confidence?: number;
+} | null> => {
+  try {
+    console.log('Enhanced geocoding request:', addressText);
+    
+    const response = await fetch(
+      `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(addressText)}&apiKey=${GEOAPIFY_API_KEY}&limit=1`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Geoapify enhanced geocoding API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('Enhanced geocoding response:', data);
+
+    if (data.features && data.features.length > 0) {
+      const firstFeature = data.features[0];
+      const coordinates = firstFeature.geometry.coordinates;
+      const properties = firstFeature.properties;
+
+      const result = {
+        latitude: coordinates[1], // Geoapify returns [lon, lat]
+        longitude: coordinates[0],
+        address: properties?.formatted || addressText,
+        confidence: properties?.rank?.confidence || 0
+      };
+
+      console.log('Enhanced geocoding result:', result);
+      return result;
+    }
+    
+    console.log('No enhanced geocoding results found for:', addressText);
+    return null;
+  } catch (error) {
+    console.error('Enhanced geocoding error:', error);
     return null;
   }
 };

@@ -20,13 +20,13 @@ const OfflineReportIssue = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const createOfflineIssueMutation = useCreateOfflineIssue();
-  
+
   const [formData, setFormData] = useState<ReportFormData>({
-    title: "",
-    description: "",
-    category: "",
-    urgency: "",
-    location: "",
+    title: '',
+    description: '',
+    category: '',
+    urgency: '',
+    location: '',
     photo: null,
   });
 
@@ -36,12 +36,17 @@ const OfflineReportIssue = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!formData.title || !formData.description || !formData.category || !formData.location) {
+
+    if (
+      !formData.title ||
+      !formData.description ||
+      !formData.category ||
+      !formData.location
+    ) {
       toast({
-        title: "Missing Information",
-        description: "Please fill in all required fields.",
-        variant: "destructive",
+        title: 'Missing Information',
+        description: 'Please fill in all required fields.',
+        variant: 'destructive',
       });
       return;
     }
@@ -51,16 +56,16 @@ const OfflineReportIssue = () => {
         title: formData.title.trim(),
         description: formData.description.trim(),
         category: formData.category,
-        severity: formData.urgency || "medium",
+        severity: formData.urgency || 'medium',
         address: formData.location.trim(),
-        location_lat: 6.5244, // Default Lagos coords
+        location_lat: 6.5244, // Default Lagos coords - will be geocoded during sync
         location_lng: 3.3792,
       };
 
       await createOfflineIssueMutation.mutateAsync({
         issueData,
-        userId: "offline-user", // Use a placeholder for offline users
-        photos: formData.photo ? [formData.photo] : []
+        userId: 'offline-user', // Use a placeholder for offline users
+        photos: formData.photo ? [formData.photo] : [],
       });
 
       setTimeout(() => {
@@ -72,12 +77,12 @@ const OfflineReportIssue = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className='min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50'>
       <OfflineHeader />
-      
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+      <div className='mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8'>
         <OfflineNotice />
-        
+
         <ReportForm
           formData={formData}
           onFormDataChange={handleFormDataChange}
@@ -85,13 +90,13 @@ const OfflineReportIssue = () => {
           isSubmitting={createOfflineIssueMutation.isPending}
           isOnline={false} // Force offline mode
         />
-        
-        <div className="mt-4">
-          <Button 
-            type="button" 
-            variant="outline" 
+
+        <div className='mt-4'>
+          <Button
+            type='button'
+            variant='outline'
             onClick={() => navigate('/')}
-            className="w-full"
+            className='w-full'
           >
             Cancel
           </Button>
