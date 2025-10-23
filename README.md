@@ -53,26 +53,22 @@ _Component-level testing using Vitest framework_
 | Integration Testing 1                                                   | Integration Testing 2                                                   |
 | ----------------------------------------------------------------------- | ----------------------------------------------------------------------- |
 | ![Integration Testing 1](./public/Assets/Screenshots/Integration-1.png) | ![Integration Testing 2](./public/Assets/Screenshots/Integration-2.png) |
-| _End-to-end workflow testing - Part 1_                                  | _End-to-end workflow testing - Part 2_                                  |
 
 ### 🖥️ System Testing
 
 | System Testing 1                                                        | System Testing 2                                                        | System Testing 3                                                        |
 | ----------------------------------------------------------------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------- |
 | ![System Testing 1](./public/Assets/Screenshots/System%20Testing-1.png) | ![System Testing 2](./public/Assets/Screenshots/System%20Testing-2.png) | ![System Testing 3](./public/Assets/Screenshots/System%20Testing-3.png) |
-| _Production environment testing_                                        | _Cross-browser compatibility_                                           | _Mobile responsiveness testing_                                         |
 
 ### 🔐 Authentication Testing
 
 ![Authentication Testing](./public/Assets/Screenshots/Aunthetication%20Data.png)
-_Authentication system testing with various scenarios_
 
 ### 📊 Data Validation Testing
 
 | Data Values Testing                                                             | Form Validation Testing                                                       |
 | ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
 | ![Data Values Testing](./public/Assets/Screenshots/Data%20Values%20Testing.png) | ![Form Validation Testing](./public/Assets/Screenshots/Form%20Validation.png) |
-| _Testing with different data values and edge cases_                             | _Form validation and error handling testing_                                  |
 
 ## 🚀 Quick Start
 
