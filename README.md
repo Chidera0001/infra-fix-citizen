@@ -27,25 +27,15 @@ _⚠️ **Note:** This is currently hosted on Vercel. The URL will change when a
 
 ## 📸 Screenshots
 
-### 🏠 Citizen Dashboard
+| Citizen Dashboard                                                          | Issue Reporting                                                            |
+| -------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| ![Citizn Landing Page](./public/Assets/Screenshots/Citizn%20Dashboard.png) | ![Issue Reporting Interface](./public/Assets/Screenshots/Report-Issue.png) |
+| _Modern, responsive landing page with hero section and key features_       | _Intuitive issue reporting form with step-by-step guidance_                |
 
-![Citizn Landing Page](/public/Assets/Screenshots/Citizn%20Dashboard.png)
-_Modern, responsive landing page with hero section and key features_
-
-### 📝 Issue Reporting
-
-![Issue Reporting Interface](/public/Assets/Screenshots/Report-Issue.png)
-_Intuitive issue reporting form with step-by-step guidance_
-
-### 👨‍💼 Admin Dashboard
-
-![Admin Dashboard](/public/Assets/Screenshots/Admin-Dashboard.png)
-_Comprehensive admin dashboard with analytics and issue management_
-
-### 👥 User Management
-
-![User Management Interface](/public/Assets/Screenshots/Admin-User-Management.png)
-_Advanced user management system for administrators_
+| Admin Dashboard                                                     | User Management                                                                     |
+| ------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| ![Admin Dashboard](./public/Assets/Screenshots/Admin-Dashboard.png) | ![User Management Interface](./public/Assets/Screenshots/Admin-User-Management.png) |
+| _Comprehensive admin dashboard with analytics and issue management_ | _Advanced user management system for administrators_                                |
 
 ## 🧪 Testing
 
@@ -55,34 +45,34 @@ Visit detailed testing, analysis, discussion and recommendation document for det
 
 ### 🔧 Unit Testing
 
-![Unit Testing Results](/public/Assets/Screenshots/Unit%20Testing.png)
+![Unit Testing Results](./public/Assets/Screenshots/Unit%20Testing.png)
 _Component-level testing using Vitest framework_
 
 ### 🔗 Integration Testing
 
-| Integration Testing 1                                                 | Integration Testing 2                                                 |
-| --------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| ![Integration Testing 1](/public/Assets/Screenshots/Integration1.png) | ![Integration Testing 2](/public/Assets/Screenshots/Integration2.png) |
-| _End-to-end workflow testing - Part 1_                                | _End-to-end workflow testing - Part 2_                                |
+| Integration Testing 1                                                  | Integration Testing 2                                                  |
+| ---------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| ![Integration Testing 1](./public/Assets/Screenshots/Integration1.png) | ![Integration Testing 2](./public/Assets/Screenshots/Integration2.png) |
+| _End-to-end workflow testing - Part 1_                                 | _End-to-end workflow testing - Part 2_                                 |
 
 ### 🖥️ System Testing
 
-| System Testing 1                                                         | System Testing 2                                                         | System Testing 3                                                         |
-| ------------------------------------------------------------------------ | ------------------------------------------------------------------------ | ------------------------------------------------------------------------ |
-| ![System Testing 1](/public/Assets/Screenshots/System%20Testing%201.png) | ![System Testing 2](/public/Assets/Screenshots/System%20Testing%202.png) | ![System Testing 3](/public/Assets/Screenshots/System%20Testing%203.png) |
-| _Production environment testing_                                         | _Cross-browser compatibility_                                            | _Mobile responsiveness testing_                                          |
+| System Testing 1                                                          | System Testing 2                                                          | System Testing 3                                                          |
+| ------------------------------------------------------------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| ![System Testing 1](./public/Assets/Screenshots/System%20Testing%201.png) | ![System Testing 2](./public/Assets/Screenshots/System%20Testing%202.png) | ![System Testing 3](./public/Assets/Screenshots/System%20Testing%203.png) |
+| _Production environment testing_                                          | _Cross-browser compatibility_                                             | _Mobile responsiveness testing_                                           |
 
 ### 🔐 Authentication Testing
 
-![Authentication Testing](/public/Assets/Screenshots/Authentication%20data.png)
+![Authentication Testing](./public/Assets/Screenshots/Authentication%20data.png)
 _Authentication system testing with various scenarios_
 
 ### 📊 Data Validation Testing
 
-| Data Values Testing                                                  | Form Validation Testing                                                      |
-| -------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| ![Data Values Testing](/public/Assets/Screenshots/Data%20values.png) | ![Form Validation Testing](/public/Assets/Screenshots/Form%20validation.png) |
-| _Testing with different data values and edge cases_                  | _Form validation and error handling testing_                                 |
+| Data Values Testing                                                   | Form Validation Testing                                                       |
+| --------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| ![Data Values Testing](./public/Assets/Screenshots/Data%20values.png) | ![Form Validation Testing](./public/Assets/Screenshots/Form%20validation.png) |
+| _Testing with different data values and edge cases_                   | _Form validation and error handling testing_                                  |
 
 ## 🚀 Quick Start
 
