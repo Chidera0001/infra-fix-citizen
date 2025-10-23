@@ -25,11 +25,22 @@ export const supabase = createClient<Database>(
       detectSessionInUrl: true,
       // Add flow type for better compatibility
       flowType: 'pkce',
+      // Add debug mode for troubleshooting
+      debug: import.meta.env.DEV,
+      // Ensure proper redirect handling
+      redirectTo: typeof window !== 'undefined' ? window.location.origin : undefined,
     },
     // Add global configuration for better error handling
     global: {
       headers: {
         'X-Client-Info': 'infra-fix-citizen',
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+    },
+    // Add realtime configuration
+    realtime: {
+      params: {
+        eventsPerSecond: 10,
       },
     },
   }

@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { clearProfileCache } from '@/lib/supabase-api';
+import { handleAuthError, logAuthError } from '@/utils/authErrorHandler';
 
 interface AuthContextType {
   user: User | null;
@@ -106,16 +107,34 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return { error };
     }
 
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName,
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+          },
         },
-      },
-    });
-    return { error };
+      });
+
+      // Handle errors using the error handler
+      if (error) {
+        logAuthError(error, 'signUp');
+        const errorInfo = handleAuthError(error, 'signUp');
+        const friendlyError = new Error(errorInfo.userMessage) as AuthError;
+        friendlyError.code = error.code || 'signup_error';
+        return { error: friendlyError };
+      }
+
+      return { error };
+    } catch (error) {
+      logAuthError(error as AuthError, 'signUp', 'catch block');
+      const errorInfo = handleAuthError(error as AuthError, 'signUp');
+      const friendlyError = new Error(errorInfo.userMessage) as AuthError;
+      friendlyError.code = 'network_error';
+      return { error: friendlyError };
+    }
   };
 
   const signIn = async (email: string, password: string) => {
@@ -125,11 +144,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return { error };
     }
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    return { error };
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      // Handle errors using the error handler
+      if (error) {
+        logAuthError(error, 'signIn');
+        const errorInfo = handleAuthError(error, 'signIn');
+        const friendlyError = new Error(errorInfo.userMessage) as AuthError;
+        friendlyError.code = error.code || 'signin_error';
+        return { error: friendlyError };
+      }
+
+      return { error };
+    } catch (error) {
+      logAuthError(error as AuthError, 'signIn', 'catch block');
+      const errorInfo = handleAuthError(error as AuthError, 'signIn');
+      const friendlyError = new Error(errorInfo.userMessage) as AuthError;
+      friendlyError.code = 'network_error';
+      return { error: friendlyError };
+    }
   };
 
   const signInWithGoogle = async () => {
@@ -141,13 +178,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return { error };
     }
 
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/citizen`,
-      },
-    });
-    return { error };
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/citizen`,
+        },
+      });
+
+      // Handle errors using the error handler
+      if (error) {
+        logAuthError(error, 'signInWithGoogle');
+        const errorInfo = handleAuthError(error, 'signInWithGoogle');
+        const friendlyError = new Error(errorInfo.userMessage) as AuthError;
+        friendlyError.code = error.code || 'google_signin_error';
+        return { error: friendlyError };
+      }
+
+      return { error };
+    } catch (error) {
+      logAuthError(error as AuthError, 'signInWithGoogle', 'catch block');
+      const errorInfo = handleAuthError(error as AuthError, 'signInWithGoogle');
+      const friendlyError = new Error(errorInfo.userMessage) as AuthError;
+      friendlyError.code = 'network_error';
+      return { error: friendlyError };
+    }
   };
 
   const signOut = async () => {
@@ -162,23 +217,32 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const { error } = await supabase.auth.signOut();
 
-      // If signOut fails with 403, clear local state anyway
-      if (error && error.message?.includes('403')) {
-        console.warn('Sign out API failed (403), clearing local state:', error);
-        setUser(null);
-        setSession(null);
-        clearProfileCache();
-        return { error: null };
+      // Handle errors using the error handler
+      if (error) {
+        logAuthError(error, 'signOut');
+        const errorInfo = handleAuthError(error, 'signOut');
+
+        // Always clear local state for sign out, regardless of error
+        if (errorInfo.shouldClearLocalState) {
+          setUser(null);
+          setSession(null);
+          clearProfileCache();
+        }
+
+        return { error: null }; // Don't return the error for sign out
       }
 
       return { error };
     } catch (error) {
-      // If signOut throws an error, clear local state anyway
-      console.warn('Sign out failed, clearing local state:', error);
+      logAuthError(error as AuthError, 'signOut', 'catch block');
+      const errorInfo = handleAuthError(error as AuthError, 'signOut');
+
+      // Always clear local state for sign out, regardless of error
       setUser(null);
       setSession(null);
       clearProfileCache();
-      return { error: null };
+
+      return { error: null }; // Don't return the error for sign out
     }
   };
 
