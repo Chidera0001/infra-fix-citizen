@@ -96,7 +96,10 @@ export const issuesApi = {
         imageUrls = await uploadIssueImages(photos);
       } catch (error) {
         console.error('Error uploading images:', error);
-        // Continue with issue creation even if image upload fails
+        // Throw error to prevent issue creation if image upload fails
+        throw new Error(
+          `Failed to upload images: ${error instanceof Error ? error.message : 'Unknown error'}`
+        );
       }
     }
 
@@ -440,6 +443,19 @@ export const commentsApi = {
   },
 };
 
+// Profile cache to avoid repeated database calls
+const profileCache = new Map<string, { profile: Profile; timestamp: number }>();
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+// Function to clear profile cache (useful for sign out, auth changes, etc.)
+export function clearProfileCache(userId?: string): void {
+  if (userId) {
+    profileCache.delete(userId);
+  } else {
+    profileCache.clear();
+  }
+}
+
 // Helper function to get current user profile
 export async function getCurrentUserProfile(
   userId?: string
@@ -447,6 +463,17 @@ export async function getCurrentUserProfile(
   // If no userId provided, we can't proceed
   if (!userId) {
     throw new Error('User ID is required');
+  }
+
+  // Skip cache for offline-user placeholder - this ensures proper profile creation
+  if (userId === 'offline-user') {
+    throw new Error('Cannot create profile for offline-user placeholder');
+  }
+
+  // Check cache first (only for real user IDs)
+  const cached = profileCache.get(userId);
+  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+    return cached.profile;
   }
 
   // First, try to get existing profile
@@ -460,30 +487,25 @@ export async function getCurrentUserProfile(
     throw error;
   }
 
-  // If profile exists, return it
+  // If profile exists, cache and return it
   if (data) {
-    // If profile exists but has empty email/name, update it with auth user data
-    if (!data.email || data.full_name === 'User') {
-      try {
-        const { data: authUser } = await supabase.auth.getUser();
-        if (authUser.user) {
-          const updatedProfile = await updateProfileWithUserData(
-            userId,
-            authUser.user
-          );
-          return updatedProfile;
-        }
-      } catch (updateError) {
-        // Return the existing profile even if update fails
-      }
-    }
-
+    profileCache.set(userId, { profile: data, timestamp: Date.now() });
     return data;
   }
 
-  // Get user data from Supabase auth
+  // Only get auth user data if profile doesn't exist
+  // This is important for offline users coming online for the first time
   const { data: authUser } = await supabase.auth.getUser();
   const userData = authUser.user;
+
+  if (!userData) {
+    throw new Error('User not authenticated');
+  }
+
+  // Verify the auth user ID matches the requested userId
+  if (userData.id !== userId) {
+    throw new Error('User ID mismatch - authentication required');
+  }
 
   const { data: newProfile, error: createError } = await supabase
     .from('profiles')
@@ -501,6 +523,8 @@ export async function getCurrentUserProfile(
     throw createError;
   }
 
+  // Cache the new profile
+  profileCache.set(userId, { profile: newProfile, timestamp: Date.now() });
   return newProfile;
 }
 

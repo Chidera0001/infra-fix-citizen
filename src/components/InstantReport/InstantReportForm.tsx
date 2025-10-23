@@ -139,6 +139,18 @@ export const InstantReportForm = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Check photo size before validation
+    const maxSize = 4 * 1024 * 1024; // 4MB
+    if (photo.size > maxSize) {
+      const fileSizeMB = (photo.size / (1024 * 1024)).toFixed(2);
+      toast({
+        title: 'Photo Too Large',
+        description: `The captured photo (${fileSizeMB}MB) exceeds the 4MB limit. Please retake with a smaller resolution.`,
+        variant: 'destructive',
+      });
+      return;
+    }
+
     // Validate form using the new validation function
     const errors = validateForm();
     if (errors.length > 0) {
@@ -174,6 +186,24 @@ export const InstantReportForm = ({
       navigate('/citizen');
     } catch (error) {
       console.error('Error submitting instant report:', error);
+
+      // Enhanced error handling for photo upload failures
+      const errorMessage =
+        error instanceof Error ? error.message : 'An unexpected error occurred';
+
+      if (errorMessage.includes('Failed to upload images')) {
+        toast({
+          title: 'Photo Upload Failed',
+          description: 'Your photo could not be uploaded. Please try again.',
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Submission Failed',
+          description: errorMessage,
+          variant: 'destructive',
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -185,12 +215,26 @@ export const InstantReportForm = ({
         <CardContent className='px-4 py-6 sm:px-6 sm:py-8 lg:px-8'>
           {/* Photo Preview */}
           <div className='mb-6'>
-            <div className='relative'>
+            <div
+              className={`relative ${photo.size > 4 * 1024 * 1024 ? 'ring-2 ring-red-300 ring-offset-2' : ''}`}
+            >
               <img
                 src={photoPreview}
                 alt='Captured issue'
-                className='h-64 w-full rounded-xl border border-gray-200 object-cover'
+                className={`h-64 w-full rounded-xl border object-cover ${
+                  photo.size > 4 * 1024 * 1024
+                    ? 'border-red-300'
+                    : 'border-gray-200'
+                }`}
               />
+              {photo.size > 4 * 1024 * 1024 && (
+                <div className='absolute inset-0 flex items-center justify-center rounded-xl bg-red-500/20'>
+                  <div className='rounded-full bg-red-500 px-3 py-1 text-sm font-medium text-white'>
+                    ⚠️ Photo too large (
+                    {(photo.size / (1024 * 1024)).toFixed(2)}MB)
+                  </div>
+                </div>
+              )}
               <Button
                 type='button'
                 variant='outline'
@@ -202,6 +246,12 @@ export const InstantReportForm = ({
                 Retake
               </Button>
             </div>
+            {photo.size > 4 * 1024 * 1024 && (
+              <p className='mt-2 text-center text-sm text-red-600'>
+                Please retake the photo with a smaller resolution to reduce file
+                size.
+              </p>
+            )}
           </div>
 
           {/* Location Info */}
@@ -402,7 +452,11 @@ export const InstantReportForm = ({
             {/* Submit Button */}
             <Button
               type='submit'
-              disabled={isSubmitting || validateForm().length > 0}
+              disabled={
+                isSubmitting ||
+                validateForm().length > 0 ||
+                photo.size > 4 * 1024 * 1024
+              }
               className='w-full rounded-lg bg-green-600 py-3 font-medium text-white transition-colors hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50'
             >
               {isSubmitting ? (

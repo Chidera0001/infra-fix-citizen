@@ -6,7 +6,7 @@
 -- IMPORTANT: Run this in your Supabase SQL Editor
 -- Location: https://supabase.com/dashboard/project/YOUR_PROJECT_ID/sql/new
 -- 
--- File Size Limit: 2MB per image (enforced at application level)
+-- File Size Limit: 4MB per image (enforced at application level)
 -- Max Images: 5 per report (enforced at application level)
 -- ============================================================================
 
@@ -16,11 +16,11 @@ VALUES (
   'issue-images', 
   'issue-images', 
   true,  -- Public bucket (images are publicly viewable)
-  2097152,  -- 2MB file size limit (2 * 1024 * 1024 bytes)
+  4194304,  -- 4MB file size limit (4 * 1024 * 1024 bytes)
   ARRAY['image/jpeg', 'image/png', 'image/webp']  -- Allowed file types
 )
 ON CONFLICT (id) DO UPDATE SET
-  file_size_limit = 2097152,
+  file_size_limit = 4194304,
   allowed_mime_types = ARRAY['image/jpeg', 'image/png', 'image/webp'];
 
 -- Set up storage policies for issue images bucket

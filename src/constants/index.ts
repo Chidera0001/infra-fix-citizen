@@ -27,12 +27,37 @@ export const ROUTES = {
 } as const;
 
 export const ISSUE_CATEGORIES = [
-  { value: 'pothole', label: 'Pothole', icon: 'construction', color: '#ef4444' },
-  { value: 'street_lighting', label: 'Street Lighting', icon: 'lightbulb', color: '#f59e0b' },
-  { value: 'water_supply', label: 'Water Supply', icon: 'droplets', color: '#3b82f6' },
-  { value: 'traffic_signal', label: 'Traffic Signal', icon: 'traffic-light', color: '#10b981' },
+  {
+    value: 'pothole',
+    label: 'Pothole',
+    icon: 'construction',
+    color: '#ef4444',
+  },
+  {
+    value: 'street_lighting',
+    label: 'Street Lighting',
+    icon: 'lightbulb',
+    color: '#f59e0b',
+  },
+  {
+    value: 'water_supply',
+    label: 'Water Supply',
+    icon: 'droplets',
+    color: '#3b82f6',
+  },
+  {
+    value: 'traffic_signal',
+    label: 'Traffic Signal',
+    icon: 'traffic-light',
+    color: '#10b981',
+  },
   { value: 'drainage', label: 'Drainage', icon: 'waves', color: '#6366f1' },
-  { value: 'sidewalk', label: 'Sidewalk', icon: 'footprints', color: '#8b5cf6' },
+  {
+    value: 'sidewalk',
+    label: 'Sidewalk',
+    icon: 'footprints',
+    color: '#8b5cf6',
+  },
   { value: 'other', label: 'Other', icon: 'alert-triangle', color: '#6b7280' },
 ] as const;
 
@@ -75,7 +100,7 @@ export const VALIDATION = {
   maxTitleLength: 100,
   minDescriptionLength: 20,
   maxDescriptionLength: 1000,
-  maxImageSize: 2 * 1024 * 1024, // 2MB per image - optimal for storage and quality
+  maxImageSize: 4 * 1024 * 1024, // 4MB per image - increased from 2MB
   maxImagesPerReport: 5, // Maximum 5 images per report
   allowedImageTypes: ['image/jpeg', 'image/png', 'image/webp'],
 } as const;

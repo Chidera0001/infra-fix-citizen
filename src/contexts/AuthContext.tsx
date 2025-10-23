@@ -1,14 +1,22 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { clearProfileCache } from '@/lib/supabase-api';
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
   isOfflineMode: boolean;
-  signUp: (email: string, password: string, fullName: string) => Promise<{ error: AuthError | null }>;
-  signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
+  signUp: (
+    email: string,
+    password: string,
+    fullName: string
+  ) => Promise<{ error: AuthError | null }>;
+  signIn: (
+    email: string,
+    password: string
+  ) => Promise<{ error: AuthError | null }>;
   signInWithGoogle: () => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<{ error: AuthError | null }>;
   enableOfflineMode: () => void;
@@ -33,7 +41,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isOfflineMode, setIsOfflineMode] = useState(false);
-  
+
   // Use navigator.onLine as fallback to avoid hook dependency issues
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 
@@ -52,6 +60,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+
+      // Clear profile cache when user signs out
+      if (!session?.user) {
+        clearProfileCache();
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -92,7 +105,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       error.code = 'offline_error';
       return { error };
     }
-    
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -111,7 +124,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       error.code = 'offline_error';
       return { error };
     }
-    
+
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -121,11 +134,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signInWithGoogle = async () => {
     if (!isOnline) {
-      const error = new Error('Cannot sign in with Google while offline') as AuthError;
+      const error = new Error(
+        'Cannot sign in with Google while offline'
+      ) as AuthError;
       error.code = 'offline_error';
       return { error };
     }
-    
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
@@ -140,9 +155,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Handle offline sign out by clearing local state
       setUser(null);
       setSession(null);
+      clearProfileCache(); // Clear cache on offline sign out too
       return { error: null };
     }
-    
+
     const { error } = await supabase.auth.signOut();
     return { error };
   };

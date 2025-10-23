@@ -30,14 +30,19 @@ export function validateImageFile(file: File): string | null {
  * @param issueId - Optional issue ID for organizing uploads
  * @returns Array of public URLs for the uploaded images
  */
-export async function uploadIssueImages(files: File[], issueId?: string): Promise<string[]> {
+export async function uploadIssueImages(
+  files: File[],
+  issueId?: string
+): Promise<string[]> {
   if (!files || files.length === 0) {
     return [];
   }
 
   // Validate number of images
   if (files.length > VALIDATION.maxImagesPerReport) {
-    throw new Error(`Maximum ${VALIDATION.maxImagesPerReport} images allowed per report`);
+    throw new Error(
+      `Maximum ${VALIDATION.maxImagesPerReport} images allowed per report`
+    );
   }
 
   // Validate each file
@@ -62,23 +67,25 @@ export async function uploadIssueImages(files: File[], issueId?: string): Promis
         .from(STORAGE_BUCKET)
         .upload(filePath, file, {
           cacheControl: '3600',
-          upsert: false
+          upsert: false,
         });
 
       if (error) {
         console.error('Error uploading image:', error);
-        throw error;
+        throw new Error(`Failed to upload ${file.name}: ${error.message}`);
       }
 
       // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from(STORAGE_BUCKET)
-        .getPublicUrl(data.path);
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(data.path);
 
       uploadedUrls.push(publicUrl);
     } catch (error) {
       console.error('Failed to upload image:', error);
-      throw error; // Throw error instead of continuing
+      throw new Error(
+        `Failed to upload ${file.name}: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -96,10 +103,12 @@ export async function deleteIssueImages(urls: string[]): Promise<void> {
 
   try {
     // Extract file paths from URLs
-    const paths = urls.map(url => {
-      const urlParts = url.split(`${STORAGE_BUCKET}/`);
-      return urlParts[1];
-    }).filter(Boolean);
+    const paths = urls
+      .map(url => {
+        const urlParts = url.split(`${STORAGE_BUCKET}/`);
+        return urlParts[1];
+      })
+      .filter(Boolean);
 
     if (paths.length > 0) {
       const { error } = await supabase.storage
@@ -127,11 +136,10 @@ export function dataURLtoFile(dataUrl: string, filename: string): File {
   const bstr = atob(arr[1]);
   let n = bstr.length;
   const u8arr = new Uint8Array(n);
-  
+
   while (n--) {
     u8arr[n] = bstr.charCodeAt(n);
   }
-  
+
   return new File([u8arr], filename, { type: mime });
 }
-
