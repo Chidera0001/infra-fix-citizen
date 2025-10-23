@@ -14,4 +14,23 @@ if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+export const supabase = createClient<Database>(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY,
+  {
+    auth: {
+      // Ensure proper logout behavior
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true,
+      // Add flow type for better compatibility
+      flowType: 'pkce',
+    },
+    // Add global configuration for better error handling
+    global: {
+      headers: {
+        'X-Client-Info': 'infra-fix-citizen',
+      },
+    },
+  }
+);

@@ -159,8 +159,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return { error: null };
     }
 
-    const { error } = await supabase.auth.signOut();
-    return { error };
+    try {
+      const { error } = await supabase.auth.signOut();
+
+      // If signOut fails with 403, clear local state anyway
+      if (error && error.message?.includes('403')) {
+        console.warn('Sign out API failed (403), clearing local state:', error);
+        setUser(null);
+        setSession(null);
+        clearProfileCache();
+        return { error: null };
+      }
+
+      return { error };
+    } catch (error) {
+      // If signOut throws an error, clear local state anyway
+      console.warn('Sign out failed, clearing local state:', error);
+      setUser(null);
+      setSession(null);
+      clearProfileCache();
+      return { error: null };
+    }
   };
 
   const value = {
