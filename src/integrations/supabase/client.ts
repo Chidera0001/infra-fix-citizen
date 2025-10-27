@@ -25,10 +25,8 @@ export const supabase = createClient<Database>(
       detectSessionInUrl: true,
       // Add flow type for better compatibility
       flowType: 'pkce',
-      // Add debug mode for troubleshooting
-      debug: import.meta.env.DEV,
-      // Ensure proper redirect handling
-      redirectTo: typeof window !== 'undefined' ? window.location.origin : undefined,
+      // Add debug mode for troubleshooting (disabled to reduce console noise)
+      debug: false,
     },
     // Add global configuration for better error handling
     global: {

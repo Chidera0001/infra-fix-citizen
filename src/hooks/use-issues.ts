@@ -39,7 +39,17 @@ export function useCreateIssue() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ issueData, userId, photos, isOnline }: { issueData: any; userId?: string; photos?: File[]; isOnline: boolean }) => {
+    mutationFn: async ({
+      issueData,
+      userId,
+      photos,
+      isOnline,
+    }: {
+      issueData: any;
+      userId?: string;
+      photos?: File[];
+      isOnline: boolean;
+    }) => {
       if (isOnline) {
         // Online: Use existing API
         return issuesApi.createIssue(issueData, userId, photos);
@@ -48,7 +58,7 @@ export function useCreateIssue() {
         const reportId = await offlineStorage.savePendingReport({
           issueData,
           userId,
-          photos: photos || []
+          photos: photos || [],
         });
         return { id: reportId, offline: true };
       }
@@ -58,7 +68,7 @@ export function useCreateIssue() {
         // Offline success
         toast({
           title: 'Report Saved Offline',
-          description: 'Your report will be submitted when you\'re back online',
+          description: "Your report will be submitted when you're back online",
         });
       } else {
         // Online success - invalidate queries
@@ -150,7 +160,11 @@ export function useToggleUpvote() {
   });
 }
 
-export function useIssueStatistics(lat?: number, lng?: number, radius?: number) {
+export function useIssueStatistics(
+  lat?: number,
+  lng?: number,
+  radius?: number
+) {
   return useQuery({
     queryKey: ['issue-statistics', lat, lng, radius],
     queryFn: () => issuesApi.getIssueStatistics(lat, lng, radius),
@@ -162,9 +176,9 @@ export function usePendingReports() {
   return useQuery({
     queryKey: ['pending-reports'],
     queryFn: () => offlineStorage.getPendingReports(),
-    staleTime: 10000, // 10 seconds - more responsive
-    refetchOnWindowFocus: true, // Refetch on window focus to catch new reports
-    refetchOnMount: true, // Refetch on mount to ensure fresh data
+    staleTime: 30000, // 30 seconds - data considered fresh
+    refetchOnWindowFocus: false, // Don't refetch on window focus to reduce API calls
+    refetchOnMount: true, // Still refetch on mount to ensure fresh data when component loads
   });
 }
 
@@ -175,17 +189,17 @@ export function useSyncPendingReports() {
 
   return useMutation({
     mutationFn: () => syncService.syncPendingReports(user?.id),
-    onSuccess: (results) => {
+    onSuccess: results => {
       const successCount = results.filter(r => r.success).length;
       const failCount = results.filter(r => !r.success).length;
-      
+
       if (successCount > 0) {
         toast({
           title: '🎉 Offline Reports Synced!',
           description: `${successCount} offline report(s) have been successfully submitted to the system`,
         });
       }
-      
+
       if (failCount > 0) {
         toast({
           title: '⚠️ Some Reports Failed',
@@ -193,7 +207,7 @@ export function useSyncPendingReports() {
           variant: 'destructive',
         });
       }
-      
+
       // Refresh pending reports and other queries
       queryClient.invalidateQueries({ queryKey: ['pending-reports'] });
       queryClient.invalidateQueries({ queryKey: ['issues'] });
@@ -219,7 +233,7 @@ export function useDeletePendingReport() {
       await offlineStorage.deletePendingReport(reportId);
       return reportId;
     },
-    onSuccess: (reportId) => {
+    onSuccess: reportId => {
       queryClient.invalidateQueries({ queryKey: ['pending-reports'] });
       toast({
         title: 'Report Deleted',

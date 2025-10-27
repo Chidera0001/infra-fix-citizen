@@ -81,7 +81,7 @@ const Navbar: React.FC = () => {
                       Sign In
                     </Button>
                     <Button
-                      onClick={() => navigate('/auth')}
+                      onClick={() => navigate('/auth?mode=signup')}
                       className='bg-gradient-to-r from-green-600 to-green-700 font-semibold text-white shadow-lg backdrop-blur-sm hover:from-green-700 hover:to-green-800'
                       size='sm'
                     >
@@ -106,24 +106,8 @@ const Navbar: React.FC = () => {
 
             {/* Mobile Menu */}
             {isMobileMenuOpen && (
-              <div className='mt-4 border-t border-green-700 pt-4 md:hidden'>
+              <div className='mt-4 pt-4 md:hidden'>
                 <div className='flex flex-col space-y-4'>
-                  {/* Mobile Navigation Links */}
-                  <a
-                    href='#problems'
-                    onClick={closeMobileMenu}
-                    className='py-2 font-medium text-green-700 transition-colors duration-200 hover:text-green-500'
-                  >
-                    Problems We Solve
-                  </a>
-                  <a
-                    href='#solution'
-                    onClick={closeMobileMenu}
-                    className='hover:green-500 py-2 font-medium text-green-700 transition-colors duration-200'
-                  >
-                    Our Solution
-                  </a>
-
                   {/* Mobile Auth Buttons */}
                   <div className='flex flex-col space-y-3 pt-4'>
                     {user ? (
@@ -169,13 +153,12 @@ const Navbar: React.FC = () => {
                         </Button>
                         <Button
                           onClick={() => {
-                            navigate('/auth');
+                            navigate('/auth?mode=signup');
                             closeMobileMenu();
                           }}
                           className='w-full bg-gradient-to-r from-green-600 to-green-700 font-semibold text-white shadow-lg backdrop-blur-sm hover:from-green-700 hover:to-green-800'
                           size='sm'
                         >
-                          <UserPlus className='mr-2 h-4 w-4' />
                           Get Started
                         </Button>
                       </>

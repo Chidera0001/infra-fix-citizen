@@ -1,6 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
-import { profileApi, type Profile, type ProfileUpdate } from '@/lib/supabase-api';
+import {
+  profileApi,
+  type Profile,
+  type ProfileUpdate,
+} from '@/lib/supabase-api';
 import { useToast } from '@/hooks/use-toast';
 
 // Query keys
@@ -18,9 +22,9 @@ export function useCurrentProfile() {
     queryKey: profileKeys.current(),
     queryFn: async () => {
       if (!user) return null;
-      
+
       let profile = await profileApi.getProfile(user.id);
-      
+
       // Create profile if it doesn't exist
       if (!profile && user) {
         profile = await profileApi.createOrUpdateProfile(user.id, {
@@ -28,7 +32,7 @@ export function useCurrentProfile() {
           full_name: user.user_metadata?.full_name || 'User',
         });
       }
-      
+
       // If profile exists but is incomplete, update it
       if (profile && (!profile.email || profile.full_name === 'User')) {
         try {
@@ -40,10 +44,11 @@ export function useCurrentProfile() {
           // Failed to update profile
         }
       }
-      
+
       return profile;
     },
     enabled: !!user,
+    staleTime: 5 * 60 * 1000, // 5 minutes - profile data doesn't change frequently
   });
 }
 
@@ -67,7 +72,7 @@ export function useUpdateProfile() {
       if (!user) throw new Error('User not authenticated');
       return profileApi.updateProfile(user.id, updates);
     },
-    onSuccess: (data) => {
+    onSuccess: data => {
       queryClient.setQueryData(profileKeys.current(), data);
       if (user) {
         queryClient.setQueryData(profileKeys.detail(user.id), data);
@@ -77,7 +82,7 @@ export function useUpdateProfile() {
         description: 'Your profile has been updated successfully.',
       });
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: 'Error',
         description: 'Failed to update profile. Please try again.',
@@ -95,7 +100,8 @@ export function useAllProfiles() {
   return useQuery({
     queryKey: [...profileKeys.all, 'list'],
     queryFn: profileApi.getAllProfiles,
-    enabled: currentProfile?.role === 'admin' || currentProfile?.role === 'moderator',
+    enabled:
+      currentProfile?.role === 'admin' || currentProfile?.role === 'moderator',
   });
 }
 

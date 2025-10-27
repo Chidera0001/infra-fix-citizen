@@ -21,9 +21,9 @@
 
 **🚀 Try the application:**
 
-[https://infra-fix-citizen.vercel.app/](https://infra-fix-citizen.vercel.app/)
+[https://yourdomain.com/](https://yourdomain.com/)
 
-_⚠️ **Note:** This is currently hosted on Vercel. The URL will change when a custom domain is purchased._
+_📌 Custom domain configured with Namecheap and Vercel._
 
 ## 📸 Screenshots
 
