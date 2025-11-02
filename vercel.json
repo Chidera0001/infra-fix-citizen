@@ -1,8 +1,9 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
   "git": {
     "deploymentEnabled": {
       "main": true
     }
-  }
+  },
+  "ignoreCommand": "git branch --show-current | grep -v '^main$'"
 }
+

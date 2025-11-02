@@ -5,6 +5,12 @@ on:
     branches: [main, develop]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: read
+  statuses: read
 
 jobs:
   lint-and-format:
@@ -98,6 +104,7 @@ jobs:
           retention-days: 7
 
   # This job creates a required status check for Vercel
+  # Only runs on main branch - Vercel will only deploy when this check passes
   ci-success:
     needs: build
     runs-on: ubuntu-latest
@@ -105,7 +112,19 @@ jobs:
     if: github.ref == 'refs/heads/main'
 
     steps:
-      - name: Create success status
-        run: |
-          echo "✅ All CI checks passed successfully!"
-          echo "This check must pass before Vercel deployment can proceed."
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Create success status check
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: checks } = await github.rest.checks.listForRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: context.sha
+            });
+            
+            console.log('✅ All CI checks passed successfully!');
+            console.log('This check must pass before Vercel deployment can proceed.');
+            console.log(`Found ${checks.check_runs.length} check runs for this commit.`);

@@ -70,7 +70,7 @@ _Component-level testing using Vitest framework_
 | ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
 | ![Data Values Testing](./public/Assets/Screenshots/Data%20Values%20Testing.png) | ![Form Validation Testing](./public/Assets/Screenshots/Form%20Validation.png) |
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
