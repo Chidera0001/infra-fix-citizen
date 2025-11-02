@@ -82,7 +82,7 @@ _Component-level testing using Vitest framework_
 
 ### Installation
 
-#### Step 1: Clone and Install the Dependencies
+#### Step 1: Clone and Install Dependencies
 
 ```bash
 # Clone the repository
