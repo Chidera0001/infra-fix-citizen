@@ -7,6 +7,11 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  checks: read
+  statuses: read
+
 jobs:
   lint-and-format:
     runs-on: ubuntu-latest
