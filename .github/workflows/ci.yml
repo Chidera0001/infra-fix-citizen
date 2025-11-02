@@ -104,6 +104,7 @@ jobs:
           retention-days: 7
 
   # This job creates a required status check for Vercel
+  # Only runs on main branch - Vercel will only deploy when this check passes
   ci-success:
     needs: build
     runs-on: ubuntu-latest
