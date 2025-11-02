@@ -1,204 +1,129 @@
-import type { PendingReport, OfflineStorageConfig } from '@/types/offline';
+import type { PendingReport } from '@/types/offline';
+import { dexieDb, filesToBlobs, blobsToFiles } from './dexieDb';
 
-const CONFIG: OfflineStorageConfig = {
-  dbName: 'CitiznOfflineDB',
-  version: 1,
-  storeName: 'pendingReports'
-};
-
+/**
+ * OfflineStorage using Dexie.js for offline-first capabilities
+ * Provides auto-increment IDs and simplified database operations
+ */
 class OfflineStorage {
-  private db: IDBDatabase | null = null;
+  async savePendingReport(
+    report: Omit<PendingReport, 'id' | 'createdAt' | 'syncStatus' | 'syncAttempts'>
+  ): Promise<string | number> {
+    // Convert File[] to Blob[] for storage
+    const photoBlobs = await filesToBlobs(report.photos);
+    const photoNames = report.photos.map(f => f.name);
 
-  async init(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const request = indexedDB.open(CONFIG.dbName, CONFIG.version);
-
-      request.onerror = () => reject(request.error);
-      request.onsuccess = () => {
-        this.db = request.result;
-        resolve();
-      };
-
-      request.onupgradeneeded = (event) => {
-        const db = (event.target as IDBOpenDBRequest).result;
-        
-        if (!db.objectStoreNames.contains(CONFIG.storeName)) {
-          const store = db.createObjectStore(CONFIG.storeName, { keyPath: 'id' });
-          store.createIndex('syncStatus', 'syncStatus', { unique: false });
-          store.createIndex('createdAt', 'createdAt', { unique: false });
-        }
-      };
-    });
-  }
-
-  private async ensureDB(): Promise<IDBDatabase> {
-    if (!this.db) {
-      await this.init();
-    }
-    return this.db!;
-  }
-
-  async savePendingReport(report: Omit<PendingReport, 'id' | 'createdAt' | 'syncStatus' | 'syncAttempts'>): Promise<string> {
-    const db = await this.ensureDB();
-    const id = `offline_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
-    const pendingReport: PendingReport = {
+    const pendingReport = {
       ...report,
-      id,
+      photos: photoBlobs,
+      photoNames,
       createdAt: new Date().toISOString(),
-      syncStatus: 'pending',
-      syncAttempts: 0
+      syncStatus: 'pending' as const,
+      syncAttempts: 0,
     };
 
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction([CONFIG.storeName], 'readwrite');
-      const store = transaction.objectStore(CONFIG.storeName);
-      const request = store.add(pendingReport);
-
-      request.onsuccess = () => {
-        resolve(id);
-      };
-      request.onerror = () => {
-        reject(request.error);
-      };
-    });
+    // Dexie auto-increments the ID
+    const id = await dexieDb.reports.add(pendingReport);
+    return id;
   }
 
   async getPendingReports(): Promise<PendingReport[]> {
-    const db = await this.ensureDB();
+    const reports = await dexieDb.reports.toArray();
     
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction([CONFIG.storeName], 'readonly');
-      const store = transaction.objectStore(CONFIG.storeName);
-      const request = store.getAll();
-
-      request.onsuccess = () => {
-        resolve(request.result);
-      };
-      request.onerror = () => {
-        reject(request.error);
-      };
-    });
+    // Convert Blob[] back to File[] for compatibility
+    return reports.map(report => ({
+      ...report,
+      id: report.id as number,
+      photos: blobsToFiles(report.photos as Blob[], report.photoNames) as File[],
+    }));
   }
 
-  async getPendingReport(id: string): Promise<PendingReport | null> {
-    const db = await this.ensureDB();
-    
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction([CONFIG.storeName], 'readonly');
-      const store = transaction.objectStore(CONFIG.storeName);
-      const request = store.get(id);
+  async getPendingReport(id: number | string): Promise<PendingReport | null> {
+    const report = await dexieDb.reports.get(Number(id));
+    if (!report) return null;
 
-      request.onsuccess = () => resolve(request.result || null);
-      request.onerror = () => reject(request.error);
-    });
+    return {
+      ...report,
+      id: report.id as number,
+      photos: blobsToFiles(report.photos as Blob[], report.photoNames) as File[],
+    };
   }
 
-  async updateSyncStatus(id: string, status: PendingReport['syncStatus'], error?: string): Promise<void> {
-    const db = await this.ensureDB();
-    
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction([CONFIG.storeName], 'readwrite');
-      const store = transaction.objectStore(CONFIG.storeName);
-      
-      const getRequest = store.get(id);
-      getRequest.onsuccess = () => {
-        const report = getRequest.result;
-        if (report) {
-          report.syncStatus = status;
-          report.lastSyncAttempt = new Date().toISOString();
-          if (error) {
-            report.syncError = error;
-          }
-          if (status === 'syncing') {
-            report.syncAttempts += 1;
-          }
+  async updateSyncStatus(
+    id: number | string,
+    status: PendingReport['syncStatus'],
+    error?: string
+  ): Promise<void> {
+    const report = await dexieDb.reports.get(Number(id));
+    if (!report) {
+      throw new Error('Report not found');
+    }
 
-          const putRequest = store.put(report);
-          putRequest.onsuccess = () => resolve();
-          putRequest.onerror = () => reject(putRequest.error);
-        } else {
-          reject(new Error('Report not found'));
-        }
-      };
-      getRequest.onerror = () => reject(getRequest.error);
-    });
+    const updates: Partial<PendingReport> = {
+      syncStatus: status,
+      lastSyncAttempt: new Date().toISOString(),
+    };
+
+    if (error) {
+      updates.syncError = error;
+    }
+
+    if (status === 'syncing') {
+      updates.syncAttempts = (report.syncAttempts || 0) + 1;
+    }
+
+    await dexieDb.reports.update(Number(id), updates);
   }
 
-  async updatePendingReport(id: string, updates: Partial<PendingReport>): Promise<void> {
-    const db = await this.ensureDB();
-    
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction([CONFIG.storeName], 'readwrite');
-      const store = transaction.objectStore(CONFIG.storeName);
-      const getRequest = store.get(id);
+  async updatePendingReport(id: number | string, updates: Partial<PendingReport>): Promise<void> {
+    const report = await dexieDb.reports.get(Number(id));
+    if (!report) {
+      throw new Error('Report not found');
+    }
 
-      getRequest.onsuccess = () => {
-        const report = getRequest.result;
-        if (report) {
-          const updatedReport = { ...report, ...updates };
-          const putRequest = store.put(updatedReport);
-          putRequest.onsuccess = () => resolve();
-          putRequest.onerror = () => reject(putRequest.error);
-        } else {
-          reject(new Error('Report not found'));
-        }
-      };
-      getRequest.onerror = () => reject(getRequest.error);
-    });
+    // If photos are being updated, convert File[] to Blob[]
+    if (updates.photos && updates.photos.length > 0 && updates.photos[0] instanceof File) {
+      const photoBlobs = await filesToBlobs(updates.photos as File[]);
+      const photoNames = (updates.photos as File[]).map(f => f.name);
+      updates.photos = photoBlobs;
+      updates.photoNames = photoNames;
+    }
+
+    await dexieDb.reports.update(Number(id), updates);
   }
 
-  async deletePendingReport(id: string): Promise<void> {
-    const db = await this.ensureDB();
-    
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction([CONFIG.storeName], 'readwrite');
-      const store = transaction.objectStore(CONFIG.storeName);
-      const request = store.delete(id);
-
-      request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
-    });
+  async deletePendingReport(id: number | string): Promise<void> {
+    await dexieDb.reports.delete(Number(id));
   }
 
   async getPendingCount(): Promise<number> {
-    const reports = await this.getPendingReports();
-    return reports.filter(report => report.syncStatus !== 'synced').length;
+    const count = await dexieDb.reports
+      .where('syncStatus')
+      .anyOf(['pending', 'failed', 'syncing'])
+      .count();
+    return count;
   }
 
   async clearSyncedReports(): Promise<void> {
-    const db = await this.ensureDB();
-    
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction([CONFIG.storeName], 'readwrite');
-      const store = transaction.objectStore(CONFIG.storeName);
-      const index = store.index('syncStatus');
-      const request = index.openCursor(IDBKeyRange.only('synced'));
-
-      request.onsuccess = (event) => {
-        const cursor = (event.target as IDBRequest).result;
-        if (cursor) {
-          cursor.delete();
-          cursor.continue();
-        } else {
-          resolve();
-        }
-      };
-      request.onerror = () => reject(request.error);
-    });
+    await dexieDb.reports.where('syncStatus').equals('synced').delete();
   }
 
   async clearAllPendingReports(): Promise<void> {
-    const db = await this.ensureDB();
-    
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction([CONFIG.storeName], 'readwrite');
-      const store = transaction.objectStore(CONFIG.storeName);
-      const request = store.clear();
+    await dexieDb.reports.clear();
+  }
 
-      request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
-    });
+  // Additional Dexie-specific methods
+  async getPendingReportsByStatus(status: PendingReport['syncStatus']): Promise<PendingReport[]> {
+    const reports = await dexieDb.reports.where('syncStatus').equals(status).toArray();
+    return reports.map(report => ({
+      ...report,
+      id: report.id as number,
+      photos: blobsToFiles(report.photos as Blob[], report.photoNames) as File[],
+    }));
+  }
+
+  async getPendingReportsRaw(): Promise<Omit<PendingReport, 'photos'> & { photos: Blob[] }[]> {
+    return dexieDb.reports.toArray();
   }
 }
 
