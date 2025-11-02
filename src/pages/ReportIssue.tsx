@@ -93,7 +93,7 @@ const ReportIssue = () => {
       // Location error
       toast({
         title: 'Location access denied',
-        description: 'Please allow location access or enter location manually.',
+        description: 'Please allow location access.',
         variant: 'destructive',
       });
       setIsGettingLocation(false);

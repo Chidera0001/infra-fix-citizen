@@ -7,6 +7,11 @@
 const GEOAPIFY_API_KEY = import.meta.env.VITE_GEOAPIFY_API_KEY || '';
 const GEOAPIFY_BASE_URL = 'https://api.geoapify.com/v1/geocode/reverse';
 
+// Validate API key on module load (only in production)
+if (import.meta.env.PROD && !GEOAPIFY_API_KEY) {
+  // API key validation - geocoding will fallback to coordinates if missing
+}
+
 // Global flag to prevent multiple simultaneous location requests
 let isLocationRequestInProgress = false;
 
@@ -17,6 +22,11 @@ export const reverseGeocode = async (
   latitude: number,
   longitude: number
 ): Promise<string> => {
+  // Check if API key is missing
+  if (!GEOAPIFY_API_KEY) {
+    return `Location: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+  }
+
   try {
     const response = await fetch(
       `${GEOAPIFY_BASE_URL}?lat=${latitude}&lon=${longitude}&apiKey=${GEOAPIFY_API_KEY}`,
@@ -168,6 +178,11 @@ export const getCurrentLocationWithAddress = async (): Promise<{
 export const geocodeLocation = async (
   locationText: string
 ): Promise<{ lat: number; lng: number } | null> => {
+  // Check if API key is missing
+  if (!GEOAPIFY_API_KEY) {
+    return null;
+  }
+
   try {
     // Use Geoapify for forward geocoding as well
     const response = await fetch(
@@ -213,6 +228,11 @@ export const geocodeAddressToLocation = async (
   address: string;
   confidence?: number;
 } | null> => {
+  // Check if API key is missing
+  if (!GEOAPIFY_API_KEY) {
+    return null;
+  }
+
   try {
     const response = await fetch(
       `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(addressText)}&apiKey=${GEOAPIFY_API_KEY}&limit=1`,

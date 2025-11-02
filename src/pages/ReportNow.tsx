@@ -53,8 +53,7 @@ const ReportNow = () => {
             address: address,
           }));
         })
-        .catch(error => {
-          console.error('Error reverse geocoding:', error);
+        .catch(() => {
           // Fallback to coordinates if reverse geocoding fails
           setLocationData(prev => ({
             ...prev!,
@@ -83,8 +82,8 @@ const ReportNow = () => {
         });
         setLocationSource('gps');
       }
-    } catch (error) {
-      console.error('Error getting current location:', error);
+    } catch {
+      // Silently handle location errors
     } finally {
       setIsGettingCurrentLocation(false);
     }
@@ -124,24 +123,49 @@ const ReportNow = () => {
           // Scenario 2: Photo has no GPS data
           // Only get current GPS location if no location was previously selected
           if (!locationData || locationSource !== 'map') {
-            const currentLocation = await getCurrentLocationWithAddress();
-            if (currentLocation) {
-              setLocationData({
-                latitude: currentLocation.coordinates.latitude,
-                longitude: currentLocation.coordinates.longitude,
-                address: currentLocation.address,
-              });
-              setLocationSource('gps');
-              toast({
-                title: 'Using Current Location',
-                description: 'Will use your current GPS location instead',
-                variant: 'default',
-              });
-            } else {
+            try {
+              const currentLocation = await getCurrentLocationWithAddress();
+              if (currentLocation) {
+                setLocationData({
+                  latitude: currentLocation.coordinates.latitude,
+                  longitude: currentLocation.coordinates.longitude,
+                  address: currentLocation.address,
+                });
+                setLocationSource('gps');
+                toast({
+                  title: 'Using Current Location',
+                  description: 'Will use your current GPS location instead',
+                  variant: 'default',
+                });
+              } else {
+                setLocationData(null);
+                toast({
+                  title: 'No Location Data',
+                  description:
+                    'Photo has no GPS data. Please allow location access, or retake the photo to capture GPS data',
+                  variant: 'default',
+                });
+              }
+            } catch (locationError: any) {
               setLocationData(null);
+
+              // Provide specific error messages based on error type
+              let errorMessage =
+                'Please allow location access in your browser settings, or retake the photo to capture GPS data';
+              if (locationError?.code === 1) {
+                errorMessage =
+                  'Location permission denied. Please allow location access in your browser settings, or retake the photo to capture GPS data';
+              } else if (locationError?.code === 2) {
+                errorMessage =
+                  'Location unavailable. Please retake the photo to capture GPS data, or allow location access';
+              } else if (locationError?.code === 3) {
+                errorMessage =
+                  'Location request timed out. Please try again or retake the photo';
+              }
+
               toast({
-                title: 'No Location Data',
-                description: 'Please enter the address manually',
+                title: 'Location Not Available',
+                description: errorMessage,
                 variant: 'default',
               });
             }
@@ -155,14 +179,14 @@ const ReportNow = () => {
           }
         }
       }
-    } catch (error) {
-      console.error('Error extracting location:', error);
+    } catch {
       // Don't overwrite existing location data if there was an error
       if (!locationData) {
         setLocationData(null);
         toast({
           title: 'Location Extraction Failed',
-          description: 'Please enter the address manually',
+          description:
+            'Please allow location access in your browser settings, or retake the photo to capture GPS data',
           variant: 'default',
         });
       }

@@ -1,12 +1,11 @@
-import { useRef } from 'react';
-import { Button } from '@/components/ui/button';
-import { Camera, X } from 'lucide-react';
+import { X, RotateCw } from 'lucide-react';
 
 interface CameraInterfaceProps {
   videoRef: React.RefObject<HTMLVideoElement>;
   canvasRef: React.RefObject<HTMLCanvasElement>;
   onCapturePhoto: () => void;
   onStopCamera: () => void;
+  onSwitchCamera: () => void;
 }
 
 export const CameraInterface = ({
@@ -14,48 +13,62 @@ export const CameraInterface = ({
   canvasRef,
   onCapturePhoto,
   onStopCamera,
+  onSwitchCamera,
 }: CameraInterfaceProps) => {
   return (
-    <div className='space-y-4'>
-      <div className='relative overflow-hidden rounded-lg bg-black'>
-        <video
-          ref={videoRef}
-          autoPlay
-          playsInline
-          muted
-          className='h-64 w-full object-cover'
-          onLoadedMetadata={() => {
-            if (videoRef.current) {
-              videoRef.current.play().catch(console.error);
-            }
-          }}
-          onCanPlay={() => {
-            // Video is ready to play
-          }}
-          onError={e => {
-            console.error('Video error:', e);
-          }}
-        />
-        <canvas ref={canvasRef} className='hidden' />
-      </div>
-      <div className='flex justify-center gap-3'>
-        <Button
+    <div className='fixed inset-0 z-50 bg-black'>
+      {/* Full screen video */}
+      <video
+        ref={videoRef}
+        autoPlay
+        playsInline
+        muted
+        className='h-full w-full object-cover'
+        onLoadedMetadata={() => {
+          if (videoRef.current) {
+            videoRef.current.play().catch(console.error);
+          }
+        }}
+        onCanPlay={() => {
+          // Video is ready to play
+        }}
+        onError={e => {
+          console.error('Video error:', e);
+        }}
+      />
+      <canvas ref={canvasRef} className='hidden' />
+
+      {/* Close button at the top right */}
+      <button
+        type='button'
+        onClick={onStopCamera}
+        className='absolute right-8 top-8 flex h-12 w-12 items-center justify-center rounded-full bg-black/30 text-white shadow-lg backdrop-blur-sm transition-all hover:scale-110 hover:bg-black/50 active:scale-95'
+        aria-label='Close camera'
+      >
+        <X className='h-6 w-6' />
+      </button>
+
+      {/* Capture controls at the bottom */}
+      <div className='absolute bottom-8 left-1/2 flex -translate-x-1/2 items-center gap-6'>
+        {/* Flip camera button */}
+        <button
           type='button'
-          variant='outline'
-          onClick={onStopCamera}
-          className='flex items-center gap-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+          onClick={onSwitchCamera}
+          className='flex h-14 w-14 items-center justify-center rounded-full bg-black/30 text-white shadow-lg backdrop-blur-sm transition-all hover:scale-110 hover:bg-black/50 active:scale-95'
+          aria-label='Switch camera'
         >
-          <X className='h-4 w-4' />
-          Cancel
-        </Button>
-        <Button
+          <RotateCw className='h-7 w-7' />
+        </button>
+
+        {/* Capture circle button */}
+        <button
           type='button'
           onClick={onCapturePhoto}
-          className='bg-gradient-to-r from-green-600 to-green-700 shadow-lg hover:from-green-700 hover:to-green-800 hover:shadow-xl'
+          className='flex h-20 w-20 items-center justify-center rounded-full border-4 border-white bg-transparent shadow-lg transition-transform hover:scale-105 active:scale-95'
+          aria-label='Capture photo'
         >
-          <Camera className='mr-2 h-4 w-4' />
-          Capture Photo
-        </Button>
+          <div className='h-16 w-16 rounded-full bg-white'></div>
+        </button>
       </div>
     </div>
   );

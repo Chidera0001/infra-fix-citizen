@@ -4,6 +4,7 @@ export const useCameraStream = () => {
 	const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
 	const [isCameraActive, setIsCameraActive] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+	const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
 	const videoRef = useRef<HTMLVideoElement>(null);
 
 	// Check if device supports camera API
@@ -21,27 +22,32 @@ export const useCameraStream = () => {
 		}
 	}, [isCameraActive, cameraStream]);
 
-	// Start camera stream
-	const startCamera = async () => {
+	// Start camera stream with specific facing mode
+	const startCamera = async (facing: 'user' | 'environment' = facingMode) => {
 		try {
 			setError(null);
+			
+			// Stop existing stream if any
+			if (cameraStream) {
+				cameraStream.getTracks().forEach(track => track.stop());
+			}
 			
 			// Try different camera configurations for better desktop compatibility
 			let stream;
 			const constraints = [
-				// First try: Environment camera with specific resolution
+				// First try: Requested facing mode with specific resolution
 				{
 					video: { 
-						facingMode: 'environment',
+						facingMode: facing,
 						width: { ideal: 1280 },
 						height: { ideal: 720 }
 					},
 					audio: false
 				},
-				// Second try: User camera with specific resolution
+				// Second try: Other facing mode with specific resolution
 				{
 					video: { 
-						facingMode: 'user',
+						facingMode: facing === 'user' ? 'environment' : 'user',
 						width: { ideal: 1280 },
 						height: { ideal: 720 }
 					},
@@ -65,6 +71,12 @@ export const useCameraStream = () => {
 			for (let i = 0; i < constraints.length; i++) {
 				try {
 					stream = await navigator.mediaDevices.getUserMedia(constraints[i]);
+					// Try to detect which facing mode we got
+					const track = stream.getVideoTracks()[0];
+					const settings = track.getSettings();
+					if (settings.facingMode) {
+						setFacingMode(settings.facingMode as 'user' | 'environment');
+					}
 					break;
 				} catch (constraintError) {
 					continue;
@@ -94,6 +106,14 @@ export const useCameraStream = () => {
 		}
 	};
 
+	// Switch between front and back camera
+	const switchCamera = async () => {
+		if (!isCameraActive) return;
+		
+		const newFacingMode = facingMode === 'user' ? 'environment' : 'user';
+		await startCamera(newFacingMode);
+	};
+
 	// Stop camera stream
 	const stopCamera = () => {
 		if (cameraStream) {
@@ -116,7 +136,9 @@ export const useCameraStream = () => {
 		error,
 		videoRef,
 		hasCameraAPI,
+		facingMode,
 		startCamera,
-		stopCamera
+		stopCamera,
+		switchCamera
 	};
 };
