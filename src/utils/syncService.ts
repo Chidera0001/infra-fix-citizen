@@ -7,6 +7,7 @@ import { issuesApi } from '@/lib/supabase-api';
 import { supabase } from '@/integrations/supabase/client';
 import { uploadIssueImages } from '@/lib/supabase-api';
 import { geocodeAddressToLocation } from './geocoding';
+import { blobsToFiles } from './dexieDb';
 
 // Map offline form categories to database enum values
 const categoryMapping: Record<string, string> = {
@@ -81,7 +82,8 @@ class SyncService {
 
       const reportsToSync = pendingReports.filter(
         report =>
-          report.syncStatus === 'pending' || report.syncStatus === 'failed'
+          (report.syncStatus === 'pending' || report.syncStatus === 'failed') &&
+          (report.syncAttempts || 0) < 5 // Max 5 retry attempts
       );
 
       // Process reports sequentially to avoid conflicts
@@ -90,11 +92,10 @@ class SyncService {
           await offlineStorage.updateSyncStatus(report.id, 'syncing');
 
           // Convert stored photos back to File objects
-          const photos = report.photos.map((photoBlob, index) => {
-            return new File([photoBlob], `photo_${index}.jpg`, {
-              type: 'image/jpeg',
-            });
-          });
+          const photos = blobsToFiles(
+            report.photos as Blob[],
+            report.photoNames || []
+          );
 
           // Map category to database enum value
           const mappedIssueData = {
@@ -111,11 +112,11 @@ class SyncService {
               validation.error
             );
 
-            const result: SyncResult = {
-              success: false,
-              error: validation.error,
-              reportId: report.id,
-            };
+          const result: SyncResult = {
+            success: false,
+            error: validation.error,
+            reportId: String(report.id),
+          };
 
             results.push(result);
             this.notifyListeners(result);
@@ -131,21 +132,27 @@ class SyncService {
               if (geocodedLocation) {
                 mappedIssueData.location_lat = geocodedLocation.latitude;
                 mappedIssueData.location_lng = geocodedLocation.longitude;
-                console.log('Offline report geocoded during sync:', {
-                  address: mappedIssueData.address,
-                  coordinates: [
-                    geocodedLocation.latitude,
-                    geocodedLocation.longitude,
-                  ],
-                });
+                // Only log in development - never log user locations in production
+                if (import.meta.env.DEV) {
+                  console.log('Offline report geocoded during sync:', {
+                    address: mappedIssueData.address,
+                    coordinates: [
+                      geocodedLocation.latitude,
+                      geocodedLocation.longitude,
+                    ],
+                  });
+                }
               } else {
-                console.log(
-                  'Geocoding failed for offline report address:',
-                  mappedIssueData.address
-                );
-                // Continue with default coordinates (already set in offline flow)
+                // Silent failure - use existing coordinates
+                if (import.meta.env.DEV) {
+                  console.log(
+                    'Geocoding failed for offline report address:',
+                    mappedIssueData.address
+                  );
+                }
               }
             } catch (error) {
+              // Only log errors, not user location data
               console.error('Geocoding error during sync:', error);
               // Continue with default coordinates (already set in offline flow)
             }
@@ -186,7 +193,7 @@ class SyncService {
 
           const syncResult: SyncResult = {
             success: true,
-            reportId: report.id,
+            reportId: String(report.id),
           };
 
           results.push(syncResult);
@@ -204,7 +211,7 @@ class SyncService {
           const result: SyncResult = {
             success: false,
             error: errorMessage,
-            reportId: report.id,
+            reportId: String(report.id),
           };
 
           results.push(result);
@@ -223,13 +230,13 @@ class SyncService {
     return results;
   }
 
-  async syncSingleReport(reportId: string): Promise<SyncResult> {
+  async syncSingleReport(reportId: number | string): Promise<SyncResult> {
     const report = await offlineStorage.getPendingReport(reportId);
     if (!report) {
       return {
         success: false,
         error: 'Report not found',
-        reportId,
+        reportId: String(reportId),
       };
     }
 
@@ -237,11 +244,10 @@ class SyncService {
       await offlineStorage.updateSyncStatus(report.id, 'syncing');
 
       // Convert stored photos back to File objects
-      const photos = report.photos.map((photoBlob, index) => {
-        return new File([photoBlob], `photo_${index}.jpg`, {
-          type: 'image/jpeg',
-        });
-      });
+      const photos = blobsToFiles(
+        report.photos as Blob[],
+        report.photoNames || []
+      );
 
       // Map category to database enum value
       const mappedIssueData = {
@@ -261,7 +267,7 @@ class SyncService {
         const result: SyncResult = {
           success: false,
           error: validation.error,
-          reportId: report.id,
+          reportId: String(report.id),
         };
 
         this.notifyListeners(result);
@@ -276,7 +282,7 @@ class SyncService {
 
       const result: SyncResult = {
         success: true,
-        reportId: report.id,
+        reportId: String(report.id),
       };
 
       this.notifyListeners(result);
@@ -285,12 +291,22 @@ class SyncService {
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown sync error';
 
-      await offlineStorage.updateSyncStatus(report.id, 'failed', errorMessage);
+      // Check if we should retry
+      const syncAttempts = (report.syncAttempts || 0) + 1;
+      const maxRetries = 5;
+      
+      if (syncAttempts < maxRetries) {
+        // Will retry later via background sync
+        await offlineStorage.updateSyncStatus(report.id, 'pending', errorMessage);
+      } else {
+        // Max retries exceeded, mark as failed
+        await offlineStorage.updateSyncStatus(report.id, 'failed', errorMessage);
+      }
 
       const result: SyncResult = {
         success: false,
         error: errorMessage,
-        reportId: report.id,
+        reportId: String(report.id),
       };
 
       this.notifyListeners(result);

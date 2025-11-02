@@ -1,5 +1,5 @@
 export interface PendingReport {
-  id: string;
+  id?: number | string; // Can be number (auto-increment) or string (legacy)
   issueData: {
     title: string;
     description: string;
@@ -9,7 +9,8 @@ export interface PendingReport {
     location_lat: number;
     location_lng: number;
   };
-  photos: File[];
+  photos: File[] | Blob[]; // Can be File[] or Blob[] (for Dexie storage)
+  photoNames?: string[]; // Original file names for restoration
   userId?: string;
   createdAt: string;
   syncStatus: 'pending' | 'syncing' | 'failed' | 'synced';
