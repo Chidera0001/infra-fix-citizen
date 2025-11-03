@@ -18,6 +18,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCreateOnlineIssue } from '@/hooks/use-separate-issues';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { fileToBase64, verifyReport } from '@/utils/aiVerification';
 
 interface InstantReportFormProps {
   photo: File;
@@ -165,6 +166,33 @@ export const InstantReportForm = ({
     setIsSubmitting(true);
 
     try {
+      // Step 1: Convert photo to base64 for AI verification
+      const base64DataUrl = await fileToBase64(photo);
+      const mimeType = photo.type || 'image/jpeg';
+
+      // Extract base64 data (remove 'data:image/jpeg;base64,' prefix)
+      const base64Data = base64DataUrl.split(',')[1];
+
+      // Step 2: Verify report using AI
+      const verificationResult = await verifyReport(
+        base64Data,
+        mimeType,
+        formData.category,
+        formData.description.trim()
+      );
+
+      // Step 3: If verification fails, show error and return
+      if (!verificationResult.success) {
+        toast({
+          title: 'Verification Failed',
+          description: verificationResult.message,
+          variant: 'destructive',
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Step 4: Verification successful, proceed with submission
       const issueData = {
         title: formData.title.trim(),
         description: formData.description.trim(),

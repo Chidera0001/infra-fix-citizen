@@ -12,8 +12,8 @@ export function useAutoSync() {
   const hasAutoSyncedRef = useRef(false); // Track if we've already synced on this page load
 
   // Check if there are pending reports that need syncing
-  const hasPendingReports = pendingReports.some(report => 
-    report.syncStatus === 'pending' || report.syncStatus === 'failed'
+  const hasPendingReports = pendingReports.some(
+    report => report.syncStatus === 'pending' || report.syncStatus === 'failed'
   );
 
   useEffect(() => {
@@ -26,12 +26,18 @@ export function useAutoSync() {
 
   // Listen to sync service events and show toast for auto-sync
   useEffect(() => {
-    const unsubscribe = syncService.addListener((result) => {
-      // Show toast for successful auto-sync
+    const unsubscribe = syncService.addListener(result => {
       if (result.success) {
         toast({
           title: '🔄 Auto-Sync Complete',
           description: 'Your offline report has been automatically synced!',
+        });
+      } else if (result.error) {
+        // Show specific AI verification error message
+        toast({
+          title: '⚠️ Auto-Sync Failed',
+          description: result.error,
+          variant: 'destructive',
         });
       }
     });
