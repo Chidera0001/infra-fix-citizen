@@ -1,0 +1,147 @@
+import { supabase } from '@/integrations/supabase/client';
+
+/**
+ * Convert a File to base64 data URL
+ * @param file - File object to convert
+ * @returns Promise that resolves to base64 data URL string
+ */
+export function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = error => reject(error);
+    reader.readAsDataURL(file);
+  });
+}
+
+/**
+ * Verify report using AI (Gemini API via Supabase Edge Function)
+ * @param base64Data - Base64 encoded image data (without data URL prefix)
+ * @param mimeType - MIME type of the image (e.g., 'image/jpeg')
+ * @param issueCategory - Selected issue category
+ * @param userDescription - User's description of the issue
+ * @returns Promise with verification result
+ */
+export async function verifyReport(
+  base64Data: string,
+  mimeType: string,
+  issueCategory: string,
+  userDescription: string
+): Promise<{ success: boolean; message: string }> {
+  // Prepare the payload with all required data
+  const verificationPayload = {
+    base64Data,
+    mimeType,
+    issueCategory,
+    userDescription,
+  };
+
+  try {
+    // Get the Supabase anon key from environment
+    const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+    // Use the direct function URL provided by user
+    const FUNCTION_URL =
+      'https://vnnuxlxqbucchlaotbnv.supabase.co/functions/v1/verify-image';
+
+    // Get the current session for authentication (with timeout to prevent hanging)
+    let session = null;
+    try {
+      const sessionPromise = supabase.auth.getSession();
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Session timeout')), 5000)
+      );
+
+      const {
+        data: { session: sessionData },
+      } = (await Promise.race([sessionPromise, timeoutPromise])) as {
+        data: { session: any };
+      };
+      session = sessionData;
+    } catch (error) {
+      // Continue without session - edge function might work without auth
+    }
+
+    // Prepare headers
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+    };
+
+    // Add Supabase anon key (required for edge functions)
+    if (SUPABASE_ANON_KEY) {
+      headers['apikey'] = SUPABASE_ANON_KEY;
+    }
+
+    // Add authorization header if session exists
+    if (session?.access_token) {
+      headers['Authorization'] = `Bearer ${session.access_token}`;
+    }
+
+    // Make direct fetch call to the edge function with timeout
+    const fetchPromise = fetch(FUNCTION_URL, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(verificationPayload),
+    });
+
+    // Add 30 second timeout for fetch
+    const fetchTimeoutPromise = new Promise<Response>((_, reject) =>
+      setTimeout(
+        () => reject(new Error('Fetch request timeout after 30 seconds')),
+        30000
+      )
+    );
+
+    const response = await Promise.race([fetchPromise, fetchTimeoutPromise]);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      let errorDetails = 'Unknown error';
+
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorDetails = errorJson.details || errorJson.error || errorText;
+      } catch {
+        errorDetails = errorText.substring(0, 200);
+      }
+
+      throw new Error(
+        `AI Verification Failed: ${errorDetails} (Status: ${response.status})`
+      );
+    }
+
+    // Parse the response
+    const verificationResult = await response.json();
+
+    if (!verificationResult) {
+      throw new Error('No response from verification service.');
+    }
+
+    // Check the verification flags
+    if (!verificationResult?.is_verified) {
+      // Verification failed, compile all error messages
+      let errorMessage =
+        'Report failed verification. Please review the following issues:\n';
+      if (!verificationResult?.image_content_verified) {
+        errorMessage += `\n- Image Error: ${verificationResult?.image_verification_message || 'Image does not match the selected category'}`;
+      }
+      if (!verificationResult?.description_keyword_verified) {
+        errorMessage += `\n- Description Error: ${verificationResult?.description_verification_message || 'Description does not match the selected category'}`;
+      }
+
+      return { success: false, message: errorMessage.trim() };
+    }
+
+    // Verification successful!
+    return {
+      success: true,
+      message: 'Report verified and ready for submission.',
+    };
+  } catch (error) {
+    console.error('AI Verification error:', error);
+    return {
+      success: false,
+      message: 'An unexpected error occurred during AI verification.',
+    };
+  }
+}

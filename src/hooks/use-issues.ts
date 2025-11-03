@@ -191,7 +191,7 @@ export function useSyncPendingReports() {
     mutationFn: () => syncService.syncPendingReports(user?.id),
     onSuccess: results => {
       const successCount = results.filter(r => r.success).length;
-      const failCount = results.filter(r => !r.success).length;
+      const failedResults = results.filter(r => !r.success);
 
       if (successCount > 0) {
         toast({
@@ -200,12 +200,38 @@ export function useSyncPendingReports() {
         });
       }
 
-      if (failCount > 0) {
-        toast({
-          title: '⚠️ Some Reports Failed',
-          description: `${failCount} report(s) failed to sync. Check pending reports for details.`,
-          variant: 'destructive',
-        });
+      if (failedResults.length > 0) {
+        // Show specific error messages from AI verification
+        const errorMessages = failedResults
+          .map(r => r.error)
+          .filter((error): error is string => !!error);
+
+        if (errorMessages.length > 0) {
+          // If all failures have the same message, show it once
+          const uniqueErrors = [...new Set(errorMessages)];
+          
+          if (uniqueErrors.length === 1) {
+            toast({
+              title: '⚠️ Sync Failed',
+              description: uniqueErrors[0],
+              variant: 'destructive',
+            });
+          } else {
+            // Multiple different errors - show first one with count
+            toast({
+              title: `⚠️ ${failedResults.length} Report(s) Failed to Sync`,
+              description: uniqueErrors[0],
+              variant: 'destructive',
+            });
+          }
+        } else {
+          // Fallback for errors without specific messages
+          toast({
+            title: `⚠️ ${failedResults.length} Report(s) Failed`,
+            description: 'Some reports failed to sync. Please check pending reports.',
+            variant: 'destructive',
+          });
+        }
       }
 
       // Refresh pending reports and other queries

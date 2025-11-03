@@ -72,13 +72,6 @@ export async function extractGPSFromImage(file: File): Promise<{ latitude: numbe
 			// Validate coordinates are within valid ranges
 			if (gps.latitude >= -90 && gps.latitude <= 90 && 
 				gps.longitude >= -180 && gps.longitude <= 180) {
-				console.log('GPS extracted successfully:', { 
-					latitude: gps.latitude, 
-					longitude: gps.longitude,
-					fileSize: file.size,
-					fileType: file.type,
-					fileName: file.name
-				});
 				return {
 					latitude: gps.latitude,
 					longitude: gps.longitude
@@ -86,11 +79,6 @@ export async function extractGPSFromImage(file: File): Promise<{ latitude: numbe
 			}
 		}
 		
-		console.warn('No valid GPS data found in image:', {
-			fileName: file.name,
-			fileSize: file.size,
-			fileType: file.type
-		});
 		return null;
 	} catch (error) {
 		console.error('Error extracting GPS from image:', error, {
@@ -109,30 +97,15 @@ export async function extractGPSFromImage(file: File): Promise<{ latitude: numbe
  */
 export async function getLocationFromPhoto(file: File): Promise<LocationData | null> {
 	try {
-		console.log('Attempting to extract GPS from photo:', {
-			name: file.name,
-			size: file.size,
-			type: file.type,
-			lastModified: new Date(file.lastModified).toISOString()
-		});
-
 		// Extract GPS coordinates
 		const gps = await extractGPSFromImage(file);
 		
 		if (!gps) {
-			console.warn('Photo does not contain GPS metadata. Common reasons:',
-				'- Photo was edited or processed by an app',
-				'- Photo was shared/received via messaging/social media',
-				'- Photo was downloaded from the internet',
-				'- Device/browser stripped EXIF data for privacy'
-			);
 			return null;
 		}
 		
 		// Reverse geocode to get human-readable address
 		const address = await reverseGeocode(gps.latitude, gps.longitude);
-		
-		console.log('Successfully extracted location from photo:', { address });
 		
 		return {
 			latitude: gps.latitude,
