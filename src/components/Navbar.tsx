@@ -19,17 +19,17 @@ const Navbar: React.FC = () => {
 
   const handleSignOut = async () => {
     try {
-      const { error } = await signOut();
-      if (error) {
-        console.warn('Sign out error:', error);
-        // Even if there's an error, navigate to home page
-        // The AuthContext will handle clearing the local state
-      }
+      // Sign out and wait for completion
+      await signOut();
+      // Navigate to home page after sign out completes
       navigate('/');
+      // Close mobile menu if open
+      closeMobileMenu();
     } catch (error) {
       console.warn('Sign out failed:', error);
       // Navigate to home page even if sign out fails
       navigate('/');
+      closeMobileMenu();
     }
   };
 

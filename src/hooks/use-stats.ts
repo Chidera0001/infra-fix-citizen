@@ -7,13 +7,13 @@ export function useStats() {
     queryFn: async () => {
       // Get issue statistics
       const issueStats = await issuesApi.getIssueStatistics();
-      
+
       // Get user statistics
       const userStats = await adminApi.getAllUsers({ limit: 1000 });
-      
+
       // Get performance metrics
       const performanceMetrics = await adminApi.getPerformanceMetrics();
-      
+
       return {
         issuesResolved: issueStats?.resolved_issues || 0,
         activeCitizens: userStats?.length || 0,
