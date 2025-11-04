@@ -2,6 +2,29 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
 import { uploadIssueImages } from '@/utils/imageUpload';
 
+/**
+ * Ensure a valid session exists before making API calls
+ * This prevents 401 "Missing authorization header" errors
+ */
+async function ensureSession(): Promise<void> {
+  const {
+    data: { session },
+    error,
+  } = await supabase.auth.getSession();
+
+  if (error || !session) {
+    // If no session, try to refresh it
+    const {
+      data: { session: refreshedSession },
+      error: refreshError,
+    } = await supabase.auth.refreshSession();
+
+    if (refreshError || !refreshedSession) {
+      throw new Error('Authentication required. Please sign in again.');
+    }
+  }
+}
+
 type Tables = Database['public']['Tables'];
 type Issue = Tables['issues']['Row'];
 type IssueInsert = Tables['issues']['Insert'];
@@ -81,6 +104,9 @@ export const categoriesApi = {
 // Issues API
 export const issuesApi = {
   async createIssue(issueData: IssueInsert, userId?: string, photos?: File[]) {
+    // Ensure we have a valid session before making API calls
+    await ensureSession();
+
     // First, get or create the user's profile
     const profile = await getCurrentUserProfile(userId);
     if (!profile) {

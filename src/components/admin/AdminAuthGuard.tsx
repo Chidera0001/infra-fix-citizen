@@ -1,5 +1,6 @@
 import { Navigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { useContext } from "react";
+import { AuthContext } from "@/contexts/AuthContext";
 import { useCurrentProfile } from "@/hooks/use-profile";
 import LoadingPage from "@/components/ui/LoadingPage";
 
@@ -8,7 +9,15 @@ interface AdminAuthGuardProps {
 }
 
 const AdminAuthGuard = ({ children }: AdminAuthGuardProps) => {
-	const { user, loading } = useAuth();
+	// Use useContext directly to handle undefined context gracefully during HMR
+	const authContext = useContext(AuthContext);
+	
+	// If context is not available (e.g., during hot reload), show loading state
+	if (!authContext) {
+		return <LoadingPage text="Initializing..." subtitle="Setting up authentication" />;
+	}
+	
+	const { user, loading } = authContext;
 	const { data: profile, isLoading: profileLoading } = useCurrentProfile();
 
 	// Show loading while checking authentication
