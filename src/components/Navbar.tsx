@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { UserPlus, Menu, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const Navbar: React.FC = () => {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -15,22 +15,6 @@ const Navbar: React.FC = () => {
 
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
-  };
-
-  const handleSignOut = async () => {
-    try {
-      const { error } = await signOut();
-      if (error) {
-        console.warn('Sign out error:', error);
-        // Even if there's an error, navigate to home page
-        // The AuthContext will handle clearing the local state
-      }
-      navigate('/');
-    } catch (error) {
-      console.warn('Sign out failed:', error);
-      // Navigate to home page even if sign out fails
-      navigate('/');
-    }
   };
 
   return (
@@ -60,14 +44,6 @@ const Navbar: React.FC = () => {
                       size='sm'
                     >
                       Dashboard
-                    </Button>
-                    <Button
-                      onClick={handleSignOut}
-                      variant='outline'
-                      size='sm'
-                      className='border-0 bg-gradient-to-r from-green-600 to-green-700 px-4 py-2 font-semibold text-white shadow-lg transition-all duration-300 hover:from-green-700 hover:to-green-800 hover:text-white hover:shadow-xl'
-                    >
-                      Sign Out
                     </Button>
                   </div>
                 ) : (
@@ -125,17 +101,6 @@ const Navbar: React.FC = () => {
                           size='sm'
                         >
                           Dashboard
-                        </Button>
-                        <Button
-                          onClick={() => {
-                            handleSignOut();
-                            closeMobileMenu();
-                          }}
-                          variant='outline'
-                          size='sm'
-                          className='w-full border-0 bg-gradient-to-r from-green-600 to-green-700 font-semibold text-white shadow-lg transition-all duration-300 hover:from-green-700 hover:to-green-800 hover:text-white hover:shadow-xl'
-                        >
-                          Sign Out
                         </Button>
                       </>
                     ) : (

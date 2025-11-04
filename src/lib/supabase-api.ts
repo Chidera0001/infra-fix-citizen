@@ -871,13 +871,6 @@ export const adminApi = {
     sevenDaysAgo.setDate(today.getDate() - 6); // -6 to include today (7 days total)
     sevenDaysAgo.setHours(0, 0, 0, 0); // Start of day
 
-    console.log('Weekly trends query range:', {
-      from: sevenDaysAgo.toISOString(),
-      to: today.toISOString(),
-      today: today.toDateString(),
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-    });
-
     const { data, error } = await supabase
       .from('issues')
       .select('created_at, resolved_at, status')
@@ -885,8 +878,6 @@ export const adminApi = {
       .lte('created_at', today.toISOString());
 
     if (error) throw error;
-
-    console.log('Weekly trends raw data:', data?.length || 0, 'issues found');
 
     // Group by day of week
     const daysOfWeek = [
@@ -923,8 +914,6 @@ export const adminApi = {
       });
     }
 
-    console.log('Weekly trends processed:', trends);
-
     // Return in chronological order (7 days ago to today)
     const result = [];
     for (let i = 6; i >= 0; i--) {
@@ -934,7 +923,6 @@ export const adminApi = {
       result.push(trends[dayName]);
     }
 
-    console.log('Weekly trends result:', result);
     return result;
   },
 

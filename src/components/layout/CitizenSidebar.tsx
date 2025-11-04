@@ -16,8 +16,16 @@ export const CitizenSidebar = ({ activeTab, onTabChange }: CitizenSidebarProps) 
 	const [isOpen, setIsOpen] = useState(false);
 
 	const handleSignOut = async () => {
-		await signOut();
-		navigate("/");
+		try {
+			// Sign out and wait for completion
+			await signOut();
+			// Navigate to home page after sign out completes
+			navigate("/");
+		} catch (error) {
+			console.warn('Sign out failed:', error);
+			// Navigate to home page even if sign out fails
+			navigate("/");
+		}
 	};
 
 	const handleMenuItemClick = (tab: string) => {

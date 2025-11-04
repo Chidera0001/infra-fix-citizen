@@ -209,7 +209,7 @@ export function useSyncPendingReports() {
         if (errorMessages.length > 0) {
           // If all failures have the same message, show it once
           const uniqueErrors = [...new Set(errorMessages)];
-          
+
           if (uniqueErrors.length === 1) {
             toast({
               title: '⚠️ Sync Failed',
@@ -228,7 +228,8 @@ export function useSyncPendingReports() {
           // Fallback for errors without specific messages
           toast({
             title: `⚠️ ${failedResults.length} Report(s) Failed`,
-            description: 'Some reports failed to sync. Please check pending reports.',
+            description:
+              'Some reports failed to sync. Please check pending reports.',
             variant: 'destructive',
           });
         }
