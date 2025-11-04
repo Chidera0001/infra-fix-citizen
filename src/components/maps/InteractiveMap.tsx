@@ -86,15 +86,15 @@ function InteractiveMap({
           return;
         }
 
-        groupedIssues.forEach(({ lat, lng, issues: locationIssues, totalCount, resolvedCount, inProgressCount, openCount, status }) => {
+        groupedIssues.forEach(({ lat, lng, issues: locationIssues, totalCount, resolvedCount, inProgressCount, openCount, status, category }) => {
           // Validate coordinates
           if (lat === undefined || lng === undefined || isNaN(lat) || isNaN(lng)) {
             return;
           }
 
           try {
-            // Create marker icon
-            const markerIcon = createMarkerIcon(status, totalCount);
+            // Create marker icon with category
+            const markerIcon = createMarkerIcon(status, totalCount, category);
             const marker = L.marker([lat, lng], { icon: markerIcon }).addTo(mapInstance.current!);
 
             // Add interactions

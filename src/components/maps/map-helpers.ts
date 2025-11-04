@@ -1,5 +1,6 @@
 import L from "leaflet";
 import type { Issue } from "@/lib/supabase-api";
+import { getCategoryIconPath } from "@/utils/iconPaths";
 
 // Helper function to get marker color based on status
 export const getMarkerColor = (status: string): string => {
@@ -40,26 +41,40 @@ export const groupIssuesByLocation = (issues: Issue[]) => {
     grouped.get(key)!.push(issue);
   }
   
-  return Array.from(grouped.entries()).map(([coordinates, issues]) => ({
-    coordinates,
-    lat: parseFloat(coordinates.split(',')[0]),
-    lng: parseFloat(coordinates.split(',')[1]),
-    issues,
-    totalCount: issues.length,
-    resolvedCount: issues.filter(i => i.status === 'resolved').length,
-    inProgressCount: issues.filter(i => i.status === 'in_progress').length,
-    openCount: issues.filter(i => i.status === 'open').length,
-    status: issues.reduce((prev, current) => {
+  return Array.from(grouped.entries()).map(([coordinates, issues]) => {
+    // Get the most prominent issue (by severity) to determine category and status
+    const mostProminent = issues.reduce((prev, current) => {
       const severityOrder = { 'low': 1, 'medium': 2, 'high': 3, 'critical': 4 };
       const prevSeverity = severityOrder[prev.severity as keyof typeof severityOrder] || 0;
       const currentSeverity = severityOrder[current.severity as keyof typeof severityOrder] || 0;
       return currentSeverity > prevSeverity ? current : prev;
-    }).status
-  }));
+    });
+    
+    return {
+      coordinates,
+      lat: parseFloat(coordinates.split(',')[0]),
+      lng: parseFloat(coordinates.split(',')[1]),
+      issues,
+      totalCount: issues.length,
+      resolvedCount: issues.filter(i => i.status === 'resolved').length,
+      inProgressCount: issues.filter(i => i.status === 'in_progress').length,
+      openCount: issues.filter(i => i.status === 'open').length,
+      status: mostProminent.status,
+      category: mostProminent.category || 'other'
+    };
+  });
 };
 
-// Helper function to create marker icon
-export const createMarkerIcon = (status: string, totalCount: number) => {
+// Helper function to create marker icon with category-specific icon
+export const createMarkerIcon = (status: string, totalCount: number, category?: string) => {
+  const categoryIconPath = category ? getCategoryIconPath(category) : '';
+  const markerColor = getMarkerColor(status);
+  
+  // Split paths if there are multiple path elements (some icons have multiple paths)
+  const paths = categoryIconPath ? categoryIconPath.split('M').filter(p => p.trim()).map((p, i) => 
+    i === 0 ? `M${p}` : `M${p}`
+  ) : [];
+  
   return L.divIcon({
     className: 'custom-marker',
     html: `
@@ -70,16 +85,24 @@ export const createMarkerIcon = (status: string, totalCount: number) => {
         cursor: pointer;
         pointer-events: auto;
       ">
-        <!-- Map Pin Icon -->
+        <!-- Map Pin with Category Icon -->
         <svg width="40" height="50" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="
           filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
           pointer-events: none;
         ">
+          <!-- Pin background -->
           <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" 
-                fill="${getMarkerColor(status)}" 
+                fill="${markerColor}" 
                 stroke="white" 
                 stroke-width="2"/>
-          <circle cx="12" cy="9" r="3" fill="white"/>
+          <!-- Category icon inside pin -->
+          ${paths.length > 0 ? `
+            <g transform="translate(12, 9) scale(0.5) translate(-12, -12)" fill="white" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              ${paths.map(path => `<path d="${path.trim()}" fill="white" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>`).join('')}
+            </g>
+          ` : `
+            <circle cx="12" cy="9" r="3" fill="white"/>
+          `}
         </svg>
         <!-- Issue Count Badge -->
         <div style="
@@ -88,8 +111,8 @@ export const createMarkerIcon = (status: string, totalCount: number) => {
           left: 50%;
           transform: translateX(-50%);
           background-color: white;
-          color: ${getMarkerColor(status)};
-          border: 2px solid ${getMarkerColor(status)};
+          color: ${markerColor};
+          border: 2px solid ${markerColor};
           border-radius: 50%;
           width: 20px;
           height: 20px;
@@ -100,6 +123,7 @@ export const createMarkerIcon = (status: string, totalCount: number) => {
           font-size: 10px;
           box-shadow: 0 1px 2px rgba(0,0,0,0.2);
           pointer-events: none;
+          z-index: 10;
         ">
           ${totalCount}
         </div>

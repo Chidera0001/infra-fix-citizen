@@ -59,6 +59,13 @@ export const ISSUE_CATEGORIES = [
     color: '#8b5cf6',
   },
   { value: 'other', label: 'Other', icon: 'alert-triangle', color: '#6b7280' },
+  // Climate-focused categories
+  { value: 'flooding', label: 'Flooding', icon: 'cloud-rain', color: '#22c55e' },
+  { value: 'erosion', label: 'Erosion', icon: 'mountain', color: '#16a34a' },
+  { value: 'urban_heat', label: 'Urban Heat', icon: 'thermometer-sun', color: '#15803d' },
+  { value: 'storm_damage', label: 'Storm Damage', icon: 'wind', color: '#14532d' },
+  { value: 'green_infrastructure', label: 'Green Infrastructure', icon: 'tree-pine', color: '#22c55e' },
+  { value: 'water_contamination', label: 'Water Contamination', icon: 'flask-conical', color: '#10b981' },
 ] as const;
 
 export const ISSUE_STATUSES = [

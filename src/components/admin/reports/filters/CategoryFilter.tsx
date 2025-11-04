@@ -45,7 +45,7 @@ const categories: Category[] = [
 	{
 		id: "drainage",
 		name: "Drainage",
-		description: "Drains, gutters, and water drainage",
+		description: "Blocked drains, flooding issues, and water management impacting climate resilience",
 		color: "bg-green-100 text-green-700"
 	},
 	{
@@ -53,6 +53,42 @@ const categories: Category[] = [
 		name: "Sidewalk",
 		description: "Pedestrian walkways and paths",
 		color: "bg-purple-100 text-purple-700"
+	},
+	{
+		id: "flooding",
+		name: "Flooding",
+		description: "Flooding and water overflow issues posing climate adaptation challenges",
+		color: "bg-green-100 text-green-700"
+	},
+	{
+		id: "erosion",
+		name: "Erosion",
+		description: "Coastal, riverbank, or soil erosion from extreme weather affecting infrastructure",
+		color: "bg-green-100 text-green-700"
+	},
+	{
+		id: "urban_heat",
+		name: "Urban Heat",
+		description: "Heat island effects, lack of green spaces impacting climate resilience",
+		color: "bg-green-100 text-green-700"
+	},
+	{
+		id: "storm_damage",
+		name: "Storm Damage",
+		description: "Wind, storm, and extreme weather damage requiring climate adaptation",
+		color: "bg-green-100 text-green-700"
+	},
+	{
+		id: "green_infrastructure",
+		name: "Green Infrastructure",
+		description: "Lack of trees, parks, permeable surfaces needed for climate mitigation",
+		color: "bg-green-100 text-green-700"
+	},
+	{
+		id: "water_contamination",
+		name: "Water Contamination",
+		description: "Post-flooding contamination and water quality issues affecting public health",
+		color: "bg-green-100 text-green-700"
 	},
 	{
 		id: "other",

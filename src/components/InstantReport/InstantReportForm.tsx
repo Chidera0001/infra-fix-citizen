@@ -384,8 +384,14 @@ export const InstantReportForm = ({
                   </SelectItem>
                   <SelectItem value='water_supply'>Water Supply</SelectItem>
                   <SelectItem value='traffic_signal'>Traffic Signal</SelectItem>
-                  <SelectItem value='drainage'>Drainage</SelectItem>
+                  <SelectItem value='drainage'>Drainage (Flood Prevention)</SelectItem>
                   <SelectItem value='sidewalk'>Sidewalk</SelectItem>
+                  <SelectItem value='flooding'>Flooding</SelectItem>
+                  <SelectItem value='erosion'>Erosion</SelectItem>
+                  <SelectItem value='urban_heat'>Urban Heat</SelectItem>
+                  <SelectItem value='storm_damage'>Storm Damage</SelectItem>
+                  <SelectItem value='green_infrastructure'>Green Infrastructure</SelectItem>
+                  <SelectItem value='water_contamination'>Water Contamination</SelectItem>
                   <SelectItem value='other'>Other</SelectItem>
                 </SelectContent>
               </Select>
