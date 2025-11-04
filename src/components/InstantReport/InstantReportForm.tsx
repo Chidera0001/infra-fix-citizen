@@ -183,10 +183,34 @@ export const InstantReportForm = ({
 
       // Step 3: If verification fails, show error and return
       if (!verificationResult.success) {
+        // Parse and format the error message with emojis
+        let formattedMessage = 'Please update the following:\n\n';
+        
+        // Extract image error
+        const imageErrorMatch = verificationResult.message.match(/Image Error:\s*(.+?)(?:\n|$)/i);
+        if (imageErrorMatch) {
+          formattedMessage += `📷 Image: ${imageErrorMatch[1].trim()}\n`;
+        }
+        
+        // Extract description error
+        const descriptionErrorMatch = verificationResult.message.match(/Description Error:\s*(.+?)(?:\n|$)/i);
+        if (descriptionErrorMatch) {
+          formattedMessage += `📝 Description: ${descriptionErrorMatch[1].trim()}\n`;
+        }
+        
+        // If no specific errors found, use the original message
+        if (!imageErrorMatch && !descriptionErrorMatch) {
+          formattedMessage = verificationResult.message.replace(
+            'Report failed verification. Please review the following issues:',
+            'Please update the following:'
+          );
+        }
+        
         toast({
-          title: 'Verification Failed',
-          description: verificationResult.message,
-          variant: 'destructive',
+          title: '⚠️ Please Review Your Report',
+          description: formattedMessage.trim(),
+          variant: 'warning',
+          duration: 8000,
         });
         setIsSubmitting(false);
         return;
