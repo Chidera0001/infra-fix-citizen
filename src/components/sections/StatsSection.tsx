@@ -7,6 +7,21 @@ import { Skeleton } from "@/components/ui/skeleton";
 const StatsSection = () => {
 	const { data: stats, isLoading, error } = useStats();
 
+	// Format average response time: show in days if >= 24 hours
+	const avgResponseTime = stats?.avgResponseTime || 0;
+	const showInDays = avgResponseTime >= 24;
+	const rawValue = showInDays ? avgResponseTime / 24 : avgResponseTime;
+	
+	// Always round to 1 decimal place first
+	const roundedValue = Math.round(rawValue * 10) / 10;
+	
+	// Check if the decimal part is effectively 0 (whole number)
+	// Use Math.abs to handle floating point precision issues
+	const isWholeNumber = Math.abs(roundedValue % 1) < 0.01;
+	const displayValue = roundedValue;
+	const decimalsToShow = isWholeNumber ? 0 : 1;
+	const timeSuffix = showInDays ? " days" : " hrs";
+
 	if (isLoading) {
 		return (
 			<FadeInWhenVisible delay={0.2}>
@@ -115,10 +130,10 @@ const StatsSection = () => {
 									</div>
 									<h3 className="text-xl sm:text-3xl font-normal text-center text-gray-900 mb-2">
 										<CountUp 
-											end={stats?.avgResponseTime || 0} 
+											end={displayValue} 
 											duration={2000}
 											decimals={1}
-											suffix=" hrs"
+											suffix={timeSuffix}
 											className="text-xl sm:text-3xl font-bold"
 										/>
 									</h3>

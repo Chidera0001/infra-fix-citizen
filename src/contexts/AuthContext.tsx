@@ -122,6 +122,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           }
         }
 
+        // Handle email confirmation - auto-login after verification
+        if (event === 'SIGNED_IN' && session?.user) {
+          // Check if user just verified their email (email_confirmed_at is recent)
+          const emailConfirmedAt = session.user.email_confirmed_at;
+          if (emailConfirmedAt) {
+            const confirmedTime = new Date(emailConfirmedAt).getTime();
+            const now = Date.now();
+            // If email was confirmed in the last 5 minutes, it's a fresh verification
+            if (now - confirmedTime < 5 * 60 * 1000) {
+              // Dispatch event to redirect to dashboard
+              if (typeof window !== 'undefined') {
+                window.dispatchEvent(
+                  new CustomEvent('auth:verified', {
+                    detail: { user: session.user },
+                  })
+                );
+              }
+            }
+          }
+        }
+
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
@@ -181,6 +202,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           data: {
             full_name: fullName,
           },
+          // Redirect to confirmation page after email verification
+          emailRedirectTo: `${window.location.origin}/auth/confirm`,
         },
       });
 

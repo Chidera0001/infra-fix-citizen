@@ -9,6 +9,7 @@ import AdminAuthGuard from './components/admin/AdminAuthGuard';
 import { PWAUpdatePrompt } from '@/components/PWAUpdatePrompt';
 import Index from './pages/Index';
 import Auth from './pages/Auth';
+import EmailConfirm from './pages/EmailConfirm';
 import AdminLogin from './pages/AdminLogin';
 import CitizenDashboard from './pages/CitizenDashboard';
 import AdminDashboard from './pages/AdminDashboard';
@@ -56,6 +57,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path='/auth' element={<Auth />} />
+            <Route path='/auth/confirm' element={<EmailConfirm />} />
             <Route path='/admin-login' element={<AdminLogin />} />
             <Route path='/' element={<Index />} />
             <Route path='/offline-report' element={<OfflineReportIssue />} />

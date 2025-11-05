@@ -76,7 +76,13 @@ const CountUp = ({
 
   const formatNumber = (num: number) => {
     if (decimals > 0) {
-      return num.toFixed(decimals);
+      const rounded = num.toFixed(decimals);
+      // Remove trailing zeros after decimal point (e.g., "7.0" -> "7", "7.1" -> "7.1")
+      const parts = rounded.split('.');
+      if (parts[1] && parseFloat(parts[1]) === 0) {
+        return parts[0]; // Return whole number without decimal
+      }
+      return rounded;
     }
     return Math.floor(num).toLocaleString();
   };
