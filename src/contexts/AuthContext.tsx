@@ -124,6 +124,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         // Handle email confirmation - auto-login after verification
         if (event === 'SIGNED_IN' && session?.user) {
+          // Invalidate all queries to force fresh data fetch on sign in
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(
+              new CustomEvent('auth:signin', {
+                detail: { userId: session.user.id },
+              })
+            );
+          }
+
           // Check if user just verified their email (email_confirmed_at is recent)
           const emailConfirmedAt = session.user.email_confirmed_at;
           if (emailConfirmedAt) {
@@ -271,7 +280,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/oauth-callback`,
+          redirectTo: `${window.location.origin}/auth/callback`,
         },
       });
 

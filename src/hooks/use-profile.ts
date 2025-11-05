@@ -19,7 +19,7 @@ export function useCurrentProfile() {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: profileKeys.current(),
+    queryKey: [...profileKeys.current(), user?.id],
     queryFn: async () => {
       if (!user) return null;
 

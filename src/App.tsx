@@ -32,16 +32,24 @@ const queryClient = new QueryClient({
   },
 });
 
-// Component to clear query cache on sign out
+// Component to clear query cache on sign out and invalidate on sign in
 const QueryCacheClearer = () => {
   useEffect(() => {
     const handleSignOut = () => {
       queryClient.clear();
     };
 
+    const handleSignIn = () => {
+      // Invalidate all queries to force refetch on sign in
+      queryClient.invalidateQueries();
+    };
+
     window.addEventListener('auth:signout', handleSignOut);
+    window.addEventListener('auth:signin', handleSignIn);
+    
     return () => {
       window.removeEventListener('auth:signout', handleSignOut);
+      window.removeEventListener('auth:signin', handleSignIn);
     };
   }, []);
 
@@ -59,7 +67,7 @@ const App = () => (
           <Routes>
             <Route path='/auth' element={<Auth />} />
             <Route path='/auth/confirm' element={<EmailConfirm />} />
-            <Route path='/auth/oauth-callback' element={<OAuthCallback />} />
+            <Route path='/auth/callback' element={<OAuthCallback />} />
             <Route path='/admin-login' element={<AdminLogin />} />
             <Route path='/' element={<Index />} />
             <Route path='/offline-report' element={<OfflineReportIssue />} />
