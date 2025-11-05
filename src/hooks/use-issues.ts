@@ -20,7 +20,7 @@ export function useIssues(filters?: {
   sortOrder?: string;
 }) {
   const { user } = useAuth();
-  
+
   return useQuery({
     queryKey: ['issues', user?.id, filters],
     queryFn: () => issuesApi.getIssues(filters),
@@ -169,7 +169,7 @@ export function useIssueStatistics(
   radius?: number
 ) {
   const { user } = useAuth();
-  
+
   return useQuery({
     queryKey: ['issue-statistics', user?.id, lat, lng, radius],
     queryFn: () => issuesApi.getIssueStatistics(lat, lng, radius),
@@ -216,26 +216,109 @@ export function useSyncPendingReports() {
           const uniqueErrors = [...new Set(errorMessages)];
 
           if (uniqueErrors.length === 1) {
+            // Format the error message with icons and line breaks (like AI error popup)
+            let formattedMessage = 'Please review the following:\n\n';
+
+            // Extract image and description errors if present
+            const imageErrorMatch = uniqueErrors[0].match(
+              /Image Error:\s*(.+?)(?:\n|$)/i
+            );
+            const descriptionErrorMatch = uniqueErrors[0].match(
+              /Description Error:\s*(.+?)(?:\n|$)/i
+            );
+
+            // Also check for "Image:" and "Description:" patterns in the error message
+            const imageErrorAltMatch = uniqueErrors[0].match(
+              /Image:\s*(.+?)(?:\.|$)/i
+            );
+            const descriptionErrorAltMatch = uniqueErrors[0].match(
+              /Description:\s*(.+?)(?:\.|$)/i
+            );
+
+            if (imageErrorMatch) {
+              formattedMessage += `📷 Image: ${imageErrorMatch[1]}\n`;
+            } else if (imageErrorAltMatch) {
+              formattedMessage += `📷 Image: ${imageErrorAltMatch[1]}\n`;
+            }
+
+            if (descriptionErrorMatch) {
+              formattedMessage += `📝 Description: ${descriptionErrorMatch[1]}\n`;
+            } else if (descriptionErrorAltMatch) {
+              formattedMessage += `📝 Description: ${descriptionErrorAltMatch[1]}\n`;
+            }
+
+            // If no specific errors found, use the original message without "Sync failed:" prefix
+            if (
+              !imageErrorMatch &&
+              !descriptionErrorMatch &&
+              !imageErrorAltMatch &&
+              !descriptionErrorAltMatch
+            ) {
+              formattedMessage = uniqueErrors[0].replace(
+                /Sync failed:\s*/i,
+                ''
+              );
+            }
+
             toast({
-              title: '⚠️ Sync Failed',
-              description: uniqueErrors[0],
-              variant: 'destructive',
+              title: '⚠️ Offline Sync Failed',
+              description: formattedMessage,
+              variant: 'warning',
+              duration: 8000,
             });
           } else {
-            // Multiple different errors - show first one with count
+            // Multiple different errors - format the first one with icons
+            let formattedMessage = 'Please review the following:\n\n';
+
+            const imageErrorMatch = uniqueErrors[0].match(
+              /Image Error:\s*(.+?)(?:\n|$)/i
+            );
+            const descriptionErrorMatch = uniqueErrors[0].match(
+              /Description Error:\s*(.+?)(?:\n|$)/i
+            );
+            const imageErrorAltMatch = uniqueErrors[0].match(
+              /Image:\s*(.+?)(?:\.|$)/i
+            );
+            const descriptionErrorAltMatch = uniqueErrors[0].match(
+              /Description:\s*(.+?)(?:\.|$)/i
+            );
+
+            if (imageErrorMatch) {
+              formattedMessage += `📷 Image: ${imageErrorMatch[1]}\n`;
+            } else if (imageErrorAltMatch) {
+              formattedMessage += `📷 Image: ${imageErrorAltMatch[1]}\n`;
+            }
+
+            if (descriptionErrorMatch) {
+              formattedMessage += `📝 Description: ${descriptionErrorMatch[1]}\n`;
+            } else if (descriptionErrorAltMatch) {
+              formattedMessage += `📝 Description: ${descriptionErrorAltMatch[1]}\n`;
+            }
+
+            if (
+              !imageErrorMatch &&
+              !descriptionErrorMatch &&
+              !imageErrorAltMatch &&
+              !descriptionErrorAltMatch
+            ) {
+              formattedMessage = `${failedResults.length} report(s) failed to sync. ${uniqueErrors[0].replace(/Sync failed:\s*/i, '')}`;
+            }
+
             toast({
-              title: `⚠️ ${failedResults.length} Report(s) Failed to Sync`,
-              description: uniqueErrors[0],
-              variant: 'destructive',
+              title: `⚠️ Offline Sync Failed`,
+              description: formattedMessage,
+              variant: 'warning',
+              duration: 8000,
             });
           }
         } else {
           // Fallback for errors without specific messages
           toast({
-            title: `⚠️ ${failedResults.length} Report(s) Failed`,
+            title: `⚠️ Offline Sync Failed`,
             description:
               'Some reports failed to sync. Please check pending reports.',
-            variant: 'destructive',
+            variant: 'warning',
+            duration: 8000,
           });
         }
       }
@@ -248,9 +331,10 @@ export function useSyncPendingReports() {
     },
     onError: (error: Error) => {
       toast({
-        title: 'Sync Failed',
+        title: '⚠️ Offline Sync Failed',
         description: error.message || 'Failed to sync pending reports',
-        variant: 'destructive',
+        variant: 'warning',
+        duration: 8000,
       });
     },
   });
