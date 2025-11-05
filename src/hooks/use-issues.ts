@@ -19,10 +19,13 @@ export function useIssues(filters?: {
   sortBy?: string;
   sortOrder?: string;
 }) {
+  const { user } = useAuth();
+  
   return useQuery({
-    queryKey: ['issues', filters],
+    queryKey: ['issues', user?.id, filters],
     queryFn: () => issuesApi.getIssues(filters),
     staleTime: 10000, // 10 seconds - more responsive
+    enabled: !!user, // Only fetch when user is logged in
   });
 }
 
@@ -165,8 +168,10 @@ export function useIssueStatistics(
   lng?: number,
   radius?: number
 ) {
+  const { user } = useAuth();
+  
   return useQuery({
-    queryKey: ['issue-statistics', lat, lng, radius],
+    queryKey: ['issue-statistics', user?.id, lat, lng, radius],
     queryFn: () => issuesApi.getIssueStatistics(lat, lng, radius),
     staleTime: 10000, // 10 seconds - more responsive
   });
