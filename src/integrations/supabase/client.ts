@@ -32,7 +32,6 @@ export const supabase = createClient<Database>(
     global: {
       headers: {
         'X-Client-Info': 'infra-fix-citizen',
-        'X-Requested-With': 'XMLHttpRequest',
       },
     },
     // Add realtime configuration

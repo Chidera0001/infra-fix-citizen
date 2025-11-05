@@ -10,6 +10,7 @@ import { PWAUpdatePrompt } from '@/components/PWAUpdatePrompt';
 import Index from './pages/Index';
 import Auth from './pages/Auth';
 import EmailConfirm from './pages/EmailConfirm';
+import OAuthCallback from './pages/OAuthCallback';
 import AdminLogin from './pages/AdminLogin';
 import CitizenDashboard from './pages/CitizenDashboard';
 import AdminDashboard from './pages/AdminDashboard';
@@ -58,6 +59,7 @@ const App = () => (
           <Routes>
             <Route path='/auth' element={<Auth />} />
             <Route path='/auth/confirm' element={<EmailConfirm />} />
+            <Route path='/auth/oauth-callback' element={<OAuthCallback />} />
             <Route path='/admin-login' element={<AdminLogin />} />
             <Route path='/' element={<Index />} />
             <Route path='/offline-report' element={<OfflineReportIssue />} />

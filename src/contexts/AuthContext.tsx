@@ -271,7 +271,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/citizen`,
+          redirectTo: `${window.location.origin}/auth/oauth-callback`,
         },
       });
 
