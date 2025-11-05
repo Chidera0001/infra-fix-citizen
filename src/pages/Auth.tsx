@@ -74,9 +74,28 @@ const Auth = () => {
         if (error) {
           setError(error.message);
         } else {
+          // Store email and password before switching modes
+          const userEmail = formData.email;
+          const userPassword = formData.password;
+          
           setSuccess(
-            'Account created successfully! Please check your email to verify your account.'
+            'Account created successfully! Please check your email to verify your account. You can sign in once verified.'
           );
+          
+          // Clear fullName and switch to signin mode
+          setFormData({
+            email: userEmail,
+            password: userPassword,
+            fullName: '',
+          });
+          
+          // Switch to signin mode
+          setMode('signin');
+          
+          // Update URL to reflect signin mode without navigation (to preserve form state)
+          const newUrl = new URL(window.location.href);
+          newUrl.searchParams.set('mode', 'signin');
+          window.history.replaceState({}, '', newUrl.toString());
         }
       } else {
         const { error } = await signIn(formData.email, formData.password);
