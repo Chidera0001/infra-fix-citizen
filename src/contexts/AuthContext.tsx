@@ -49,28 +49,92 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    let isMounted = true;
+    let timeoutId: NodeJS.Timeout;
 
-    // Listen for auth changes
+    // Get initial session with timeout and error handling
+    const initializeAuth = async () => {
+      try {
+        // Set a timeout to prevent infinite loading
+        const sessionPromise = supabase.auth.getSession();
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          timeoutId = setTimeout(() => {
+            reject(new Error('Session check timeout'));
+          }, 10000); // 10 second timeout
+        });
+
+        const result = (await Promise.race([
+          sessionPromise,
+          timeoutPromise,
+        ])) as { data: { session: Session | null }; error: AuthError | null };
+
+        if (isMounted) {
+          const {
+            data: { session },
+            error,
+          } = result;
+          if (error) {
+            console.error('Failed to get session:', error);
+            // Still set loading to false even on error
+            setSession(null);
+            setUser(null);
+            setLoading(false);
+          } else {
+            setSession(session);
+            setUser(session?.user ?? null);
+            setLoading(false);
+          }
+        }
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+        if (isMounted) {
+          // Always set loading to false, even on error
+          setSession(null);
+          setUser(null);
+          setLoading(false);
+        }
+      } finally {
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
+      }
+    };
+
+    initializeAuth();
+
+    // Listen for auth changes with proper event handling
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (isMounted) {
+        // Handle different auth events
+        if (
+          event === 'SIGNED_OUT' ||
+          (!session?.user && event === 'TOKEN_REFRESHED')
+        ) {
+          // Clear profile cache when user signs out
+          clearProfileCache();
 
-      // Clear profile cache when user signs out
-      if (!session?.user) {
-        clearProfileCache();
+          // Clear React Query cache to prevent stale data
+          // Dispatch custom event that App.tsx can listen to
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('auth:signout'));
+          }
+        }
+
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+      subscription.unsubscribe();
+    };
   }, []);
 
   // Listen for online/offline events
@@ -213,6 +277,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(null);
       setSession(null);
       clearProfileCache(); // Clear cache on offline sign out too
+      // Dispatch event to clear React Query cache
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('auth:signout'));
+      }
       return { error: null };
     }
 
@@ -229,9 +297,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setUser(null);
           setSession(null);
           clearProfileCache();
+          // Dispatch event to clear React Query cache
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('auth:signout'));
+          }
         }
 
         return { error: null }; // Don't return the error for sign out
+      }
+
+      // Dispatch event to clear React Query cache on successful sign out
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('auth:signout'));
       }
 
       return { error };
@@ -243,6 +320,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(null);
       setSession(null);
       clearProfileCache();
+      // Dispatch event to clear React Query cache
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('auth:signout'));
+      }
 
       return { error: null }; // Don't return the error for sign out
     }

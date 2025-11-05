@@ -16,6 +16,7 @@ import ApiDocs from './pages/ApiDocs';
 import NotFound from './pages/NotFound';
 import ReportNow from './pages/ReportNow';
 import OfflineReportIssue from './pages/OfflineReportIssue';
+import { useEffect } from 'react';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -29,10 +30,27 @@ const queryClient = new QueryClient({
   },
 });
 
+// Component to clear query cache on sign out
+const QueryCacheClearer = () => {
+  useEffect(() => {
+    const handleSignOut = () => {
+      queryClient.clear();
+    };
+
+    window.addEventListener('auth:signout', handleSignOut);
+    return () => {
+      window.removeEventListener('auth:signout', handleSignOut);
+    };
+  }, []);
+
+  return null;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
+        <QueryCacheClearer />
         <Toaster />
         <Sonner />
         <BrowserRouter>
