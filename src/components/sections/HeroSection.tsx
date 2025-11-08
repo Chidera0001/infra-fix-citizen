@@ -1,6 +1,5 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { ArrowRight } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import FadeInWhenVisible from '@/components/shared/FadeInWhenVisible';
 import { useNavigate } from 'react-router-dom';
@@ -45,13 +44,13 @@ const HeroSection = () => {
         {/* Single column centered layout for better video background experience */}
         <FadeInWhenVisible>
           <div className='mx-auto max-w-4xl px-4 text-center'>
-            <h1 className='mb-4 mt-4 text-3xl font-normal leading-tight tracking-tight text-white drop-shadow-lg sm:mb-6 sm:text-3xl md:text-4xl lg:text-5xl'>
+            <h1 className='mb-4 mt-4 font-["Manrope"] text-3xl font-semibold leading-tight tracking-tight text-white drop-shadow-lg sm:mb-6 sm:text-3xl md:text-4xl lg:text-5xl'>
               Empowering Nigerians to
-              <span className='mt-1 block bg-gradient-to-r from-green-400 via-emerald-300 to-green-500 bg-clip-text text-transparent'>
+              <span className='mt-1 block bg-gradient-to-r from-green-300 via-emerald-300 to-green-500 bg-clip-text text-transparent font-bold'>
                 Build Better Communities
               </span>
             </h1>
-            <p className='mx-auto mb-8 max-w-3xl text-base font-medium leading-relaxed text-white drop-shadow-lg sm:mb-8 sm:text-lg md:text-xl'>
+            <p className='mx-auto mb-8 max-w-3xl font-["Manrope"] text-base font-medium leading-relaxed text-white/95 drop-shadow-lg sm:mb-8 sm:text-lg md:text-xl'>
               Your voice matters. Turn your observations into action and watch
               your community transform, one report at a time.
             </p>

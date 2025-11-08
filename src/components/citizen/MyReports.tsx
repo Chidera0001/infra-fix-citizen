@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Plus, LayoutList, LayoutGrid } from 'lucide-react';
+import { LayoutList, LayoutGrid } from 'lucide-react';
 import type { Issue } from '@/lib/supabase-api';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { ReportDetailsModal } from '@/components/citizen/modals/ReportDetailsModal';
@@ -138,7 +138,6 @@ export const MyReports = ({
             onClick={onReportIssue}
             className='rounded-xl bg-gradient-to-r from-green-600 to-green-700 px-6 py-3 font-semibold text-white shadow-lg transition-all duration-300 hover:from-green-700 hover:to-green-800 hover:shadow-xl'
           >
-            <Plus className='mr-2 h-5 w-5' />
             Report New Issue
           </Button>
         </div>
