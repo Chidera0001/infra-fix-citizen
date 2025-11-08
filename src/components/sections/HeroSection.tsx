@@ -45,8 +45,8 @@ const HeroSection = () => {
         <FadeInWhenVisible>
           <div className='mx-auto max-w-4xl px-4 text-center'>
             <h1 className='mb-4 mt-4 font-["Manrope"] text-3xl font-semibold leading-tight tracking-tight text-white drop-shadow-lg sm:mb-6 sm:text-3xl md:text-4xl lg:text-5xl'>
-              Empowering Nigerians to
-              <span className='mt-1 block bg-gradient-to-r from-green-300 via-emerald-300 to-green-500 bg-clip-text text-transparent font-bold'>
+              Empowering Citizens to
+              <span className='mt-1 block bg-gradient-to-r from-green-300 via-emerald-300 to-green-500 bg-clip-text font-bold text-transparent'>
                 Build Better Communities
               </span>
             </h1>
