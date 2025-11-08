@@ -12,24 +12,24 @@ const SolutionSection: React.FC = () => {
   const cardContents = [
     {
       icon: "url('/Assets/icons/Shield.svg')",
-      title: 'Digital Reporting Platform',
+      title: 'AI-Powered Reporting Platform',
       description:
-        'Citizn provides an intuitive mobile and web platform where citizens can easily report infrastructure issues with photos, precise location data, and detailed descriptions.',
+        'An intuitive platform that uses AI to verify and validate infrastructure reports with photos, precise location data, and detailed descriptions before routing to relevant authorities.',
       features: [
-        'Easy photo and location capture',
+        'AI-powered photo and data verification',
         'Real-time issue tracking',
-        'Direct communication with authorities',
+        'Smart routing to appropriate departments',
       ],
     },
     {
       icon: "url('/Assets/icons/People.svg')",
-      title: 'Efficient Resolution Process',
+      title: 'Data-Driven Insights',
       description:
-        'Our platform streamlines the resolution process by connecting citizens directly with the right government departments for faster response times.',
+        'We provide government agencies with verified, actionable data and analytics to help them prioritize and address infrastructure issues effectively.',
       features: [
-        'Direct routing to appropriate departments',
-        'Progress tracking and updates',
-        'Accountability and transparency',
+        'Verified reports with AI validation',
+        'Comprehensive analytics dashboard',
+        'Transparent progress tracking',
       ],
     },
   ];
@@ -75,7 +75,7 @@ const SolutionSection: React.FC = () => {
             Our Solution
           </Badge>
           <h3 className='text-l mb-6 px-4 font-semibold text-gray-900 sm:mb-8 sm:text-2xl md:text-3xl lg:text-3xl'>
-            Citizn: Bridging Citizens & Government
+            Empowering Action Through Data
           </h3>
         </div>
 

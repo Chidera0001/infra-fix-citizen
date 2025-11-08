@@ -34,7 +34,7 @@ export const InstantReportForm = ({
   onRetake,
 }: InstantReportFormProps) => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const { toast } = useToast();
   const createOnlineIssueMutation = useCreateOnlineIssue();
 
@@ -173,31 +173,36 @@ export const InstantReportForm = ({
       // Extract base64 data (remove 'data:image/jpeg;base64,' prefix)
       const base64Data = base64DataUrl.split(',')[1];
 
-      // Step 2: Verify report using AI
+      // Step 2: Verify report using AI (pass session token to avoid race conditions)
       const verificationResult = await verifyReport(
         base64Data,
         mimeType,
         formData.category,
-        formData.description.trim()
+        formData.description.trim(),
+        session?.access_token // Pass the session token from AuthContext
       );
 
       // Step 3: If verification fails, show error and return
       if (!verificationResult.success) {
         // Parse and format the error message with emojis
         let formattedMessage = 'Please update the following:\n\n';
-        
+
         // Extract image error
-        const imageErrorMatch = verificationResult.message.match(/Image Error:\s*(.+?)(?:\n|$)/i);
+        const imageErrorMatch = verificationResult.message.match(
+          /Image Error:\s*(.+?)(?:\n|$)/i
+        );
         if (imageErrorMatch) {
           formattedMessage += `📷 Image: ${imageErrorMatch[1].trim()}\n`;
         }
-        
+
         // Extract description error
-        const descriptionErrorMatch = verificationResult.message.match(/Description Error:\s*(.+?)(?:\n|$)/i);
+        const descriptionErrorMatch = verificationResult.message.match(
+          /Description Error:\s*(.+?)(?:\n|$)/i
+        );
         if (descriptionErrorMatch) {
           formattedMessage += `📝 Description: ${descriptionErrorMatch[1].trim()}\n`;
         }
-        
+
         // If no specific errors found, use the original message
         if (!imageErrorMatch && !descriptionErrorMatch) {
           formattedMessage = verificationResult.message.replace(
@@ -205,7 +210,7 @@ export const InstantReportForm = ({
             'Please update the following:'
           );
         }
-        
+
         toast({
           title: '⚠️ Please Review Your Report',
           description: formattedMessage.trim(),

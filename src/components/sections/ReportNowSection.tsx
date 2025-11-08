@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Camera, Zap, MapPin, Clock, WifiOff } from 'lucide-react';
+import { Camera, Sparkles, MapPin, Clock, WifiOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOnlineStatus } from '@/hooks/use-online-status';
@@ -46,10 +46,10 @@ const ReportNowSection = () => {
       description: 'Report issues faster than ever',
     },
     {
-      icon: Zap,
-      svgIcon: '/Assets/icons/Flash.svg',
-      title: 'No Complex Forms',
-      description: 'Just snap and report',
+      icon: Sparkles,
+      svgIcon: '/Assets/icons/Shield.svg',
+      title: 'AI-Verified Reports',
+      description: 'Smart AI validates your submission',
     },
   ];
 
@@ -62,16 +62,12 @@ const ReportNowSection = () => {
         <FadeInWhenVisible delay={0.1}>
           <div className='mb-12 text-center sm:mb-16'>
             <Badge className='mb-4 gap-2 border-green-200 bg-green-100 px-4 py-1.5 text-sm font-medium text-green-700 sm:mb-6'>
-              <Zap className='h-4 w-4 fill-green-700' />
+              <Sparkles className='h-4 w-4 fill-green-700' />
               Instant Reporting
             </Badge>
             <div className='text-l mb-2 font-semibold text-gray-900 sm:mb-4 sm:text-2xl md:text-3xl lg:text-3xl'>
-              Report Issues Instantly
+              Report in Seconds, Verified by AI
             </div>
-            <p className='mx-auto max-w-3xl text-sm text-black sm:text-base lg:text-base'>
-              Snap a photo, and we'll handle the rest. No complicated forms,
-              just quick action when you see infrastructure problems.
-            </p>
           </div>
         </FadeInWhenVisible>
 

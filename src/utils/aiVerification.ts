@@ -20,13 +20,15 @@ export function fileToBase64(file: File): Promise<string> {
  * @param mimeType - MIME type of the image (e.g., 'image/jpeg')
  * @param issueCategory - Selected issue category
  * @param userDescription - User's description of the issue
+ * @param accessToken - Optional access token from current session (recommended to avoid race conditions)
  * @returns Promise with verification result
  */
 export async function verifyReport(
   base64Data: string,
   mimeType: string,
   issueCategory: string,
-  userDescription: string
+  userDescription: string,
+  accessToken?: string
 ): Promise<{ success: boolean; message: string }> {
   // Prepare the payload with all required data
   const verificationPayload = {
@@ -44,22 +46,36 @@ export async function verifyReport(
     const FUNCTION_URL =
       'https://vnnuxlxqbucchlaotbnv.supabase.co/functions/v1/verify-image';
 
-    // Get the current session for authentication (with timeout to prevent hanging)
-    let session = null;
-    try {
-      const sessionPromise = supabase.auth.getSession();
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Session timeout')), 5000)
-      );
+    // If access token was provided, use it directly (preferred method)
+    // Otherwise, try to get it from the session (fallback for backward compatibility)
+    let authToken = accessToken;
 
-      const {
-        data: { session: sessionData },
-      } = (await Promise.race([sessionPromise, timeoutPromise])) as {
-        data: { session: any };
-      };
-      session = sessionData;
-    } catch (error) {
-      // Continue without session - edge function might work without auth
+    if (!authToken) {
+      // Fallback: Try to get session with a single attempt and shorter timeout
+      try {
+        const sessionPromise = supabase.auth.getSession();
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Session timeout')), 3000)
+        );
+
+        const {
+          data: { session },
+        } = (await Promise.race([sessionPromise, timeoutPromise])) as {
+          data: { session: any };
+        };
+
+        authToken = session?.access_token;
+      } catch (error) {
+        console.warn('Failed to get session for verification:', error);
+        // Don't throw here - let the edge function call fail with proper error
+      }
+    }
+
+    // Verify we have an auth token
+    if (!authToken) {
+      throw new Error(
+        'Unable to verify authentication. Please ensure you are signed in and try again.'
+      );
     }
 
     // Prepare headers
@@ -72,10 +88,8 @@ export async function verifyReport(
       headers['apikey'] = SUPABASE_ANON_KEY;
     }
 
-    // Add authorization header if session exists
-    if (session?.access_token) {
-      headers['Authorization'] = `Bearer ${session.access_token}`;
-    }
+    // Add authorization header
+    headers['Authorization'] = `Bearer ${authToken}`;
 
     // Make direct fetch call to the edge function with timeout
     const fetchPromise = fetch(FUNCTION_URL, {

@@ -17,7 +17,7 @@ const problems: Problem[] = [
     id: 1,
     title: 'Broken Roads & Potholes',
     description:
-      'Major roads across Nigeria suffer from severe potholes, broken surfaces, and inadequate maintenance, causing vehicle damage, accidents, and traffic congestion that affects daily commutes and economic activities.',
+      'Major roads across cities suffer from severe potholes, broken surfaces, and inadequate maintenance, causing vehicle damage, accidents, and traffic congestion that affects daily commutes and economic activities.',
     image: '/Assets/Images/Bad-road.jpg',
     impacts: [
       'Vehicle damage and increased repair costs',
@@ -152,7 +152,7 @@ const ProblemsCards: React.FC = () => {
             The Problems We Face
           </Badge>
           <h3 className='text-l mb-6 px-4 font-semibold text-gray-900 sm:mb-8 sm:text-2xl md:text-3xl lg:text-3xl'>
-            Infrastructure Issues Affecting Nigerian Communities
+            Common Infrastructure Challenges We Track
           </h3>
         </div>
 
