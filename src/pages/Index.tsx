@@ -19,6 +19,9 @@ const Index = () => {
       {/* Hero Section with video background and stats */}
       <HeroSection />
 
+      {/* Features Section - How Citizn Works */}
+      <FeaturesSection />
+
       {/* Instant Report Section */}
       <section id='instant-report'>
         <FadeInWhenVisible>
@@ -39,9 +42,6 @@ const Index = () => {
           <SolutionSection />
         </FadeInWhenVisible>
       </section>
-
-      {/* Features Section - How Citizn Works */}
-      <FeaturesSection />
 
       {/* Footer Section */}
       <FooterSection />

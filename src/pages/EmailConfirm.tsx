@@ -13,7 +13,34 @@ const EmailConfirm = () => {
   useEffect(() => {
     const handleEmailConfirmation = async () => {
       try {
-        // Check if there's a session token in the URL hash
+        // First, check for the new email confirmation flow that uses an auth code query param
+        const searchParams = new URLSearchParams(window.location.search);
+        const authCode = searchParams.get('code');
+
+        if (authCode) {
+          const { data, error } = await supabase.auth.exchangeCodeForSession({
+            authCode,
+          });
+
+          if (error) {
+            console.error('Email confirmation auth code error:', error);
+            setStatus('error');
+            setErrorMessage(
+              'Email verification failed. Please request a new verification email.'
+            );
+            return;
+          }
+
+          if (data.session?.user) {
+            setStatus('success');
+            setTimeout(() => {
+              navigate('/citizen', { replace: true });
+            }, 1500);
+            return;
+          }
+        }
+
+        // Fallback: Check if there's a session token in the URL hash (legacy flow)
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         const accessToken = hashParams.get('access_token');
         const refreshToken = hashParams.get('refresh_token');

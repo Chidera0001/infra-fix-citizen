@@ -25,6 +25,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getCurrentLocationWithAddress } from '@/utils/geocoding';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import CitiznLogo from '@/components/CitiznLogo';
+import { ISSUE_CATEGORIES } from '@/constants';
 
 const ReportIssue = () => {
   const navigate = useNavigate();
@@ -34,7 +35,7 @@ const ReportIssue = () => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    category: '',
+    category: ISSUE_CATEGORIES[0]?.value ?? '',
     urgency: '',
     location: '',
     photo: null as File | null,
@@ -254,6 +255,7 @@ const ReportIssue = () => {
                 <div className='space-y-2'>
                   <Label htmlFor='category'>Category *</Label>
                   <Select
+                    value={formData.category}
                     onValueChange={value =>
                       setFormData({ ...formData, category: value })
                     }
@@ -262,15 +264,11 @@ const ReportIssue = () => {
                       <SelectValue placeholder='Select issue category' />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value='pothole'>Pothole</SelectItem>
-                      <SelectItem value='streetlight'>Streetlight</SelectItem>
-                      <SelectItem value='water-supply'>Water Supply</SelectItem>
-                      <SelectItem value='traffic-light'>
-                        Traffic Light
-                      </SelectItem>
-                      <SelectItem value='drainage'>Drainage</SelectItem>
-                      <SelectItem value='road-damage'>Road Damage</SelectItem>
-                      <SelectItem value='other'>Other</SelectItem>
+                      {ISSUE_CATEGORIES.map(category => (
+                        <SelectItem key={category.value} value={category.value}>
+                          {category.label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>

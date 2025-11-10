@@ -40,8 +40,7 @@ const FeaturesSection = () => {
                 Report
               </h4>
               <p className='px-4 text-xs leading-relaxed text-black sm:text-sm'>
-                Capture infrastructure issues with photos and precise location
-                data using our intuitive interface designed for ease of use
+                See an issue? Snap a photo, send it in.
               </p>
             </div>
           </FadeInWhenVisible>
@@ -60,8 +59,7 @@ const FeaturesSection = () => {
                 Track
               </h4>
               <p className='px-4 text-xs leading-relaxed text-black sm:text-sm'>
-                Monitor real-time progress with automated updates as authorities
-                work to resolve reported issues
+                Watch status updates roll in as agencies act.
               </p>
             </div>
           </FadeInWhenVisible>
@@ -80,8 +78,7 @@ const FeaturesSection = () => {
                 Resolve
               </h4>
               <p className='px-4 text-xs leading-relaxed text-black sm:text-sm'>
-                Receive instant notifications when issues are fixed and see
-                tangible improvements in your city
+                Get the fix confirmation.
               </p>
             </div>
           </FadeInWhenVisible>

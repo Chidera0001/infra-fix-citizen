@@ -6,6 +6,7 @@ import { useCreateOfflineIssue } from '@/hooks/use-separate-issues';
 import { OfflineHeader } from '@/components/offline/OfflineHeader';
 import { OfflineNotice } from '@/components/offline/OfflineNotice';
 import { ReportForm } from '@/components/offline/ReportForm';
+import { ISSUE_CATEGORIES } from '@/constants';
 
 interface ReportFormData {
   title: string;
@@ -24,7 +25,7 @@ const OfflineReportIssue = () => {
   const [formData, setFormData] = useState<ReportFormData>({
     title: '',
     description: '',
-    category: '',
+    category: ISSUE_CATEGORIES[0]?.value ?? 'bad_roads',
     urgency: '',
     location: '',
     photo: null,

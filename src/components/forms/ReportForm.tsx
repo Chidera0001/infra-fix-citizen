@@ -6,10 +6,13 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getCurrentLocationWithAddress } from '@/utils/geocoding';
 import { useFormValidation } from '@/hooks/useFormValidation';
 import LocationSelectionMap from './ReportForm/LocationSelectionMap';
+import { ISSUE_CATEGORIES } from '@/constants';
 
 interface ReportFormProps {
   onBack: () => void;
 }
+
+type IssueCategoryValue = (typeof ISSUE_CATEGORIES)[number]['value'];
 
 const ReportForm = ({ onBack }: ReportFormProps) => {
   const { user } = useAuth();
@@ -17,14 +20,7 @@ const ReportForm = ({ onBack }: ReportFormProps) => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    category: 'other' as
-      | 'pothole'
-      | 'street_lighting'
-      | 'water_supply'
-      | 'traffic_signal'
-      | 'drainage'
-      | 'sidewalk'
-      | 'other',
+    category: (ISSUE_CATEGORIES[0]?.value as IssueCategoryValue) ?? 'bad_roads',
     severity: 'medium' as 'low' | 'medium' | 'high' | 'critical',
     address: '',
     location_lat: 6.5244, // Default Lagos coords

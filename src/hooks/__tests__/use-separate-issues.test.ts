@@ -50,7 +50,7 @@ describe('useCreateOnlineIssue', () => {
     const issueData = {
       title: 'Test Issue',
       description: 'Test Description',
-      category: 'pothole' as const,
+      category: 'bad_roads' as const,
       severity: 'medium' as const,
       address: 'Test Address',
       location_lat: 6.5244,
@@ -91,7 +91,7 @@ describe('useCreateOnlineIssue', () => {
     const issueData = {
       title: 'Test Issue',
       description: 'Test Description',
-      category: 'pothole' as const,
+      category: 'bad_roads' as const,
       severity: 'medium' as const,
       address: 'Test Address',
       location_lat: 6.5244,
@@ -142,7 +142,7 @@ describe('useCreateOfflineIssue', () => {
     const issueData = {
       title: 'Test Issue',
       description: 'Test Description',
-      category: 'pothole' as const,
+      category: 'bad_roads' as const,
       severity: 'medium' as const,
       address: 'Test Address',
       location_lat: 6.5244,
@@ -192,7 +192,7 @@ describe('useCreateOfflineIssue', () => {
     const issueData = {
       title: 'Test Issue',
       description: 'Test Description',
-      category: 'pothole' as const,
+      category: 'bad_roads' as const,
       severity: 'medium' as const,
       address: 'Test Address',
       location_lat: 6.5244,
@@ -241,7 +241,7 @@ describe('useCreateOfflineIssue', () => {
     const issueData = {
       title: 'Test Issue',
       description: 'Test Description',
-      category: 'pothole' as const,
+      category: 'bad_roads' as const,
       severity: 'medium' as const,
       address: 'Test Address',
       location_lat: 6.5244,
