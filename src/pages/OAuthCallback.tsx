@@ -21,6 +21,15 @@ const OAuthCallback = () => {
       try {
         setHasProcessed(true);
 
+        // If the user context already has a user, we can finish immediately
+        if (user) {
+          setStatus('success');
+          navigate('/citizen', { replace: true });
+          return;
+        }
+
+        let session = null;
+
         // First check for the new PKCE auth code in the query string
         const searchParams = new URLSearchParams(window.location.search);
         const authCode = searchParams.get('code');
@@ -30,19 +39,11 @@ const OAuthCallback = () => {
             await supabase.auth.exchangeCodeForSession(authCode);
 
           if (exchangeError) {
-            console.error('OAuth exchange error:', exchangeError);
-            setStatus('error');
-            setErrorMessage(
-              'Authentication failed. Please try signing in again.'
-            );
-            return;
-          }
-
-          if (data.session?.user) {
-            setStatus('success');
-            await new Promise(resolve => setTimeout(resolve, 300));
-            navigate('/citizen', { replace: true });
-            return;
+            // If the code was already exchanged (e.g., Supabase handled it automatically),
+            // fall through to the session polling instead of failing immediately.
+            console.warn('OAuth exchange warning:', exchangeError);
+          } else if (data.session?.user) {
+            session = data.session;
           }
         }
 
@@ -65,53 +66,42 @@ const OAuthCallback = () => {
           return;
         }
 
-        // If no tokens in URL, this might be a direct navigation - redirect to auth
-        if (!accessToken && !refreshToken) {
-          console.warn('No OAuth tokens found in URL');
-          setStatus('error');
-          setErrorMessage(
-            'Invalid authentication callback. Please try signing in again.'
-          );
-          return;
+        // Try to get existing session (Supabase may have already processed the URL)
+        if (!session) {
+          const { data: immediateSession } = await supabase.auth.getSession();
+          if (immediateSession.session?.user) {
+            session = immediateSession.session;
+          }
         }
 
         // Fast session establishment with optimized retry logic
         // Reduced wait time: 200ms intervals for 3 seconds max
         let retries = 0;
         const maxRetries = 15; // 15 retries × 200ms = 3 seconds max
-        let session = null;
 
-        // Try to get session immediately first (often already available)
-        const { data: immediateSession } = await supabase.auth.getSession();
-        if (immediateSession.session?.user) {
-          session = immediateSession.session;
-        }
-
-        // Only retry if session not immediately available
         while (!session && retries < maxRetries) {
           await new Promise(resolve => setTimeout(resolve, 200)); // Faster checks
           const { data } = await supabase.auth.getSession();
           session = data.session;
           retries++;
-
-          // Extra safety: break if max retries reached
-          if (retries >= maxRetries) break;
         }
 
-        if (session?.user) {
+        if (session?.user || user) {
           setStatus('success');
-          // Minimal delay for state propagation
           await new Promise(resolve => setTimeout(resolve, 300));
-          // Navigate immediately to dashboard
           navigate('/citizen', { replace: true });
-        } else {
-          // Session failed to establish within timeout
-          console.error('Session timeout after', retries, 'retries');
-          setStatus('error');
-          setErrorMessage(
-            'Authentication timeout. Please try signing in again.'
-          );
+          return;
         }
+
+        // If we get here and there were no tokens or code, it might be a direct navigation.
+        if (!authCode && !accessToken && !refreshToken) {
+          console.warn('No OAuth parameters found, returning to sign-in.');
+        } else {
+          console.error('Session timeout after', maxRetries, 'retries');
+        }
+
+        setStatus('error');
+        setErrorMessage('Authentication timeout. Please try signing in again.');
       } catch (error) {
         console.error('OAuth callback error:', error);
         setStatus('error');
@@ -123,7 +113,7 @@ const OAuthCallback = () => {
     if (!loading) {
       handleOAuthCallback();
     }
-  }, [navigate, loading, hasProcessed]);
+  }, [navigate, loading, hasProcessed, user]);
 
   if (loading || status === 'processing') {
     return (
@@ -191,8 +181,14 @@ const OAuthCallback = () => {
           <p className='mb-6 text-sm text-gray-600'>{errorMessage}</p>
           <button
             onClick={async () => {
-              await supabase.auth.signOut();
-              navigate('/auth');
+              try {
+                await supabase.auth.signOut();
+              } catch (err) {
+                console.error('Error signing out after OAuth failure', err);
+              } finally {
+                // Use full page navigation to guarantee redirect works even if React Router state is stale
+                window.location.href = '/auth?mode=signin';
+              }
             }}
             className='rounded-lg bg-green-600 px-6 py-2 text-white transition-colors hover:bg-green-700'
           >
