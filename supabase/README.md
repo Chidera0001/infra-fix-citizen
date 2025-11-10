@@ -30,7 +30,7 @@ User profiles extending Clerk authentication
 #### `categories`
 Infrastructure issue categories
 - **Fields**: id, name, description, icon, color, is_active, sort_order
-- **Default Categories**: pothole, street_lighting, water_supply, traffic_signal, drainage, sidewalk, other
+- **Default Categories**: bad_roads, broken_streetlights, dump_sites, floods, water_supply_issues, bad_traffic_signals, poor_drainages, erosion_sites, collapsed_bridges, open_manholes, unsafe_crossings, construction_debris
 
 #### `issues`
 Infrastructure problem reports

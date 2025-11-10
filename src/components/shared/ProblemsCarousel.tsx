@@ -149,10 +149,10 @@ const ProblemsCards: React.FC = () => {
                   "url('/Assets/icons/Alert-triangle.svg') no-repeat center / contain",
               }}
             />
-            The Problems We Face
+            The Problem
           </Badge>
           <h3 className='text-l mb-6 px-4 font-semibold text-gray-900 sm:mb-8 sm:text-2xl md:text-3xl lg:text-3xl'>
-            Common Infrastructure Challenges We Track
+            Issues You Can Report
           </h3>
         </div>
 

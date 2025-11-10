@@ -21,6 +21,7 @@ import { ReportCard, ReportGridCard } from './MyReports/index';
 import { ReportDetailsModal } from '@/components/citizen/modals/ReportDetailsModal';
 import { generateReportPDF, shareReport } from '@/utils/pdfGenerator';
 import type { Issue } from '@/lib/supabase-api';
+import { ISSUE_CATEGORIES } from '@/constants';
 
 interface RecentReportsProps {
   reports: Issue[];
@@ -195,13 +196,11 @@ export const RecentReports = ({ reports }: RecentReportsProps) => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value='all'>All Categories</SelectItem>
-                <SelectItem value='pothole'>Pothole</SelectItem>
-                <SelectItem value='street_lighting'>Street Lighting</SelectItem>
-                <SelectItem value='water_supply'>Water Supply</SelectItem>
-                <SelectItem value='traffic_signal'>Traffic Signal</SelectItem>
-                <SelectItem value='drainage'>Drainage</SelectItem>
-                <SelectItem value='sidewalk'>Sidewalk</SelectItem>
-                <SelectItem value='other'>Other</SelectItem>
+                {ISSUE_CATEGORIES.map(category => (
+                  <SelectItem key={category.value} value={category.value}>
+                    {category.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
 
@@ -253,7 +252,7 @@ export const RecentReports = ({ reports }: RecentReportsProps) => {
                   variant='secondary'
                   className='bg-purple-100 text-purple-800'
                 >
-                  Category: {categoryFilter.replace('_', ' ')}
+                  Category: {categoryFilter.replace(/_/g, ' ')}
                   <XCircle
                     className='ml-1 h-3 w-3 cursor-pointer'
                     onClick={() => setCategoryFilter('all')}

@@ -19,6 +19,7 @@ import { useCreateOnlineIssue } from '@/hooks/use-separate-issues';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { fileToBase64, verifyReport } from '@/utils/aiVerification';
+import { ISSUE_CATEGORIES } from '@/constants';
 
 interface InstantReportFormProps {
   photo: File;
@@ -26,6 +27,8 @@ interface InstantReportFormProps {
   locationSource?: 'photo' | 'gps' | 'map';
   onRetake: () => void;
 }
+
+type IssueCategoryValue = (typeof ISSUE_CATEGORIES)[number]['value'];
 
 export const InstantReportForm = ({
   photo,
@@ -40,14 +43,7 @@ export const InstantReportForm = ({
 
   const [formData, setFormData] = useState({
     title: '',
-    category: 'other' as
-      | 'pothole'
-      | 'street_lighting'
-      | 'water_supply'
-      | 'traffic_signal'
-      | 'drainage'
-      | 'sidewalk'
-      | 'other',
+    category: (ISSUE_CATEGORIES[0]?.value as IssueCategoryValue) ?? 'bad_roads',
     severity: 'medium' as 'low' | 'medium' | 'high' | 'critical',
     description: '',
     address: initialLocation?.address || '',
@@ -399,7 +395,7 @@ export const InstantReportForm = ({
               </Label>
               <Select
                 value={formData.category}
-                onValueChange={(value: any) =>
+                onValueChange={(value: IssueCategoryValue) =>
                   setFormData({ ...formData, category: value })
                 }
               >
@@ -407,15 +403,11 @@ export const InstantReportForm = ({
                   <SelectValue placeholder='Select category' />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value='pothole'>Pothole</SelectItem>
-                  <SelectItem value='street_lighting'>
-                    Street Lighting
-                  </SelectItem>
-                  <SelectItem value='water_supply'>Water Supply</SelectItem>
-                  <SelectItem value='traffic_signal'>Traffic Signal</SelectItem>
-                  <SelectItem value='drainage'>Drainage</SelectItem>
-                  <SelectItem value='sidewalk'>Sidewalk</SelectItem>
-                  <SelectItem value='other'>Other</SelectItem>
+                  {ISSUE_CATEGORIES.map(category => (
+                    <SelectItem key={category.value} value={category.value}>
+                      {category.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

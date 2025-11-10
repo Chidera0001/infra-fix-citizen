@@ -28,37 +28,77 @@ export const ROUTES = {
 
 export const ISSUE_CATEGORIES = [
   {
-    value: 'pothole',
-    label: 'Pothole',
+    value: 'bad_roads',
+    label: 'Bad Roads',
     icon: 'construction',
     color: '#ef4444',
   },
   {
-    value: 'street_lighting',
-    label: 'Street Lighting',
+    value: 'broken_streetlights',
+    label: 'Broken Streetlights',
     icon: 'lightbulb',
     color: '#f59e0b',
   },
   {
-    value: 'water_supply',
-    label: 'Water Supply',
+    value: 'dump_sites',
+    label: 'Dump Sites',
+    icon: 'trash-2',
+    color: '#22c55e',
+  },
+  {
+    value: 'floods',
+    label: 'Floods',
+    icon: 'waves',
+    color: '#0ea5e9',
+  },
+  {
+    value: 'water_supply_issues',
+    label: 'Water Supply Issues',
     icon: 'droplets',
     color: '#3b82f6',
   },
   {
-    value: 'traffic_signal',
-    label: 'Traffic Signal',
-    icon: 'traffic-light',
-    color: '#10b981',
+    value: 'bad_traffic_signals',
+    label: 'Bad Traffic Signals',
+    icon: 'traffic-cone',
+    color: '#f97316',
   },
-  { value: 'drainage', label: 'Drainage', icon: 'waves', color: '#6366f1' },
   {
-    value: 'sidewalk',
-    label: 'Sidewalk',
-    icon: 'footprints',
-    color: '#8b5cf6',
+    value: 'poor_drainages',
+    label: 'Poor Drainages',
+    icon: 'waves',
+    color: '#6366f1',
   },
-  { value: 'other', label: 'Other', icon: 'alert-triangle', color: '#6b7280' },
+  {
+    value: 'erosion_sites',
+    label: 'Erosion Sites',
+    icon: 'mountain',
+    color: '#7c3aed',
+  },
+  {
+    value: 'collapsed_bridges',
+    label: 'Collapsed Bridges',
+    icon: 'bridge',
+    color: '#f59e0b',
+  },
+  {
+    value: 'open_manholes',
+    label: 'Open Manholes',
+    icon: 'circle-dot',
+    color: '#a855f7',
+  },
+  {
+    value: 'unsafe_crossings',
+    label: 'Unsafe Crossings',
+    icon: 'footprints',
+    color: '#14b8a6',
+  },
+  {
+    value: 'construction_debris',
+    label: 'Construction Debris',
+    icon: 'dump-truck',
+    color: '#64748b',
+  },
 ] as const;
 
 export const ISSUE_STATUSES = [

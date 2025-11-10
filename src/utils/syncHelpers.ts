@@ -7,17 +7,41 @@ import { offlineStorage } from './offlineStorage';
 
 // Map offline form categories to database enum values
 const categoryMapping: Record<string, string> = {
-  pothole: 'pothole',
-  streetlight: 'street_lighting',
-  'water-supply': 'water_supply',
-  'traffic-light': 'traffic_signal',
-  drainage: 'drainage',
-  'road-damage': 'sidewalk',
-  other: 'other',
+  // New category set
+  bad_roads: 'bad_roads',
+  broken_streetlights: 'broken_streetlights',
+  dump_sites: 'dump_sites',
+  floods: 'floods',
+  water_supply_issues: 'water_supply_issues',
+  bad_traffic_signals: 'bad_traffic_signals',
+  poor_drainages: 'poor_drainages',
+  erosion_sites: 'erosion_sites',
+  collapsed_bridges: 'collapsed_bridges',
+  open_manholes: 'open_manholes',
+  unsafe_crossings: 'unsafe_crossings',
+  construction_debris: 'construction_debris',
+
+  // Legacy web/offline category values
+  pothole: 'bad_roads',
+  'road-damage': 'bad_roads',
+  streetlight: 'broken_streetlights',
+  street_lighting: 'broken_streetlights',
+  'water-supply': 'water_supply_issues',
+  water_supply: 'water_supply_issues',
+  traffic_signal: 'bad_traffic_signals',
+  'traffic-light': 'bad_traffic_signals',
+  drainage: 'poor_drainages',
+  drainage_systems: 'poor_drainages',
+  sidewalk: 'unsafe_crossings',
+  road_infrastructure: 'bad_roads',
+  water_systems: 'water_supply_issues',
+  traffic_management: 'bad_traffic_signals',
+  public_facilities: 'construction_debris',
+  other: 'construction_debris',
 };
 
 function mapCategoryToDatabase(category: string): string {
-  return categoryMapping[category] || 'other';
+  return categoryMapping[category] || 'construction_debris';
 }
 
 function validateIssueData(issueData: any): {

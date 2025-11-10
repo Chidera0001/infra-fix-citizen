@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Camera, Upload } from 'lucide-react';
 import { PhotoUploadSection } from './PhotoUploadSection';
+import { ISSUE_CATEGORIES } from '@/constants';
 
 interface ReportFormData {
   title: string;
@@ -72,18 +73,19 @@ export function ReportForm({ formData, onFormDataChange, onSubmit, isSubmitting,
 
             <div className="space-y-2">
               <Label htmlFor="category">Category *</Label>
-              <Select onValueChange={(value) => onFormDataChange({ category: value })}>
+              <Select
+                value={formData.category}
+                onValueChange={(value) => onFormDataChange({ category: value })}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select issue category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="pothole">Pothole</SelectItem>
-                  <SelectItem value="streetlight">Streetlight</SelectItem>
-                  <SelectItem value="water-supply">Water Supply</SelectItem>
-                  <SelectItem value="traffic-light">Traffic Light</SelectItem>
-                  <SelectItem value="drainage">Drainage</SelectItem>
-                  <SelectItem value="road-damage">Road Damage</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
+                  {ISSUE_CATEGORIES.map((category) => (
+                    <SelectItem key={category.value} value={category.value}>
+                      {category.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
