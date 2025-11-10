@@ -17,15 +17,15 @@ const ProblemCard: React.FC<ProblemCardProps> = ({ problem, variant }) => {
   const getCardClasses = () => {
     switch (variant) {
       case 'desktop':
-        return 'group relative h-[500px] overflow-hidden rounded-3xl shadow-2xl';
+        return 'group relative h-[350px] overflow-hidden rounded-3xl shadow-none';
       case 'mobile':
-        return 'group relative h-[350px] overflow-hidden rounded-2xl shadow-xl';
+        return 'group relative h-[350px] overflow-hidden rounded-2xl shadow-none';
       case 'tablet':
-        return 'group relative h-[320px] overflow-hidden rounded-2xl shadow-xl';
+        return 'group relative h-[320px] overflow-hidden rounded-2xl shadow-none';
       case 'medium':
-        return 'group relative h-[300px] overflow-hidden rounded-2xl shadow-xl';
+        return 'group relative h-[300px] overflow-hidden rounded-2xl shadow-none';
       default:
-        return 'group relative h-[500px] overflow-hidden rounded-3xl shadow-2xl';
+        return 'group relative h-[350px] overflow-hidden rounded-3xl shadow-none';
     }
   };
 
@@ -178,21 +178,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({ problem, variant }) => {
       <div className={getContentClasses()}>
         {/* Title */}
         <h3 className={getTitleClasses()}>{problem.title}</h3>
-
-        {/* Description */}
         <p className={getDescriptionClasses()}>{problem.description}</p>
-
-        {/* Impact Points */}
-        <div className={getImpactsContainerClasses()}>
-          {getImpactsToShow().map((impact, impactIndex) => (
-            <div key={impactIndex} className={getImpactItemClasses()}>
-              <div className={getDotClasses()}></div>
-              <span className='text-xs font-medium text-white/90'>
-                {impact}
-              </span>
-            </div>
-          ))}
-        </div>
       </div>
     </div>
   );
