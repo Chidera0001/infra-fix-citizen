@@ -277,10 +277,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
 
     try {
+      // Google OAuth sign-in with proper redirect URL
+      // This must match the URL configured in Supabase Dashboard > Authentication > URL Configuration
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
+          // Use PKCE flow for better security (already configured in client)
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
         },
       });
 
