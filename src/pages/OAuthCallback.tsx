@@ -21,7 +21,32 @@ const OAuthCallback = () => {
       try {
         setHasProcessed(true);
 
-        // Check if there's a session token in the URL hash (OAuth callback)
+        // First check for the new PKCE auth code in the query string
+        const searchParams = new URLSearchParams(window.location.search);
+        const authCode = searchParams.get('code');
+
+        if (authCode) {
+          const { data, error: exchangeError } =
+            await supabase.auth.exchangeCodeForSession(authCode);
+
+          if (exchangeError) {
+            console.error('OAuth exchange error:', exchangeError);
+            setStatus('error');
+            setErrorMessage(
+              'Authentication failed. Please try signing in again.'
+            );
+            return;
+          }
+
+          if (data.session?.user) {
+            setStatus('success');
+            await new Promise(resolve => setTimeout(resolve, 300));
+            navigate('/citizen', { replace: true });
+            return;
+          }
+        }
+
+        // Fallback: Check if there's a session token in the URL hash (legacy flow)
         const hashParams = new URLSearchParams(
           window.location.hash.substring(1)
         );
@@ -165,7 +190,10 @@ const OAuthCallback = () => {
           </h1>
           <p className='mb-6 text-sm text-gray-600'>{errorMessage}</p>
           <button
-            onClick={() => navigate('/auth')}
+            onClick={async () => {
+              await supabase.auth.signOut();
+              navigate('/auth');
+            }}
             className='rounded-lg bg-green-600 px-6 py-2 text-white transition-colors hover:bg-green-700'
           >
             Go to Sign In
