@@ -78,8 +78,8 @@ function InteractiveMap({
     const timeoutId = setTimeout(() => {
       if (!mapInstance.current) return;
 
-      if (isAdmin && issues.length > 0) {
-        // Group issues by location - ONLY for admin view
+      if (issues.length > 0) {
+        // Group issues by location for both admin and citizen views
         const groupedIssues = groupIssuesByLocation(issues);
         
         if (groupedIssues.length === 0) {
@@ -94,11 +94,11 @@ function InteractiveMap({
 
           try {
             // Create marker icon with category
-            const markerIcon = createMarkerIcon(status, totalCount, category);
+            const markerIcon = createMarkerIcon(status, totalCount, category, isAdmin);
             const marker = L.marker([lat, lng], { icon: markerIcon }).addTo(mapInstance.current!);
 
-            // Add interactions
-            addMarkerInteractions(marker, totalCount, resolvedCount, inProgressCount, openCount);
+            // Add interactions (with issues array and admin flag)
+            addMarkerInteractions(marker, totalCount, resolvedCount, inProgressCount, openCount, locationIssues, isAdmin);
 
             // Handle marker click
             if (onIssueClick && locationIssues.length > 0) {
@@ -112,7 +112,10 @@ function InteractiveMap({
             console.error('Error creating marker:', error);
           }
         });
-      } else if (!isAdmin && showLocationSelector && selectedLocation) {
+      }
+      
+      // Show selected location marker for citizen view (if needed)
+      if (!isAdmin && showLocationSelector && selectedLocation) {
         // Show selected location marker for citizen view
         if (selectedLocation.lat !== undefined && selectedLocation.lng !== undefined && 
             !isNaN(selectedLocation.lat) && !isNaN(selectedLocation.lng)) {
