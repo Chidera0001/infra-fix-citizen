@@ -6,7 +6,7 @@ import {
   reverseGeocode,
 } from '@/utils/geocoding';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, MapPin, Clock, Zap } from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -318,9 +318,9 @@ const ReportNow = () => {
                     </span>
                   </div>
                   <div className='flex items-center gap-2 rounded-full border border-green-200 bg-white/80 px-4 py-2 shadow-sm backdrop-blur-sm'>
-                    <Zap className='h-4 w-4 text-green-600' />
+                    <Sparkles className='h-4 w-4 text-green-600' />
                     <span className='text-sm font-medium text-black'>
-                      No Complex Forms
+                      AI-Verified Reports
                     </span>
                   </div>
                 </div>

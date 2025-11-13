@@ -1,14 +1,39 @@
+import { useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { ArrowRight } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import FadeInWhenVisible from '@/components/shared/FadeInWhenVisible';
 import { useNavigate } from 'react-router-dom';
 import StatsSection from './StatsSection';
 
+const ISSUE_TYPES = [
+  'Bad Roads',
+  'Broken Streetlights',
+  'Dump Sites',
+  'Floods',
+  'Water Supply Issues',
+  'Bad Traffic Signals',
+  'Poor Drainages',
+  'Erosion Sites',
+  'Collapsed Bridges',
+  'Open Manholes',
+  'Unsafe Crossings',
+  'Construction Debris',
+];
+
 const HeroSection = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [issueIndex, setIssueIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIssueIndex(prev => (prev + 1) % ISSUE_TYPES.length);
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const handleGetStarted = () => {
     if (user) {
@@ -45,15 +70,35 @@ const HeroSection = () => {
         {/* Single column centered layout for better video background experience */}
         <FadeInWhenVisible>
           <div className='mx-auto max-w-4xl px-4 text-center'>
-            <h1 className='mb-4 mt-4 text-3xl font-normal leading-tight tracking-tight text-white drop-shadow-lg sm:mb-6 sm:text-3xl md:text-4xl lg:text-5xl'>
-              Empowering Nigerians to
-              <span className='mt-1 block bg-gradient-to-r from-green-400 via-emerald-300 to-green-500 bg-clip-text text-transparent'>
-                Build Better Communities
+            <h1 className='mb-4 mt-4 flex flex-col items-center gap-2 font-["Manrope"] text-3xl font-semibold leading-tight tracking-tight text-white drop-shadow-lg sm:mb-6 sm:text-3xl md:text-4xl lg:text-5xl'>
+              <span className='relative inline-flex flex-col items-center'>
+                Capture photos, Report{' '}
+                <span className='sm:h-13 lg:h-18 relative inline-flex h-10 items-center justify-center overflow-hidden text-center md:h-16'>
+                  <AnimatePresence mode='wait'>
+                    <motion.span
+                      key={ISSUE_TYPES[issueIndex]}
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -12 }}
+                      transition={{ duration: 0.4, ease: 'easeInOut' }}
+                      className='inline-block text-emerald-200'
+                    >
+                      {ISSUE_TYPES[issueIndex]}
+                    </motion.span>
+                  </AnimatePresence>
+                </span>
+                <span className='pointer-events-none absolute left-1/2 top-full -translate-x-1/2 -translate-y-0 font-["Allura","cursive"] text-2xl text-emerald-200 drop-shadow-lg sm:text-3xl md:text-3xl lg:text-3xl'>
+                  <span className='sm:hidden'>&amp;</span>
+                  <span className='hidden sm:inline'>and</span>
+                </span>
+              </span>
+              <span className='mt-6 block bg-gradient-to-r from-green-300 via-emerald-300 to-green-500 bg-clip-text text-center font-bold text-transparent'>
+                Monitor Resolutions
               </span>
             </h1>
-            <p className='mx-auto mb-8 max-w-3xl text-base font-medium leading-relaxed text-white drop-shadow-lg sm:mb-8 sm:text-lg md:text-xl'>
-              Your voice matters. Turn your observations into action and watch
-              your community transform, one report at a time.
+            <p className='hidden font-["Manrope"] text-base font-medium leading-relaxed text-white/95 drop-shadow-lg sm:mx-auto sm:mb-8 sm:block sm:max-w-3xl sm:text-lg md:text-xl'>
+              Citizn helps you document infrastructure problems, notify the
+              right agencies, and track progress until the work is done
             </p>
             {/* Call-to-Action Button */}
             <Button

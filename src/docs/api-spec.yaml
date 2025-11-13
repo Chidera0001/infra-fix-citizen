@@ -487,7 +487,21 @@ components:
 
     IssueCategory:
       type: string
-      enum: [pothole, street_lighting, water_supply, traffic_signal, drainage, sidewalk, other]
+      enum:
+        [
+          bad_roads,
+          broken_streetlights,
+          dump_sites,
+          floods,
+          water_supply_issues,
+          bad_traffic_signals,
+          poor_drainages,
+          erosion_sites,
+          collapsed_bridges,
+          open_manholes,
+          unsafe_crossings,
+          construction_debris
+        ]
       description: Category of infrastructure issue
 
     IssueSeverity:

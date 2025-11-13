@@ -9,6 +9,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Search, XCircle } from "lucide-react";
+import { ISSUE_CATEGORIES } from "@/constants";
 
 interface AdminSearchAndFiltersProps {
 	searchTerm: string;
@@ -67,13 +68,11 @@ export const AdminSearchAndFilters = ({
 						</SelectTrigger>
 						<SelectContent>
 							<SelectItem value="all">All Categories</SelectItem>
-							<SelectItem value="pothole">Pothole</SelectItem>
-							<SelectItem value="street_lighting">Street Lighting</SelectItem>
-							<SelectItem value="water_supply">Water Supply</SelectItem>
-							<SelectItem value="traffic_signal">Traffic Signal</SelectItem>
-							<SelectItem value="drainage">Drainage</SelectItem>
-							<SelectItem value="sidewalk">Sidewalk</SelectItem>
-							<SelectItem value="other">Other</SelectItem>
+							{ISSUE_CATEGORIES.map((category) => (
+								<SelectItem key={category.value} value={category.value}>
+									{category.label}
+								</SelectItem>
+							))}
 						</SelectContent>
 					</Select>
 
@@ -115,7 +114,7 @@ export const AdminSearchAndFilters = ({
 					)}
 					{categoryFilter !== "all" && (
 						<Badge variant="secondary" className="bg-purple-100 text-purple-800">
-							Category: {categoryFilter.replace("_", " ")}
+							Category: {categoryFilter.replace(/_/g, " ")}
 							<XCircle 
 								className="h-3 w-3 ml-1 cursor-pointer" 
 								onClick={() => setCategoryFilter("all")}

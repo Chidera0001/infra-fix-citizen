@@ -1,6 +1,19 @@
 -- Create custom types
 CREATE TYPE issue_status AS ENUM ('open', 'in_progress', 'resolved', 'closed');
-CREATE TYPE issue_category AS ENUM ('pothole', 'street_lighting', 'water_supply', 'traffic_signal', 'drainage', 'sidewalk', 'other');
+CREATE TYPE issue_category AS ENUM (
+    'bad_roads',
+    'broken_streetlights',
+    'dump_sites',
+    'floods',
+    'water_supply_issues',
+    'bad_traffic_signals',
+    'poor_drainages',
+    'erosion_sites',
+    'collapsed_bridges',
+    'open_manholes',
+    'unsafe_crossings',
+    'construction_debris'
+);
 CREATE TYPE issue_severity AS ENUM ('low', 'medium', 'high', 'critical');
 CREATE TYPE user_role AS ENUM ('citizen', 'admin', 'moderator');
 
@@ -35,13 +48,18 @@ CREATE TABLE categories (
 
 -- Insert default categories
 INSERT INTO categories (name, description, icon, color) VALUES
-('pothole', 'Road potholes and surface damage', 'construction', '#ef4444'),
-('street_lighting', 'Broken or malfunctioning street lights', 'lightbulb', '#f59e0b'),
-('water_supply', 'Water supply disruptions and leaks', 'droplets', '#3b82f6'),
-('traffic_signal', 'Malfunctioning traffic lights and signals', 'traffic-light', '#10b981'),
-('drainage', 'Blocked drains and flooding issues', 'waves', '#6366f1'),
-('sidewalk', 'Sidewalk damage and accessibility issues', 'footprints', '#8b5cf6'),
-('other', 'Other infrastructure issues', 'alert-triangle', '#6b7280');
+('bad_roads', 'Road surface damage and potholes', 'construction', '#ef4444'),
+('broken_streetlights', 'Broken or malfunctioning street lights', 'lightbulb', '#f59e0b'),
+('dump_sites', 'Illegal or overflowing waste dump sites', 'trash-2', '#22c55e'),
+('floods', 'Flooded streets and communities', 'waves', '#0ea5e9'),
+('water_supply_issues', 'Water interruptions, leaks, and burst pipes', 'droplets', '#3b82f6'),
+('bad_traffic_signals', 'Malfunctioning traffic signals and signage', 'traffic-cone', '#f97316'),
+('poor_drainages', 'Blocked drainages and waterlogging', 'waves', '#6366f1'),
+('erosion_sites', 'Erosion hotspots affecting infrastructure', 'mountain', '#7c3aed'),
+('collapsed_bridges', 'Damaged or collapsed bridges and culverts', 'bridge', '#f59e0b'),
+('open_manholes', 'Open or damaged manhole covers', 'circle-dot', '#a855f7'),
+('unsafe_crossings', 'Unsafe pedestrian crossings and walkways', 'footprints', '#14b8a6'),
+('construction_debris', 'Construction debris obstructing public areas', 'dump-truck', '#64748b');
 
 -- Create issues table
 CREATE TABLE issues (

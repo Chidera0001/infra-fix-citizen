@@ -16,8 +16,18 @@ export const CitizenSidebar = ({ activeTab, onTabChange }: CitizenSidebarProps) 
 	const [isOpen, setIsOpen] = useState(false);
 
 	const handleSignOut = async () => {
-		await signOut();
-		navigate("/");
+		try {
+			// Sign out and wait for completion (includes cleanup delay)
+			await signOut();
+			// Wait a bit more to ensure user state is cleared and caches are cleared
+			await new Promise(resolve => setTimeout(resolve, 100));
+			// Navigate to home page after cleanup completes
+			navigate("/");
+		} catch (error) {
+			console.warn('Sign out failed:', error);
+			// Navigate to home page even if sign out fails
+			navigate("/");
+		}
 	};
 
 	const handleMenuItemClick = (tab: string) => {
@@ -116,7 +126,7 @@ export const CitizenSidebar = ({ activeTab, onTabChange }: CitizenSidebarProps) 
 				</nav>
 
 				{/* Footer Actions */}
-				<div className="p-4 border-t border-gray-200 space-y-2">
+				<div className="p-4 pb-16 border-t border-gray-200 space-y-2" style={{ paddingBottom: 'max(4rem, calc(env(safe-area-inset-bottom) + 2rem))' }}>
 					<Button
 						variant="ghost"
 						className="w-full justify-start text-red-600 hover:bg-red-50"

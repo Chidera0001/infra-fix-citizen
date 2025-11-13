@@ -32,7 +32,8 @@ export const supabase = createClient<Database>(
     global: {
       headers: {
         'X-Client-Info': 'infra-fix-citizen',
-        'X-Requested-With': 'XMLHttpRequest',
+        // Add Accept header to fix 406 Not Acceptable errors
+        'Accept': 'application/json',
       },
     },
     // Add realtime configuration

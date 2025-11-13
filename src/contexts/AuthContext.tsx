@@ -3,6 +3,7 @@ import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { clearProfileCache } from '@/lib/supabase-api';
 import { handleAuthError, logAuthError } from '@/utils/authErrorHandler';
+import { offlineStorage } from '@/utils/offlineStorage';
 
 interface AuthContextType {
   user: User | null;
@@ -23,7 +24,9 @@ interface AuthContextType {
   enableOfflineMode: () => void;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(
+  undefined
+);
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -47,28 +50,118 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    let isMounted = true;
+    let timeoutId: NodeJS.Timeout;
 
-    // Listen for auth changes
+    // Get initial session with timeout and error handling
+    const initializeAuth = async () => {
+      try {
+        // Set a timeout to prevent infinite loading
+        const sessionPromise = supabase.auth.getSession();
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          timeoutId = setTimeout(() => {
+            reject(new Error('Session check timeout'));
+          }, 10000); // 10 second timeout
+        });
+
+        const result = (await Promise.race([
+          sessionPromise,
+          timeoutPromise,
+        ])) as { data: { session: Session | null }; error: AuthError | null };
+
+        if (isMounted) {
+          const {
+            data: { session },
+            error,
+          } = result;
+          if (error) {
+            console.error('Failed to get session:', error);
+            // Still set loading to false even on error
+            setSession(null);
+            setUser(null);
+            setLoading(false);
+          } else {
+            setSession(session);
+            setUser(session?.user ?? null);
+            setLoading(false);
+          }
+        }
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+        if (isMounted) {
+          // Always set loading to false, even on error
+          setSession(null);
+          setUser(null);
+          setLoading(false);
+        }
+      } finally {
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
+      }
+    };
+
+    initializeAuth();
+
+    // Listen for auth changes with proper event handling
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (isMounted) {
+        // Handle different auth events
+        if (
+          event === 'SIGNED_OUT' ||
+          (!session?.user && event === 'TOKEN_REFRESHED')
+        ) {
+          // Clear profile cache when user signs out
+          // Note: auth:signout event is dispatched from signOut() function
+          // to avoid duplicate events and ensure proper cleanup order
+          clearProfileCache();
+        }
 
-      // Clear profile cache when user signs out
-      if (!session?.user) {
-        clearProfileCache();
+        // Handle email confirmation - auto-login after verification
+        if (event === 'SIGNED_IN' && session?.user) {
+          // Invalidate all queries to force fresh data fetch on sign in
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(
+              new CustomEvent('auth:signin', {
+                detail: { userId: session.user.id },
+              })
+            );
+          }
+
+          // Check if user just verified their email (email_confirmed_at is recent)
+          const emailConfirmedAt = session.user.email_confirmed_at;
+          if (emailConfirmedAt) {
+            const confirmedTime = new Date(emailConfirmedAt).getTime();
+            const now = Date.now();
+            // If email was confirmed in the last 5 minutes, it's a fresh verification
+            if (now - confirmedTime < 5 * 60 * 1000) {
+              // Dispatch event to redirect to dashboard
+              if (typeof window !== 'undefined') {
+                window.dispatchEvent(
+                  new CustomEvent('auth:verified', {
+                    detail: { user: session.user },
+                  })
+                );
+              }
+            }
+          }
+        }
+
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+      subscription.unsubscribe();
+    };
   }, []);
 
   // Listen for online/offline events
@@ -115,6 +208,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           data: {
             full_name: fullName,
           },
+          // Redirect to confirmation page after email verification
+          emailRedirectTo: `${window.location.origin}/auth/confirm`,
         },
       });
 
@@ -145,7 +240,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -157,6 +252,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const friendlyError = new Error(errorInfo.userMessage) as AuthError;
         friendlyError.code = error.code || 'signin_error';
         return { error: friendlyError };
+      }
+
+      // Wait for onAuthStateChange to fire and update user state
+      // This ensures the user state is set before navigation happens
+      if (data.session?.user) {
+        let retries = 0;
+        const maxRetries = 30; // 30 retries × 100ms = 3 seconds max
+        while (retries < maxRetries) {
+          // Check if user state has been updated by onAuthStateChange
+          const currentSession = await supabase.auth.getSession();
+          if (currentSession.data.session?.user?.id === data.session.user.id) {
+            // Wait a bit more to ensure onAuthStateChange has fired and state is updated
+            await new Promise(resolve => setTimeout(resolve, 100));
+            break;
+          }
+          await new Promise(resolve => setTimeout(resolve, 100));
+          retries++;
+        }
       }
 
       return { error };
@@ -179,10 +292,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
 
     try {
+      // Google OAuth sign-in with proper redirect URL
+      // This must match the URL configured in Supabase Dashboard > Authentication > URL Configuration
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/citizen`,
+          redirectTo: `${window.location.origin}/auth/callback`,
+          // Use PKCE flow for better security (already configured in client)
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
         },
       });
 
@@ -206,44 +326,39 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const signOut = async () => {
-    if (!isOnline) {
-      // Handle offline sign out by clearing local state
-      setUser(null);
-      setSession(null);
-      clearProfileCache(); // Clear cache on offline sign out too
-      return { error: null };
-    }
+    // Always clear local state immediately for consistent behavior
+    setUser(null);
+    setSession(null);
+    clearProfileCache();
 
+    // Always call supabase.auth.signOut() to clear Supabase session storage
+    // This ensures localStorage is cleared even when offline
     try {
-      const { error } = await supabase.auth.signOut();
-
-      // Handle errors using the error handler
-      if (error) {
-        logAuthError(error, 'signOut');
-        const errorInfo = handleAuthError(error, 'signOut');
-
-        // Always clear local state for sign out, regardless of error
-        if (errorInfo.shouldClearLocalState) {
-          setUser(null);
-          setSession(null);
-          clearProfileCache();
-        }
-
-        return { error: null }; // Don't return the error for sign out
-      }
-
-      return { error };
+      await supabase.auth.signOut();
     } catch (error) {
-      logAuthError(error as AuthError, 'signOut', 'catch block');
-      const errorInfo = handleAuthError(error as AuthError, 'signOut');
-
-      // Always clear local state for sign out, regardless of error
-      setUser(null);
-      setSession(null);
-      clearProfileCache();
-
-      return { error: null }; // Don't return the error for sign out
+      // Ignore errors from signOut when offline - we still want to clear local state
+      if (isOnline) {
+        logAuthError(error as AuthError, 'signOut');
+      }
     }
+
+    // Clear offline reports from IndexedDB to prevent data leakage between users
+    try {
+      await offlineStorage.clearAllPendingReports();
+    } catch (error) {
+      // Log but don't fail sign out if clearing offline reports fails
+      console.warn('Failed to clear offline reports on sign out:', error);
+    }
+
+    // Dispatch event to clear React Query cache
+    // Wait a tick to ensure event listeners have processed
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('auth:signout'));
+      // Small delay to ensure React Query cache is cleared before function returns
+      await new Promise(resolve => setTimeout(resolve, 50));
+    }
+
+    return { error: null };
   };
 
   const value = {

@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Camera, Upload } from 'lucide-react';
 import { PhotoUploadSection } from './PhotoUploadSection';
+import { ISSUE_CATEGORIES } from '@/constants';
 
 interface ReportFormData {
   title: string;
@@ -72,24 +73,19 @@ export function ReportForm({ formData, onFormDataChange, onSubmit, isSubmitting,
 
             <div className="space-y-2">
               <Label htmlFor="category">Category *</Label>
-              <Select onValueChange={(value) => onFormDataChange({ category: value })}>
+              <Select
+                value={formData.category}
+                onValueChange={(value) => onFormDataChange({ category: value })}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select issue category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="pothole">Pothole</SelectItem>
-                  <SelectItem value="street_lighting">Street Lighting</SelectItem>
-                  <SelectItem value="water_supply">Water Supply</SelectItem>
-                  <SelectItem value="traffic_signal">Traffic Signal</SelectItem>
-                  <SelectItem value="drainage">Drainage (Flood Prevention)</SelectItem>
-                  <SelectItem value="sidewalk">Sidewalk</SelectItem>
-                  <SelectItem value="flooding">Flooding</SelectItem>
-                  <SelectItem value="erosion">Erosion</SelectItem>
-                  <SelectItem value="urban_heat">Urban Heat</SelectItem>
-                  <SelectItem value="storm_damage">Storm Damage</SelectItem>
-                  <SelectItem value="green_infrastructure">Green Infrastructure</SelectItem>
-                  <SelectItem value="water_contamination">Water Contamination</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
+                  {ISSUE_CATEGORIES.map((category) => (
+                    <SelectItem key={category.value} value={category.value}>
+                      {category.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

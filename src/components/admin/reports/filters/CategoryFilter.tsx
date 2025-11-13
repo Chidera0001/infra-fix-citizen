@@ -2,6 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Filter, Tag } from "lucide-react";
+import { ISSUE_CATEGORIES } from "@/constants";
 
 interface Category {
 	id: string;
@@ -11,6 +12,36 @@ interface Category {
 	count?: number;
 }
 
+const categoryDescriptions: Record<string, string> = {
+	bad_roads: "Road damage, potholes, and surface wear",
+	broken_streetlights: "Faulty or missing street lighting",
+	dump_sites: "Illegal or overflowing waste dumps",
+	floods: "Flooded streets and neighborhoods",
+	water_supply_issues: "Leaks, burst pipes, or disrupted supply",
+	bad_traffic_signals: "Malfunctioning or missing traffic signals",
+	poor_drainages: "Blocked gutters and drainage failures",
+	erosion_sites: "Erosion hotspots threatening infrastructure",
+	collapsed_bridges: "Damaged or unsafe bridges and culverts",
+	open_manholes: "Exposed or damaged manhole covers",
+	unsafe_crossings: "Unsafe pedestrian crossings and walkways",
+	construction_debris: "Debris or materials obstructing public areas"
+};
+
+const categoryStyles: Record<string, string> = {
+	bad_roads: "bg-red-100 text-red-700",
+	broken_streetlights: "bg-yellow-100 text-yellow-700",
+	dump_sites: "bg-emerald-100 text-emerald-700",
+	floods: "bg-blue-100 text-blue-700",
+	water_supply_issues: "bg-sky-100 text-sky-700",
+	bad_traffic_signals: "bg-orange-100 text-orange-700",
+	poor_drainages: "bg-teal-100 text-teal-700",
+	erosion_sites: "bg-purple-100 text-purple-700",
+	collapsed_bridges: "bg-amber-100 text-amber-700",
+	open_manholes: "bg-pink-100 text-pink-700",
+	unsafe_crossings: "bg-lime-100 text-lime-700",
+	construction_debris: "bg-slate-100 text-slate-700"
+};
+
 const categories: Category[] = [
 	{
 		id: "all",
@@ -18,84 +49,12 @@ const categories: Category[] = [
 		description: "Include all issue categories",
 		color: "bg-gray-100 text-gray-700"
 	},
-	{
-		id: "pothole",
-		name: "Pothole",
-		description: "Road surface damage and holes",
-		color: "bg-blue-100 text-blue-700"
-	},
-	{
-		id: "street_lighting",
-		name: "Street Lighting",
-		description: "Street lights and illumination",
-		color: "bg-yellow-100 text-yellow-700"
-	},
-	{
-		id: "water_supply",
-		name: "Water Supply",
-		description: "Water pipes, leaks, and supply issues",
-		color: "bg-blue-100 text-blue-700"
-	},
-	{
-		id: "traffic_signal",
-		name: "Traffic Signal",
-		description: "Traffic lights and signals",
-		color: "bg-red-100 text-red-700"
-	},
-	{
-		id: "drainage",
-		name: "Drainage",
-		description: "Blocked drains, flooding issues, and water management impacting climate resilience",
-		color: "bg-green-100 text-green-700"
-	},
-	{
-		id: "sidewalk",
-		name: "Sidewalk",
-		description: "Pedestrian walkways and paths",
-		color: "bg-purple-100 text-purple-700"
-	},
-	{
-		id: "flooding",
-		name: "Flooding",
-		description: "Flooding and water overflow issues posing climate adaptation challenges",
-		color: "bg-green-100 text-green-700"
-	},
-	{
-		id: "erosion",
-		name: "Erosion",
-		description: "Coastal, riverbank, or soil erosion from extreme weather affecting infrastructure",
-		color: "bg-green-100 text-green-700"
-	},
-	{
-		id: "urban_heat",
-		name: "Urban Heat",
-		description: "Heat island effects, lack of green spaces impacting climate resilience",
-		color: "bg-green-100 text-green-700"
-	},
-	{
-		id: "storm_damage",
-		name: "Storm Damage",
-		description: "Wind, storm, and extreme weather damage requiring climate adaptation",
-		color: "bg-green-100 text-green-700"
-	},
-	{
-		id: "green_infrastructure",
-		name: "Green Infrastructure",
-		description: "Lack of trees, parks, permeable surfaces needed for climate mitigation",
-		color: "bg-green-100 text-green-700"
-	},
-	{
-		id: "water_contamination",
-		name: "Water Contamination",
-		description: "Post-flooding contamination and water quality issues affecting public health",
-		color: "bg-green-100 text-green-700"
-	},
-	{
-		id: "other",
-		name: "Other",
-		description: "Other infrastructure issues",
-		color: "bg-gray-100 text-gray-700"
-	}
+	...ISSUE_CATEGORIES.map((category) => ({
+		id: category.value,
+		name: category.label,
+		description: categoryDescriptions[category.value] ?? "Infrastructure issue",
+		color: categoryStyles[category.value] ?? "bg-gray-100 text-gray-700"
+	}))
 ];
 
 interface CategoryFilterProps {

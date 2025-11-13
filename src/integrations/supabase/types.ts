@@ -81,7 +81,19 @@ export type Database = {
           id: string
           title: string
           description: string
-          category: 'pothole' | 'street_lighting' | 'water_supply' | 'traffic_signal' | 'drainage' | 'sidewalk' | 'other'
+          category:
+            | 'bad_roads'
+            | 'broken_streetlights'
+            | 'dump_sites'
+            | 'floods'
+            | 'water_supply_issues'
+            | 'bad_traffic_signals'
+            | 'poor_drainages'
+            | 'erosion_sites'
+            | 'collapsed_bridges'
+            | 'open_manholes'
+            | 'unsafe_crossings'
+            | 'construction_debris'
           status: 'open' | 'in_progress' | 'resolved' | 'closed'
           severity: 'low' | 'medium' | 'high' | 'critical'
           location_lat: number
@@ -101,7 +113,19 @@ export type Database = {
           id?: string
           title: string
           description: string
-          category: 'pothole' | 'street_lighting' | 'water_supply' | 'traffic_signal' | 'drainage' | 'sidewalk' | 'other'
+          category:
+            | 'bad_roads'
+            | 'broken_streetlights'
+            | 'dump_sites'
+            | 'floods'
+            | 'water_supply_issues'
+            | 'bad_traffic_signals'
+            | 'poor_drainages'
+            | 'erosion_sites'
+            | 'collapsed_bridges'
+            | 'open_manholes'
+            | 'unsafe_crossings'
+            | 'construction_debris'
           status?: 'open' | 'in_progress' | 'resolved' | 'closed'
           severity?: 'low' | 'medium' | 'high' | 'critical'
           location_lat: number
@@ -121,7 +145,19 @@ export type Database = {
           id?: string
           title?: string
           description?: string
-          category?: 'pothole' | 'street_lighting' | 'water_supply' | 'traffic_signal' | 'drainage' | 'sidewalk' | 'other'
+          category?:
+            | 'bad_roads'
+            | 'broken_streetlights'
+            | 'dump_sites'
+            | 'floods'
+            | 'water_supply_issues'
+            | 'bad_traffic_signals'
+            | 'poor_drainages'
+            | 'erosion_sites'
+            | 'collapsed_bridges'
+            | 'open_manholes'
+            | 'unsafe_crossings'
+            | 'construction_debris'
           status?: 'open' | 'in_progress' | 'resolved' | 'closed'
           severity?: 'low' | 'medium' | 'high' | 'critical'
           location_lat?: number
@@ -256,7 +292,19 @@ export type Database = {
       get_issues_with_filters: {
         Args: {
           p_status?: 'open' | 'in_progress' | 'resolved' | 'closed'
-          p_category?: 'pothole' | 'street_lighting' | 'water_supply' | 'traffic_signal' | 'drainage' | 'sidewalk' | 'other'
+          p_category?:
+            | 'bad_roads'
+            | 'broken_streetlights'
+            | 'dump_sites'
+            | 'floods'
+            | 'water_supply_issues'
+            | 'bad_traffic_signals'
+            | 'poor_drainages'
+            | 'erosion_sites'
+            | 'collapsed_bridges'
+            | 'open_manholes'
+            | 'unsafe_crossings'
+            | 'construction_debris'
           p_severity?: 'low' | 'medium' | 'high' | 'critical'
           p_lat?: number
           p_lng?: number
@@ -270,7 +318,19 @@ export type Database = {
           id: string
           title: string
           description: string
-          category: 'pothole' | 'street_lighting' | 'water_supply' | 'traffic_signal' | 'drainage' | 'sidewalk' | 'other'
+          category:
+            | 'bad_roads'
+            | 'broken_streetlights'
+            | 'dump_sites'
+            | 'floods'
+            | 'water_supply_issues'
+            | 'bad_traffic_signals'
+            | 'poor_drainages'
+            | 'erosion_sites'
+            | 'collapsed_bridges'
+            | 'open_manholes'
+            | 'unsafe_crossings'
+            | 'construction_debris'
           status: 'open' | 'in_progress' | 'resolved' | 'closed'
           severity: 'low' | 'medium' | 'high' | 'critical'
           location_lat: number
@@ -303,7 +363,19 @@ export type Database = {
     }
     Enums: {
       issue_status: 'open' | 'in_progress' | 'resolved' | 'closed'
-      issue_category: 'pothole' | 'street_lighting' | 'water_supply' | 'traffic_signal' | 'drainage' | 'sidewalk' | 'other'
+      issue_category:
+        | 'bad_roads'
+        | 'broken_streetlights'
+        | 'dump_sites'
+        | 'floods'
+        | 'water_supply_issues'
+        | 'bad_traffic_signals'
+        | 'poor_drainages'
+        | 'erosion_sites'
+        | 'collapsed_bridges'
+        | 'open_manholes'
+        | 'unsafe_crossings'
+        | 'construction_debris'
       issue_severity: 'low' | 'medium' | 'high' | 'critical'
       user_role: 'citizen' | 'admin' | 'moderator'
     }

@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { Download, Share2, Plus } from "lucide-react";
 
 interface AdminIssueActionsProps {
 	onExport?: () => void;
@@ -16,7 +15,6 @@ export const AdminIssueActions = ({ onExport, onShare, onAddIssue }: AdminIssueA
 				className="border-gray-300"
 				onClick={onExport}
 			>
-				<Download className="h-4 w-4 mr-2" />
 				Export
 			</Button>
 			<Button 
@@ -25,7 +23,6 @@ export const AdminIssueActions = ({ onExport, onShare, onAddIssue }: AdminIssueA
 				className="border-gray-300"
 				onClick={onShare}
 			>
-				<Share2 className="h-4 w-4 mr-2" />
 				Share
 			</Button>
 			<Button 
@@ -33,7 +30,6 @@ export const AdminIssueActions = ({ onExport, onShare, onAddIssue }: AdminIssueA
 				className="bg-green-600 hover:bg-green-700"
 				onClick={onAddIssue}
 			>
-				<Plus className="h-4 w-4 mr-2" />
 				Add Issue
 			</Button>
 		</div>

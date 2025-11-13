@@ -13,7 +13,10 @@ export interface AuthErrorInfo {
  * @param operation - The operation that failed (signUp, signIn, signOut, etc.)
  * @returns AuthErrorInfo with handling instructions
  */
-export function handleAuthError(error: AuthError | Error | null, operation: string): AuthErrorInfo {
+export function handleAuthError(
+  error: AuthError | Error | null,
+  operation: string
+): AuthErrorInfo {
   if (!error) {
     return {
       isRetryable: false,
@@ -37,7 +40,11 @@ export function handleAuthError(error: AuthError | Error | null, operation: stri
   }
 
   // Handle network errors
-  if (errorMessage.includes('network') || errorMessage.includes('fetch') || errorMessage.includes('timeout')) {
+  if (
+    errorMessage.includes('network') ||
+    errorMessage.includes('fetch') ||
+    errorMessage.includes('timeout')
+  ) {
     return {
       isRetryable: true,
       userMessage: 'Network error. Please check your connection and try again.',
@@ -57,7 +64,11 @@ export function handleAuthError(error: AuthError | Error | null, operation: stri
   }
 
   // Handle authentication errors
-  if (errorCode === 'invalid_credentials' || errorMessage.includes('invalid') || errorMessage.includes('credentials')) {
+  if (
+    errorCode === 'invalid_credentials' ||
+    errorMessage.includes('invalid') ||
+    errorMessage.includes('credentials')
+  ) {
     return {
       isRetryable: false,
       userMessage: 'Invalid email or password. Please check your credentials.',
@@ -67,20 +78,29 @@ export function handleAuthError(error: AuthError | Error | null, operation: stri
   }
 
   // Handle rate limiting
-  if (errorCode === 'too_many_requests' || errorMessage.includes('rate limit')) {
+  if (
+    errorCode === 'too_many_requests' ||
+    errorMessage.includes('rate limit')
+  ) {
     return {
       isRetryable: true,
-      userMessage: 'Too many attempts. Please wait a moment before trying again.',
+      userMessage:
+        'Too many attempts. Please wait a moment before trying again.',
       technicalMessage: `Rate limited during ${operation}: ${error.message}`,
       shouldClearLocalState: false,
     };
   }
 
   // Handle email already exists
-  if (errorCode === 'user_already_registered' || errorMessage.includes('already registered')) {
+  if (
+    errorCode === 'user_already_registered' ||
+    errorMessage.includes('already registered') ||
+    errorMessage.includes('already exists')
+  ) {
     return {
       isRetryable: false,
-      userMessage: 'An account with this email already exists. Please sign in instead.',
+      userMessage:
+        'An account with this email already exists. If you already verified, try signing in. Otherwise, complete the verification link in your email or request a new one from the sign-in page.',
       technicalMessage: `User already registered during ${operation}: ${error.message}`,
       shouldClearLocalState: false,
     };
@@ -100,7 +120,8 @@ export function handleAuthError(error: AuthError | Error | null, operation: stri
   if (errorCode === 'offline_error') {
     return {
       isRetryable: false,
-      userMessage: 'You are currently offline. Please check your internet connection.',
+      userMessage:
+        'You are currently offline. Please check your internet connection.',
       technicalMessage: `Offline error during ${operation}: ${error.message}`,
       shouldClearLocalState: false,
     };
@@ -121,7 +142,10 @@ export function handleAuthError(error: AuthError | Error | null, operation: stri
  * @param operation - The operation that failed
  * @returns User-friendly error message
  */
-export function getUserFriendlyErrorMessage(error: AuthError | Error | null, operation: string): string {
+export function getUserFriendlyErrorMessage(
+  error: AuthError | Error | null,
+  operation: string
+): string {
   const errorInfo = handleAuthError(error, operation);
   return errorInfo.userMessage;
 }
@@ -132,7 +156,11 @@ export function getUserFriendlyErrorMessage(error: AuthError | Error | null, ope
  * @param operation - The operation that failed
  * @param context - Additional context for logging
  */
-export function logAuthError(error: AuthError | Error | null, operation: string, context?: string): void {
+export function logAuthError(
+  error: AuthError | Error | null,
+  operation: string,
+  context?: string
+): void {
   if (!error) return;
 
   const errorInfo = handleAuthError(error, operation);

@@ -19,6 +19,7 @@ import { useCreateOnlineIssue } from '@/hooks/use-separate-issues';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { fileToBase64, verifyReport } from '@/utils/aiVerification';
+import { ISSUE_CATEGORIES } from '@/constants';
 
 interface InstantReportFormProps {
   photo: File;
@@ -27,6 +28,8 @@ interface InstantReportFormProps {
   onRetake: () => void;
 }
 
+type IssueCategoryValue = (typeof ISSUE_CATEGORIES)[number]['value'];
+
 export const InstantReportForm = ({
   photo,
   initialLocation,
@@ -34,20 +37,13 @@ export const InstantReportForm = ({
   onRetake,
 }: InstantReportFormProps) => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const { toast } = useToast();
   const createOnlineIssueMutation = useCreateOnlineIssue();
 
   const [formData, setFormData] = useState({
     title: '',
-    category: 'other' as
-      | 'pothole'
-      | 'street_lighting'
-      | 'water_supply'
-      | 'traffic_signal'
-      | 'drainage'
-      | 'sidewalk'
-      | 'other',
+    category: (ISSUE_CATEGORIES[0]?.value as IssueCategoryValue) ?? 'bad_roads',
     severity: 'medium' as 'low' | 'medium' | 'high' | 'critical',
     description: '',
     address: initialLocation?.address || '',
@@ -173,20 +169,49 @@ export const InstantReportForm = ({
       // Extract base64 data (remove 'data:image/jpeg;base64,' prefix)
       const base64Data = base64DataUrl.split(',')[1];
 
-      // Step 2: Verify report using AI
+      // Step 2: Verify report using AI (pass session token to avoid race conditions)
       const verificationResult = await verifyReport(
         base64Data,
         mimeType,
         formData.category,
-        formData.description.trim()
+        formData.description.trim(),
+        session?.access_token // Pass the session token from AuthContext
       );
 
       // Step 3: If verification fails, show error and return
       if (!verificationResult.success) {
+        // Parse and format the error message with emojis
+        let formattedMessage = 'Please update the following:\n\n';
+
+        // Extract image error
+        const imageErrorMatch = verificationResult.message.match(
+          /Image Error:\s*(.+?)(?:\n|$)/i
+        );
+        if (imageErrorMatch) {
+          formattedMessage += `📷 Image: ${imageErrorMatch[1].trim()}\n`;
+        }
+
+        // Extract description error
+        const descriptionErrorMatch = verificationResult.message.match(
+          /Description Error:\s*(.+?)(?:\n|$)/i
+        );
+        if (descriptionErrorMatch) {
+          formattedMessage += `📝 Description: ${descriptionErrorMatch[1].trim()}\n`;
+        }
+
+        // If no specific errors found, use the original message
+        if (!imageErrorMatch && !descriptionErrorMatch) {
+          formattedMessage = verificationResult.message.replace(
+            'Report failed verification. Please review the following issues:',
+            'Please update the following:'
+          );
+        }
+
         toast({
-          title: 'Verification Failed',
-          description: verificationResult.message,
-          variant: 'destructive',
+          title: '⚠️ Please Review Your Report',
+          description: formattedMessage.trim(),
+          variant: 'warning',
+          duration: 8000,
         });
         setIsSubmitting(false);
         return;
@@ -370,7 +395,7 @@ export const InstantReportForm = ({
               </Label>
               <Select
                 value={formData.category}
-                onValueChange={(value: any) =>
+                onValueChange={(value: IssueCategoryValue) =>
                   setFormData({ ...formData, category: value })
                 }
               >
@@ -378,21 +403,11 @@ export const InstantReportForm = ({
                   <SelectValue placeholder='Select category' />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value='pothole'>Pothole</SelectItem>
-                  <SelectItem value='street_lighting'>
-                    Street Lighting
-                  </SelectItem>
-                  <SelectItem value='water_supply'>Water Supply</SelectItem>
-                  <SelectItem value='traffic_signal'>Traffic Signal</SelectItem>
-                  <SelectItem value='drainage'>Drainage (Flood Prevention)</SelectItem>
-                  <SelectItem value='sidewalk'>Sidewalk</SelectItem>
-                  <SelectItem value='flooding'>Flooding</SelectItem>
-                  <SelectItem value='erosion'>Erosion</SelectItem>
-                  <SelectItem value='urban_heat'>Urban Heat</SelectItem>
-                  <SelectItem value='storm_damage'>Storm Damage</SelectItem>
-                  <SelectItem value='green_infrastructure'>Green Infrastructure</SelectItem>
-                  <SelectItem value='water_contamination'>Water Contamination</SelectItem>
-                  <SelectItem value='other'>Other</SelectItem>
+                  {ISSUE_CATEGORIES.map(category => (
+                    <SelectItem key={category.value} value={category.value}>
+                      {category.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

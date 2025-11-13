@@ -104,7 +104,7 @@ Deno.serve(async req => {
 
 1. Image Check: Verify if the image clearly matches the issue category of '${issueCategory}'. Set 'image_content_verified' to true or false. If false, set 'image_verification_message' to "Image does not match issue category: " followed by a brief, specific explanation.
 
-2. Description Check: Check the user's description for relevant keywords related to the category '${issueCategory}'. Set 'description_keyword_verified' to true or false. If false, set 'description_verification_message' to "Please use keywords related to the issue category (e.g., 'pothole', 'submerged', 'broken pipe')."
+2. Description Check: Check the user's description for relevant keywords related to the category '${issueCategory}'. Set 'description_keyword_verified' to true or false. If false, set 'description_verification_message' to "Please use keywords related to the issue category (e.g., 'pothole', 'flooded street', 'open manhole')."
 
 3. Final Check: Set 'is_verified' to true only if BOTH image and description are verified.`;
 

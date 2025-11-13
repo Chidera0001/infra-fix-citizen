@@ -17,7 +17,7 @@ const problems: Problem[] = [
     id: 1,
     title: 'Broken Roads & Potholes',
     description:
-      'Major roads across Nigeria suffer from severe potholes, broken surfaces, and inadequate maintenance, causing vehicle damage, accidents, and traffic congestion that affects daily commutes and economic activities.',
+      'Severe potholes wreck suspensions, slow traffic, and raise crash risks.',
     image: '/Assets/Images/Bad-road.jpg',
     impacts: [
       'Vehicle damage and increased repair costs',
@@ -29,7 +29,7 @@ const problems: Problem[] = [
     id: 2,
     title: 'Broken Street Lights',
     description:
-      'Non-functional street lights create safety hazards and security concerns in Nigerian communities, leading to increased crime rates, limited nighttime activities, and pedestrian safety issues that affect the overall quality of life.',
+      'Dark streets invite crime, keep shops closed, and make night walks unsafe.',
     image: '/Assets/Images/Street-light.jpg',
     impacts: [
       'Increased crime rates in dark areas',
@@ -41,7 +41,7 @@ const problems: Problem[] = [
     id: 3,
     title: 'Poor Drainage Systems',
     description:
-      'Inadequate drainage infrastructure leads to flooding during rainy seasons, property damage, and health risks from stagnant water, affecting the quality of life in many Nigerian communities.',
+      'Blocked drains turn every rainstorm into floods and mosquito hotspots.',
     image: '/Assets/Images/Drainnage.jpg',
     impacts: [
       'Flooding during rainy seasons',
@@ -53,7 +53,7 @@ const problems: Problem[] = [
     id: 4,
     title: 'Water Supply Issues',
     description:
-      'Inconsistent water supply and poor water infrastructure affect millions of Nigerians, leading to water scarcity, health risks, and economic challenges that impact daily life and business operations.',
+      'Burst pipes leave families hauling scarce, often unsafe, water.',
     image: '/Assets/Images/water-supply.webp',
     impacts: [
       'Water scarcity and rationing',
@@ -65,7 +65,7 @@ const problems: Problem[] = [
     id: 5,
     title: 'Traffic Signal Problems',
     description:
-      'Malfunctioning traffic lights and poor traffic management systems cause confusion, accidents, and traffic congestion, creating dangerous conditions for motorists and pedestrians across Nigerian cities.',
+      'Dead lights create chaotic junctions, more crashes, and longer jams.',
     image: '/Assets/Images/Traffic-light.webp',
     impacts: [
       'Increased traffic accidents',
@@ -73,67 +73,144 @@ const problems: Problem[] = [
       'Pedestrian safety concerns',
     ],
   },
+  {
+    id: 6,
+    title: 'Illegal Dump Sites',
+    description:
+      'Piles of waste beside homes breed disease and choke storm drains.',
+    image: '/Assets/Images/Dumpsite.webp',
+    impacts: [
+      'Air and groundwater contamination',
+      'Clogged drains that worsen flooding',
+      'Health risks from pests and disease',
+    ],
+  },
+  {
+    id: 7,
+    title: 'Recurring Flooding',
+    description:
+      'Seasonal floods shut roads, soak homes, and leave unsafe standing water.',
+    image: '/Assets/Images/flood.webp',
+    impacts: [
+      'Road closures and stalled transport',
+      'Costly damage to homes and shops',
+      'Increased risk of waterborne illness',
+    ],
+  },
+  {
+    id: 8,
+    title: 'Severe Erosion Sites',
+    description:
+      'Gullies eat away roads and farmlands, threatening nearby houses.',
+    image: '/Assets/Images/Erosion.jpg',
+    impacts: [
+      'Loss of roads and farmland',
+      'Structural danger to nearby homes',
+      'Higher repair costs for communities',
+    ],
+  },
+  {
+    id: 9,
+    title: 'Collapsed Bridges & Culverts',
+    description:
+      'Collapsed bridges cut off communities and delay emergency access.',
+    image: '/Assets/Images/Collapsed bridges.webp',
+    impacts: [
+      'Communities cut off from essential services',
+      'Dangerous crossings for commuters',
+      'Delays for emergency response teams',
+    ],
+  },
+  {
+    id: 10,
+    title: 'Open Manholes & Drains',
+    description:
+      'Missing covers injure walkers, damage cars, and make school routes risky.',
+    image: '/Assets/Images/manhole.jpg',
+    impacts: [
+      'Serious falls and injuries to pedestrians',
+      'Vehicle damage and traffic slowdowns',
+      'Unsafe routes for school children',
+    ],
+  },
+  {
+    id: 11,
+    title: 'Unsafe Pedestrian Crossings',
+    description:
+      'Faded crossings force pedestrians to sprint across speeding traffic.',
+    image: '/Assets/Images/Zebra crossing.jpg',
+    impacts: [
+      'Higher pedestrian accident rates',
+      'Reduced confidence in walking routes',
+      'Limited access for children and seniors',
+    ],
+  },
+  {
+    id: 12,
+    title: 'Construction Debris Piles',
+    description:
+      'Abandoned rubble blocks lanes, hides drains, and trips passers-by.',
+    image: '/Assets/Images/construction debris.jpeg',
+    impacts: [
+      'Obstructed lanes and sidewalks',
+      'Injuries from exposed sharp materials',
+      'Storm drains blocked by loose debris',
+    ],
+  },
 ];
 
 const ProblemsCards: React.FC = () => {
-  const [activeCard, setActiveCard] = useState(0);
-  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [scrollOffset, setScrollOffset] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const [isImmediate, setIsImmediate] = useState(false);
 
-  // Create duplicated array for infinite loop (duplicate all cards)
+  // Duplicate list to keep a seamless loop
   const infiniteProblems = [...problems, ...problems];
 
-  const nextCard = () => {
-    if (isTransitioning) return;
-    setIsTransitioning(true);
-    setActiveCard(prev => prev + 1);
-  };
-
-  const prevCard = () => {
-    if (isTransitioning) return;
-    setIsTransitioning(true);
-    setActiveCard(prev => prev - 1);
-  };
-
-  // Handle infinite loop transitions
   useEffect(() => {
-    if (!isTransitioning) return;
-
-    const timer = setTimeout(() => {
-      if (activeCard >= problems.length) {
-        // Reset to beginning without transition
-        setActiveCard(activeCard - problems.length);
-      } else if (activeCard < 0) {
-        // Reset to end without transition
-        setActiveCard(activeCard + problems.length);
-      }
-      setIsTransitioning(false);
-    }, 700); // Match transition duration
-
-    return () => clearTimeout(timer);
-  }, [activeCard, isTransitioning]);
-
-  // Calculate transform for desktop (3 cards at a time)
-  const getDesktopTransform = () => {
-    return `translateX(-${activeCard * 33.33}%)`;
-  };
-
-  // Auto-play functionality
-  useEffect(() => {
-    if (!isAutoPlaying || isTransitioning) return;
+    if (isPaused) return;
 
     const interval = setInterval(() => {
-      nextCard();
-    }, 4000); // Change card every 4 seconds
+      setScrollOffset(prev => {
+        const next = prev + 0.003;
+        if (next >= problems.length) {
+          setIsImmediate(true);
+          return next - problems.length;
+        }
+        return next;
+      });
+    }, 16); // smooth, gentle drift
 
     return () => clearInterval(interval);
-  }, [isAutoPlaying, isTransitioning]);
+  }, [isPaused]);
 
-  // Pause auto-play on user interaction
-  const handleUserInteraction = () => {
-    setIsAutoPlaying(false);
-    // Resume auto-play after 10 seconds of no interaction
-    setTimeout(() => setIsAutoPlaying(true), 10000);
+  useEffect(() => {
+    if (!isImmediate) return;
+    const id = requestAnimationFrame(() => setIsImmediate(false));
+    return () => cancelAnimationFrame(id);
+  }, [isImmediate]);
+
+  const desktopTransform = `translateX(-${scrollOffset * 33.33}%)`;
+  const mobileTransform = `translateX(-${scrollOffset * 100}%)`;
+
+  const handlePause = () => setIsPaused(true);
+  const handleResume = () => setIsPaused(false);
+
+  const handleManualStep = (direction: number) => {
+    setScrollOffset(prev => {
+      let next = prev + direction;
+      if (next < 0) {
+        next += problems.length;
+        setIsImmediate(true);
+      } else if (next >= problems.length) {
+        next -= problems.length;
+        setIsImmediate(true);
+      }
+      return next;
+    });
+
+    setIsPaused(true);
+    setTimeout(() => setIsPaused(false), 4000);
   };
 
   return (
@@ -149,19 +226,25 @@ const ProblemsCards: React.FC = () => {
                   "url('/Assets/icons/Alert-triangle.svg') no-repeat center / contain",
               }}
             />
-            The Problems We Face
+            The Problem
           </Badge>
           <h3 className='text-l mb-6 px-4 font-semibold text-gray-900 sm:mb-8 sm:text-2xl md:text-3xl lg:text-3xl'>
-            Infrastructure Issues Affecting Nigerian Communities
+            Issues You Can Report
           </h3>
         </div>
 
         {/* Desktop Layout - 3 Cards at a Time */}
-        <div className='hidden lg:block'>
+        <div
+          className='hidden lg:block'
+          onMouseEnter={handlePause}
+          onMouseLeave={handleResume}
+        >
           <div className='relative overflow-hidden'>
             <div
-              className={`flex ${isTransitioning ? 'transition-transform duration-700 ease-in-out' : ''}`}
-              style={{ transform: getDesktopTransform() }}
+              className={`flex transition-transform ease-linear ${
+                isImmediate ? 'duration-0' : 'duration-[160ms]'
+              }`}
+              style={{ transform: desktopTransform }}
             >
               {infiniteProblems.map((problem, index) => (
                 <div
@@ -174,15 +257,12 @@ const ProblemsCards: React.FC = () => {
             </div>
           </div>
 
-          {/* Desktop Navigation Controls */}
+          {/* Desktop manual controls */}
           <div className='mt-8 flex justify-center space-x-4'>
             <Button
               variant='outline'
               size='sm'
-              onClick={() => {
-                prevCard();
-                handleUserInteraction();
-              }}
+              onClick={() => handleManualStep(-1)}
               className='border-gray-200 bg-white/80 backdrop-blur-sm hover:border-green-300 hover:bg-white'
             >
               <ChevronLeft className='h-4 w-4' />
@@ -190,10 +270,7 @@ const ProblemsCards: React.FC = () => {
             <Button
               variant='outline'
               size='sm'
-              onClick={() => {
-                nextCard();
-                handleUserInteraction();
-              }}
+              onClick={() => handleManualStep(1)}
               className='border-gray-200 bg-white/80 backdrop-blur-sm hover:border-green-300 hover:bg-white'
             >
               <ChevronRight className='h-4 w-4' />
@@ -204,14 +281,23 @@ const ProblemsCards: React.FC = () => {
         {/* Mobile/Tablet Layout - Responsive Grid */}
         <div className='lg:hidden'>
           {/* Mobile - Horizontal Carousel */}
-          <div className='sm:hidden'>
+          <div
+            className='sm:hidden'
+            onMouseEnter={handlePause}
+            onMouseLeave={handleResume}
+          >
             <div className='relative overflow-hidden'>
               <div
-                className='flex transition-transform duration-500 ease-in-out'
-                style={{ transform: `translateX(-${activeCard * 100}%)` }}
+                className={`flex transition-transform ease-linear ${
+                  isImmediate ? 'duration-0' : 'duration-[160ms]'
+                }`}
+                style={{ transform: mobileTransform }}
               >
-                {problems.map((problem, index) => (
-                  <div key={problem.id} className='w-full flex-shrink-0 px-2'>
+                {infiniteProblems.map((problem, index) => (
+                  <div
+                    key={`${problem.id}-${index}`}
+                    className='w-full flex-shrink-0 px-2'
+                  >
                     <ProblemCard problem={problem} variant='mobile' />
                   </div>
                 ))}
@@ -223,10 +309,7 @@ const ProblemsCards: React.FC = () => {
               <Button
                 variant='outline'
                 size='sm'
-                onClick={() => {
-                  prevCard();
-                  handleUserInteraction();
-                }}
+                onClick={() => handleManualStep(-1)}
                 className='border-gray-200 bg-white/80 backdrop-blur-sm hover:border-green-300 hover:bg-white'
               >
                 <ChevronLeft className='h-4 w-4' />
@@ -234,10 +317,7 @@ const ProblemsCards: React.FC = () => {
               <Button
                 variant='outline'
                 size='sm'
-                onClick={() => {
-                  nextCard();
-                  handleUserInteraction();
-                }}
+                onClick={() => handleManualStep(1)}
                 className='border-gray-200 bg-white/80 backdrop-blur-sm hover:border-green-300 hover:bg-white'
               >
                 <ChevronRight className='h-4 w-4' />

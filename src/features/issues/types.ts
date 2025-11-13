@@ -1,7 +1,19 @@
 // Issue-related types
 
 export type IssueStatus = 'open' | 'in_progress' | 'resolved' | 'closed';
-export type IssueCategory = 'pothole' | 'street_lighting' | 'water_supply' | 'traffic_signal' | 'drainage' | 'sidewalk' | 'other' | 'flooding' | 'erosion' | 'urban_heat' | 'storm_damage' | 'green_infrastructure' | 'water_contamination';
+export type IssueCategory =
+  | 'bad_roads'
+  | 'broken_streetlights'
+  | 'dump_sites'
+  | 'floods'
+  | 'water_supply_issues'
+  | 'bad_traffic_signals'
+  | 'poor_drainages'
+  | 'erosion_sites'
+  | 'collapsed_bridges'
+  | 'open_manholes'
+  | 'unsafe_crossings'
+  | 'construction_debris';
 export type IssueSeverity = 'low' | 'medium' | 'high' | 'critical';
 
 export interface IssueFilters {

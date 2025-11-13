@@ -2,6 +2,29 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
 import { uploadIssueImages } from '@/utils/imageUpload';
 
+/**
+ * Ensure a valid session exists before making API calls
+ * This prevents 401 "Missing authorization header" errors
+ */
+async function ensureSession(): Promise<void> {
+  const {
+    data: { session },
+    error,
+  } = await supabase.auth.getSession();
+
+  if (error || !session) {
+    // If no session, try to refresh it
+    const {
+      data: { session: refreshedSession },
+      error: refreshError,
+    } = await supabase.auth.refreshSession();
+
+    if (refreshError || !refreshedSession) {
+      throw new Error('Authentication required. Please sign in again.');
+    }
+  }
+}
+
 type Tables = Database['public']['Tables'];
 type Issue = Tables['issues']['Row'];
 type IssueInsert = Tables['issues']['Insert'];
@@ -81,6 +104,9 @@ export const categoriesApi = {
 // Issues API
 export const issuesApi = {
   async createIssue(issueData: IssueInsert, userId?: string, photos?: File[]) {
+    // Ensure we have a valid session before making API calls
+    await ensureSession();
+
     // First, get or create the user's profile
     const profile = await getCurrentUserProfile(userId);
     if (!profile) {
@@ -871,13 +897,6 @@ export const adminApi = {
     sevenDaysAgo.setDate(today.getDate() - 6); // -6 to include today (7 days total)
     sevenDaysAgo.setHours(0, 0, 0, 0); // Start of day
 
-    console.log('Weekly trends query range:', {
-      from: sevenDaysAgo.toISOString(),
-      to: today.toISOString(),
-      today: today.toDateString(),
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-    });
-
     const { data, error } = await supabase
       .from('issues')
       .select('created_at, resolved_at, status')
@@ -885,8 +904,6 @@ export const adminApi = {
       .lte('created_at', today.toISOString());
 
     if (error) throw error;
-
-    console.log('Weekly trends raw data:', data?.length || 0, 'issues found');
 
     // Group by day of week
     const daysOfWeek = [
@@ -923,8 +940,6 @@ export const adminApi = {
       });
     }
 
-    console.log('Weekly trends processed:', trends);
-
     // Return in chronological order (7 days ago to today)
     const result = [];
     for (let i = 6; i >= 0; i--) {
@@ -934,7 +949,6 @@ export const adminApi = {
       result.push(trends[dayName]);
     }
 
-    console.log('Weekly trends result:', result);
     return result;
   },
 
