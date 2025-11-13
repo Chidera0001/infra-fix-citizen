@@ -46,7 +46,7 @@ const QueryCacheClearer = () => {
 
     window.addEventListener('auth:signout', handleSignOut);
     window.addEventListener('auth:signin', handleSignIn);
-    
+
     return () => {
       window.removeEventListener('auth:signout', handleSignOut);
       window.removeEventListener('auth:signin', handleSignIn);
