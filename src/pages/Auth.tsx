@@ -34,6 +34,7 @@ const Auth = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [pendingNavigation, setPendingNavigation] = useState(false);
 
   // Sync mode with URL parameter
   useEffect(() => {
@@ -45,12 +46,15 @@ const Auth = () => {
     }
   }, [searchParams]);
 
-  // Redirect if already authenticated
+  // Redirect if already authenticated or after successful sign-in
   useEffect(() => {
     if (!loading && user) {
+      if (pendingNavigation) {
+        setPendingNavigation(false);
+      }
       navigate('/citizen');
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, navigate, pendingNavigation]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -77,21 +81,21 @@ const Auth = () => {
           // Store email and password before switching modes
           const userEmail = formData.email;
           const userPassword = formData.password;
-          
+
           setSuccess(
             'Account created successfully! Please check your email to verify your account. You can sign in once verified.'
           );
-          
+
           // Clear fullName and switch to signin mode
           setFormData({
             email: userEmail,
             password: userPassword,
             fullName: '',
           });
-          
+
           // Switch to signin mode
           setMode('signin');
-          
+
           // Update URL to reflect signin mode without navigation (to preserve form state)
           const newUrl = new URL(window.location.href);
           newUrl.searchParams.set('mode', 'signin');
@@ -102,7 +106,9 @@ const Auth = () => {
         if (error) {
           setError(error.message);
         } else {
-          navigate('/citizen');
+          // Set flag to wait for user state update before navigating
+          // The useEffect will handle navigation when user becomes available
+          setPendingNavigation(true);
         }
       }
     } catch (err) {

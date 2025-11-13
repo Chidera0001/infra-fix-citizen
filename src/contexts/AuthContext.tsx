@@ -3,6 +3,7 @@ import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { clearProfileCache } from '@/lib/supabase-api';
 import { handleAuthError, logAuthError } from '@/utils/authErrorHandler';
+import { offlineStorage } from '@/utils/offlineStorage';
 
 interface AuthContextType {
   user: User | null;
@@ -113,13 +114,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           (!session?.user && event === 'TOKEN_REFRESHED')
         ) {
           // Clear profile cache when user signs out
+          // Note: auth:signout event is dispatched from signOut() function
+          // to avoid duplicate events and ensure proper cleanup order
           clearProfileCache();
-
-          // Clear React Query cache to prevent stale data
-          // Dispatch custom event that App.tsx can listen to
-          if (typeof window !== 'undefined') {
-            window.dispatchEvent(new CustomEvent('auth:signout'));
-          }
         }
 
         // Handle email confirmation - auto-login after verification
@@ -243,7 +240,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -255,6 +252,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const friendlyError = new Error(errorInfo.userMessage) as AuthError;
         friendlyError.code = error.code || 'signin_error';
         return { error: friendlyError };
+      }
+
+      // Wait for onAuthStateChange to fire and update user state
+      // This ensures the user state is set before navigation happens
+      if (data.session?.user) {
+        let retries = 0;
+        const maxRetries = 30; // 30 retries × 100ms = 3 seconds max
+        while (retries < maxRetries) {
+          // Check if user state has been updated by onAuthStateChange
+          const currentSession = await supabase.auth.getSession();
+          if (currentSession.data.session?.user?.id === data.session.user.id) {
+            // Wait a bit more to ensure onAuthStateChange has fired and state is updated
+            await new Promise(resolve => setTimeout(resolve, 100));
+            break;
+          }
+          await new Promise(resolve => setTimeout(resolve, 100));
+          retries++;
+        }
       }
 
       return { error };
@@ -311,61 +326,39 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const signOut = async () => {
-    if (!isOnline) {
-      // Handle offline sign out by clearing local state
-      setUser(null);
-      setSession(null);
-      clearProfileCache(); // Clear cache on offline sign out too
-      // Dispatch event to clear React Query cache
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('auth:signout'));
-      }
-      return { error: null };
-    }
+    // Always clear local state immediately for consistent behavior
+    setUser(null);
+    setSession(null);
+    clearProfileCache();
 
+    // Always call supabase.auth.signOut() to clear Supabase session storage
+    // This ensures localStorage is cleared even when offline
     try {
-      const { error } = await supabase.auth.signOut();
-
-      // Handle errors using the error handler
-      if (error) {
-        logAuthError(error, 'signOut');
-        const errorInfo = handleAuthError(error, 'signOut');
-
-        // Always clear local state for sign out, regardless of error
-        if (errorInfo.shouldClearLocalState) {
-          setUser(null);
-          setSession(null);
-          clearProfileCache();
-          // Dispatch event to clear React Query cache
-          if (typeof window !== 'undefined') {
-            window.dispatchEvent(new CustomEvent('auth:signout'));
-          }
-        }
-
-        return { error: null }; // Don't return the error for sign out
-      }
-
-      // Dispatch event to clear React Query cache on successful sign out
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('auth:signout'));
-      }
-
-      return { error };
+      await supabase.auth.signOut();
     } catch (error) {
-      logAuthError(error as AuthError, 'signOut', 'catch block');
-      const errorInfo = handleAuthError(error as AuthError, 'signOut');
-
-      // Always clear local state for sign out, regardless of error
-      setUser(null);
-      setSession(null);
-      clearProfileCache();
-      // Dispatch event to clear React Query cache
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('auth:signout'));
+      // Ignore errors from signOut when offline - we still want to clear local state
+      if (isOnline) {
+        logAuthError(error as AuthError, 'signOut');
       }
-
-      return { error: null }; // Don't return the error for sign out
     }
+
+    // Clear offline reports from IndexedDB to prevent data leakage between users
+    try {
+      await offlineStorage.clearAllPendingReports();
+    } catch (error) {
+      // Log but don't fail sign out if clearing offline reports fails
+      console.warn('Failed to clear offline reports on sign out:', error);
+    }
+
+    // Dispatch event to clear React Query cache
+    // Wait a tick to ensure event listeners have processed
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('auth:signout'));
+      // Small delay to ensure React Query cache is cleared before function returns
+      await new Promise(resolve => setTimeout(resolve, 50));
+    }
+
+    return { error: null };
   };
 
   const value = {

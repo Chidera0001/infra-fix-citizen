@@ -17,9 +17,11 @@ export const CitizenSidebar = ({ activeTab, onTabChange }: CitizenSidebarProps) 
 
 	const handleSignOut = async () => {
 		try {
-			// Sign out and wait for completion
+			// Sign out and wait for completion (includes cleanup delay)
 			await signOut();
-			// Navigate to home page after sign out completes
+			// Wait a bit more to ensure user state is cleared and caches are cleared
+			await new Promise(resolve => setTimeout(resolve, 100));
+			// Navigate to home page after cleanup completes
 			navigate("/");
 		} catch (error) {
 			console.warn('Sign out failed:', error);

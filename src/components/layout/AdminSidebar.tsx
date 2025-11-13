@@ -30,12 +30,25 @@ export const AdminSidebar = ({ activeTab, onTabChange, profile }: AdminSidebarPr
 	const [isOpen, setIsOpen] = useState(false);
 
 	const handleLogout = async () => {
-		await signOut();
-		toast({
-			title: "Logged Out",
-			description: "You have been successfully logged out",
-		});
-		navigate("/");
+		try {
+			// Sign out and wait for completion (includes cleanup delay)
+			await signOut();
+			// Wait a bit more to ensure user state is cleared and caches are cleared
+			await new Promise(resolve => setTimeout(resolve, 100));
+			toast({
+				title: "Logged Out",
+				description: "You have been successfully logged out",
+			});
+			navigate("/");
+		} catch (error) {
+			console.warn('Sign out failed:', error);
+			// Still show toast and navigate even if sign out fails
+			toast({
+				title: "Logged Out",
+				description: "You have been logged out",
+			});
+			navigate("/");
+		}
 	};
 
 	const handleMenuItemClick = (tab: "dashboard" | "issues" | "map" | "users" | "analytics") => {
