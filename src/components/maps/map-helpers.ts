@@ -140,40 +140,60 @@ export const addMarkerInteractions = (
     return;
   }
 
+  // Get address from first issue that has one
+  const address = issues && issues.length > 0 
+    ? issues.find(issue => issue.address)?.address || 'Not specified'
+    : 'Not specified';
+
   // Format issue details for tooltip
-  const issueDetails = issues && issues.length > 0 ? issues.slice(0, 3).map(issue => {
+  const issueDetails = issues && issues.length > 0 ? issues.slice(0, 2).map(issue => {
     const statusColor = getMarkerColor(issue.status);
+    const statusIcon = issue.status === 'resolved' ? '✓' : issue.status === 'in_progress' ? '⟳' : '○';
     return `
-      <div style="margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px solid #e5e7eb;">
-        <div style="font-weight: bold; font-size: 11px; margin-bottom: 2px;">${issue.title || 'Untitled Issue'}</div>
-        <div style="font-size: 10px; color: #666; margin-bottom: 2px;">${issue.category?.replace('_', ' ') || 'Unknown'}</div>
+      <div style="margin-bottom: 6px; padding: 8px; background: #ffffff; border-radius: 6px; border-left: 3px solid ${statusColor}; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+        <div style="font-weight: 600; font-size: 12px; margin-bottom: 4px; color: #111827; line-height: 1.3; word-wrap: break-word; overflow-wrap: break-word;">${issue.title || 'Untitled Issue'}</div>
+        <div style="font-size: 10px; color: #6b7280; margin-bottom: 4px; text-transform: capitalize;">${issue.category?.replace('_', ' ') || 'Unknown'}</div>
         <div style="font-size: 10px;">
-          <span style="color: ${statusColor}; font-weight: bold;">${issue.status?.replace('_', ' ') || 'Unknown'}</span>
+          <span style="color: ${statusColor}; font-weight: 600;">${statusIcon} ${issue.status?.replace('_', ' ') || 'Unknown'}</span>
         </div>
       </div>
     `;
   }).join('') : '';
 
-  const moreIssues = issues && issues.length > 3 ? `<div style="font-size: 10px; color: #666; margin-top: 4px;">+${issues.length - 3} more issues</div>` : '';
+  const moreIssues = issues && issues.length > 2 ? `<div style="font-size: 10px; color: #6b7280; margin-top: 6px; text-align: center; padding: 4px; background: #f3f4f6; border-radius: 4px;">+${issues.length - 2} more issue${issues.length - 2 > 1 ? 's' : ''}</div>` : '';
 
   // Add tooltip for hover information (admin only)
   marker.bindTooltip(`
-    <div style="font-size: 12px; text-align: left; padding: 8px; max-width: 200px;">
-      <h4 style="margin: 0 0 8px 0; font-size: 13px; font-weight: bold; border-bottom: 2px solid #e5e7eb; padding-bottom: 4px;">Location Details</h4>
-      ${issueDetails}
-      ${moreIssues}
-      <div style="margin-top: 8px; padding-top: 6px; border-top: 1px solid #e5e7eb; font-size: 11px;">
-        <div style="margin-bottom: 2px;"><strong>Total:</strong> ${totalCount}</div>
-        <div style="margin-bottom: 2px;"><span style="color: #22c55e;">✓ Resolved:</span> ${resolvedCount}</div>
-        <div style="margin-bottom: 2px;"><span style="color: #f97316;">⟳ In Progress:</span> ${inProgressCount}</div>
-        <div><span style="color: #ef4444;">○ Open:</span> ${openCount}</div>
+    <div style="font-size: 12px; text-align: left; padding: 0; width: 300px; max-width: 300px; background: white; border-radius: 10px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); overflow: hidden;">
+      <div style="padding: 14px; background: #f0fdf4; border-bottom: 1px solid #bbf7d0;">
+        <h4 style="margin: 0 0 10px 0; font-size: 15px; font-weight: 700; color: #166534; letter-spacing: -0.01em;">Location Details</h4>
+        <div style="font-size: 12px; color: #15803d; font-weight: 500; line-height: 1.5; word-wrap: break-word; overflow-wrap: break-word; max-width: 100%; display: block; white-space: normal;">
+          <span style="display: inline-block; margin-right: 6px;">📍</span>
+          <span style="display: inline; word-break: break-word; overflow-wrap: anywhere;">${address}</span>
+        </div>
+      </div>
+      ${issueDetails ? `
+        <div style="padding: 12px; background: #ffffff;">
+          ${issueDetails}
+          ${moreIssues}
+        </div>
+      ` : ''}
+      <div style="padding: 12px; background: #f9fafb; border-top: 1px solid #e5e7eb;">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 11px;">
+          <div style="font-weight: 600; color: #374151; white-space: nowrap;">Total: <span style="color: #111827;">${totalCount}</span></div>
+          <div style="display: flex; gap: 10px; flex-wrap: nowrap;">
+            <span style="color: #22c55e; font-weight: 600; white-space: nowrap;">✓ ${resolvedCount}</span>
+            <span style="color: #f97316; font-weight: 600; white-space: nowrap;">⟳ ${inProgressCount}</span>
+            <span style="color: #ef4444; font-weight: 600; white-space: nowrap;">○ ${openCount}</span>
+          </div>
+        </div>
       </div>
     </div>
   `, {
     permanent: false,
     direction: 'top',
     offset: [0, -10],
-    opacity: 0.98,
+    opacity: 1,
     className: 'custom-tooltip'
   });
 
