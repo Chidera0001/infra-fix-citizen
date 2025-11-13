@@ -7,12 +7,12 @@ import { useCurrentProfile } from '@/hooks/use-profile';
 import { useAutoSync } from '@/hooks/use-auto-sync';
 import { useOfflineUserManager } from '@/hooks/use-offline-user-manager';
 import { CitizenSidebar } from '@/components/layout/CitizenSidebar';
-import { Dashboard, MyReports } from '@/components/citizen';
+import { Dashboard, MyReports, Analytics } from '@/components/citizen';
 // import { OfflineDebugger } from "@/components/debug/OfflineDebugger";
 
 const CitizenDashboard = () => {
   const [searchParams] = useSearchParams();
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'reports' | 'map'>(
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'reports' | 'map' | 'analytics'>(
     'dashboard'
   );
   const [showReportForm, setShowReportForm] = useState(false);
@@ -43,8 +43,8 @@ const CitizenDashboard = () => {
   // Handle URL parameters for tab navigation
   useEffect(() => {
     const tabParam = searchParams.get('tab');
-    if (tabParam && ['dashboard', 'reports', 'map'].includes(tabParam)) {
-      setActiveTab(tabParam as 'dashboard' | 'reports' | 'map');
+    if (tabParam && ['dashboard', 'reports', 'map', 'analytics'].includes(tabParam)) {
+      setActiveTab(tabParam as 'dashboard' | 'reports' | 'map' | 'analytics');
       if (tabParam === 'map') {
         setShowMap(true);
       } else {
@@ -60,7 +60,7 @@ const CitizenDashboard = () => {
   };
 
   // Handle tab changes
-  const handleTabChange = (tab: 'dashboard' | 'reports' | 'map') => {
+  const handleTabChange = (tab: 'dashboard' | 'reports' | 'map' | 'analytics') => {
     setActiveTab(tab);
     setShowReportForm(false); // Close report form when changing tabs
     if (tab === 'map') {
@@ -113,6 +113,16 @@ const CitizenDashboard = () => {
       );
     }
 
+    if (activeTab === 'analytics') {
+      return (
+        <Analytics
+          reports={myReports}
+          allIssues={allIssues}
+          currentUserId={profile?.id}
+        />
+      );
+    }
+
     // Default dashboard view
     return (
       <Dashboard
@@ -123,7 +133,7 @@ const CitizenDashboard = () => {
         userId={profile?.id}
         onReportIssue={() => (window.location.href = '/report-now')}
         onExploreMap={() => setShowMap(true)}
-        onViewAnalytics={() => {}}
+        onViewAnalytics={() => setActiveTab('analytics')}
         onShowMap={() => setShowMap(true)}
       />
     );
