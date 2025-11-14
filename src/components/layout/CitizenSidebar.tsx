@@ -32,7 +32,9 @@ export const CitizenSidebar = ({ activeTab, onTabChange }: CitizenSidebarProps) 
 
 	const handleMenuItemClick = (tab: string) => {
 		if (tab === "report-now") {
-			navigate("/report-now");
+			// Use window.location.href for full page reload to maintain user interaction context
+			// This allows camera to auto-trigger on mobile
+			window.location.href = "/report-now";
 			setIsOpen(false);
 		} else {
 			onTabChange(tab as "dashboard" | "reports" | "map" | "analytics");
