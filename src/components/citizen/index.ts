@@ -5,6 +5,7 @@ export { CommunityMap } from './CommunityMap';
 export { RecentReports } from './RecentReports';
 export { NotificationsDropdown } from './NotificationsDropdown';
 export { MyReports } from './MyReports';
+export { Analytics } from './Analytics';
 export * from './modals';
 export * from './MyReports';
 export { default as CitizenDashboard } from './CitizenDashboard';

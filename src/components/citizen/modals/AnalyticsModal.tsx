@@ -3,6 +3,7 @@ import { X } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AchievementBadge } from './AchievementBadge';
+import { Leaderboard } from './Leaderboard';
 import type { Issue } from '@/lib/supabase-api';
 
 // SVG Icons as React components
@@ -36,6 +37,7 @@ interface AnalyticsModalProps {
   allIssues: Issue[];
   isOpen: boolean;
   onClose: () => void;
+  currentUserId?: string;
 }
 
 export const AnalyticsModal = ({
@@ -43,6 +45,7 @@ export const AnalyticsModal = ({
   allIssues,
   isOpen,
   onClose,
+  currentUserId,
 }: AnalyticsModalProps) => {
   if (!isOpen) return null;
 
@@ -190,6 +193,17 @@ export const AnalyticsModal = ({
               </Card>
             </div>
           )}
+
+          {/* Leaderboard */}
+          <div>
+            <h3 className='mb-4 text-lg font-semibold text-gray-900'>
+              Community Leaderboard
+            </h3>
+            <Leaderboard
+              allIssues={allIssues}
+              currentUserId={currentUserId}
+            />
+          </div>
         </div>
 
         {/* Footer */}

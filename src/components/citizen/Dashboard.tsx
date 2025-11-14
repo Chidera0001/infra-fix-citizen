@@ -1,10 +1,8 @@
-import { useState } from 'react';
 import { QuickStats } from './QuickStats';
 import { ActionCards } from './ActionCards';
 import { CommunityMap } from './CommunityMap';
 import { RecentReports } from './RecentReports';
 import { NotificationsDropdown } from './NotificationsDropdown';
-import { AnalyticsModal } from './modals/AnalyticsModal';
 import type { Issue } from '@/lib/supabase-api';
 
 interface DashboardProps {
@@ -30,15 +28,6 @@ export const Dashboard = ({
   onViewAnalytics,
   onShowMap,
 }: DashboardProps) => {
-  const [showAnalytics, setShowAnalytics] = useState(false);
-
-  const handleViewAnalytics = () => {
-    setShowAnalytics(true);
-  };
-
-  const handleCloseAnalytics = () => {
-    setShowAnalytics(false);
-  };
 
   return (
     <div className='mx-auto max-w-7xl px-4 py-8 pt-16 sm:px-6 lg:px-8 lg:pt-8'>
@@ -72,7 +61,7 @@ export const Dashboard = ({
       <ActionCards
         onReportIssue={onReportIssue}
         onExploreMap={onExploreMap}
-        onViewAnalytics={handleViewAnalytics}
+        onViewAnalytics={onViewAnalytics}
       />
 
       {/* Interactive Map Section */}
@@ -88,14 +77,6 @@ export const Dashboard = ({
 
       {/* Enhanced My Recent Reports */}
       <RecentReports reports={myReports} />
-
-      {/* Analytics Modal */}
-      <AnalyticsModal
-        reports={myReports}
-        allIssues={allIssues}
-        isOpen={showAnalytics}
-        onClose={handleCloseAnalytics}
-      />
     </div>
   );
 };

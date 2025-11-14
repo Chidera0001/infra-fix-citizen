@@ -1,4 +1,4 @@
-import { Home, FileText, Map, LogOut, Menu, X, Camera } from "lucide-react";
+import { Home, FileText, Map, LogOut, Menu, X, Camera, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import CitiznLogo from "@/components/CitiznLogo";
 import { useAuth } from "@/contexts/AuthContext";
@@ -7,7 +7,7 @@ import { useState } from "react";
 
 interface CitizenSidebarProps {
 	activeTab: string;
-	onTabChange: (tab: "dashboard" | "reports" | "map") => void;
+	onTabChange: (tab: "dashboard" | "reports" | "map" | "analytics") => void;
 }
 
 export const CitizenSidebar = ({ activeTab, onTabChange }: CitizenSidebarProps) => {
@@ -35,7 +35,7 @@ export const CitizenSidebar = ({ activeTab, onTabChange }: CitizenSidebarProps) 
 			navigate("/report-now");
 			setIsOpen(false);
 		} else {
-			onTabChange(tab as "dashboard" | "reports" | "map");
+			onTabChange(tab as "dashboard" | "reports" | "map" | "analytics");
 			setIsOpen(false);
 		}
 	};
@@ -45,6 +45,7 @@ export const CitizenSidebar = ({ activeTab, onTabChange }: CitizenSidebarProps) 
 		{ id: "report-now", icon: Camera, label: "Report Now", svgIcon: "/Assets/icons/camera.svg" },
 		{ id: "reports", icon: FileText, label: "My Reports" },
 		{ id: "map", icon: Map, label: "Map View" },
+		{ id: "analytics", icon: BarChart3, label: "Analytics", svgIcon: "analytics" },
 	];
 
 	return (
@@ -108,14 +109,24 @@ export const CitizenSidebar = ({ activeTab, onTabChange }: CitizenSidebarProps) 
 								}`}
 							>
 								{item.svgIcon ? (
-									<svg 
-										className={`h-5 w-5 ${isActive ? "text-green-600" : "text-gray-500"}`}
-										fill="currentColor"
-										viewBox="0 0 24 24"
-										xmlns="http://www.w3.org/2000/svg"
-									>
-										<path d="M4 4h7l2-2h1l2 2h7a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm8 3a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 2a3 3 0 1 1 0 6 3 3 0 0 1 0-6z"/>
-									</svg>
+									item.svgIcon === "analytics" ? (
+										<svg 
+											className={`h-5 w-5 ${isActive ? "text-green-600" : "text-gray-500"}`}
+											viewBox="0 0 24 24"
+											fill="currentColor"
+										>
+											<path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" />
+										</svg>
+									) : (
+										<svg 
+											className={`h-5 w-5 ${isActive ? "text-green-600" : "text-gray-500"}`}
+											fill="currentColor"
+											viewBox="0 0 24 24"
+											xmlns="http://www.w3.org/2000/svg"
+										>
+											<path d="M4 4h7l2-2h1l2 2h7a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm8 3a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 2a3 3 0 1 1 0 6 3 3 0 0 1 0-6z"/>
+										</svg>
+									)
 								) : (
 									<Icon className={`h-5 w-5 ${isActive ? "text-green-600" : "text-gray-500"}`} />
 								)}
