@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from 'react';
 import { useCameraStream } from './hooks/useCameraStream';
 import { CameraInterface } from './CameraInterface';
 import { PhotoPreview } from './PhotoPreview';
-import { CameraTrigger } from './CameraTrigger';
 
 interface CameraCaptureProps {
   onPhotoCapture: (file: File) => void;
@@ -16,7 +15,6 @@ export const CameraCapture = ({
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const galleryInputRef = useRef<HTMLInputElement>(null);
 
   const {
     cameraStream,
@@ -29,7 +27,15 @@ export const CameraCapture = ({
     switchCamera,
   } = useCameraStream();
 
-  // Capture photo from video stream
+  // Handle camera stop and navigate back
+  const handleStopCamera = () => {
+    stopCamera();
+    if (onCancel) {
+      onCancel();
+    }
+  };
+
+  // Capture photo from video stream (desktop)
   const capturePhoto = () => {
     if (!videoRef.current || !canvasRef.current) return;
 
@@ -39,14 +45,10 @@ export const CameraCapture = ({
 
     if (!context) return;
 
-    // Set canvas dimensions to match video
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-
-    // Draw current video frame to canvas
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    // Convert canvas to blob
     canvas.toBlob(
       blob => {
         if (blob) {
@@ -64,7 +66,7 @@ export const CameraCapture = ({
     );
   };
 
-  // Handle file input (for camera capture - fallback when camera API not available)
+  // Handle file input from mobile camera
   const handleCameraFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -72,19 +74,6 @@ export const CameraCapture = ({
       setCapturedImage(imageUrl);
       onPhotoCapture(file);
     }
-    // Reset input so same file can be selected again
-    e.target.value = '';
-  };
-
-  // Handle gallery file input (for upload photo button - opens gallery)
-  const handleGalleryFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setCapturedImage(imageUrl);
-      onPhotoCapture(file);
-    }
-    // Reset input so same file can be selected again
     e.target.value = '';
   };
 
@@ -93,18 +82,36 @@ export const CameraCapture = ({
     setCapturedImage(null);
     if (hasCameraAPI) {
       startCamera();
+    } else {
+      // Mobile: trigger camera again
+      fileInputRef.current?.click();
     }
   };
 
-  // Upload photo handler - opens gallery (no capture attribute)
-  const handleUploadPhoto = () => {
-    galleryInputRef.current?.click();
-  };
-
-  // Camera file input handler - for camera icon fallback (with capture attribute)
-  const handleCameraFallback = () => {
+  // Mobile: trigger camera on button click
+  const handleMobileCameraClick = () => {
     fileInputRef.current?.click();
   };
+
+  // Auto-start camera on mount
+  useEffect(() => {
+    if (!capturedImage) {
+      if (hasCameraAPI && !isCameraActive) {
+        // Desktop: Start camera stream API
+        startCamera();
+      } else if (!hasCameraAPI && fileInputRef.current) {
+        // Mobile: Try to auto-trigger file input
+        // Add small delay to ensure DOM is fully ready
+        const timer = setTimeout(() => {
+          if (fileInputRef.current) {
+            console.log('Attempting to trigger camera...');
+            fileInputRef.current.click();
+          }
+        }, 50);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [hasCameraAPI, isCameraActive, capturedImage, startCamera]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -122,49 +129,100 @@ export const CameraCapture = ({
     );
   }
 
-  // Render camera interface
+  // Render camera interface (Desktop)
   if (isCameraActive) {
     return (
       <CameraInterface
         videoRef={videoRef}
         canvasRef={canvasRef}
         onCapturePhoto={capturePhoto}
-        onStopCamera={stopCamera}
+        onStopCamera={handleStopCamera}
         onSwitchCamera={switchCamera}
       />
     );
   }
 
-  // Render initial camera trigger
+  // Show loading state while desktop camera is starting
+  if (!error && hasCameraAPI && !isCameraActive) {
+    return (
+      <div className='flex min-h-[400px] flex-col items-center justify-center space-y-4'>
+        <div className='h-16 w-16 animate-spin rounded-full border-4 border-green-200 border-t-green-600'></div>
+        <p className='text-gray-600'>Starting camera...</p>
+      </div>
+    );
+  }
+
+  // Mobile: Show large tap-to-open button (auto-trigger often blocked by browsers)
+  if (!hasCameraAPI) {
+    return (
+      <div className='fixed inset-0 flex flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-green-50 via-blue-50 to-indigo-50'>
+        {/* Large tap area - takes most of screen */}
+        <button
+          type='button'
+          onClick={handleMobileCameraClick}
+          className='flex w-full flex-1 flex-col items-center justify-center space-y-8 p-8 text-center focus:outline-none'
+        >
+          {/* Animated camera icon */}
+          <div className='relative'>
+            <div className='flex h-40 w-40 items-center justify-center rounded-full bg-gradient-to-r from-green-500 to-green-600 shadow-2xl transition-transform active:scale-95'>
+              <img
+                src='/Assets/icons/camera.svg'
+                alt='Camera'
+                className='h-20 w-20 brightness-0 invert'
+              />
+            </div>
+            <div className='pointer-events-none absolute inset-0 h-40 w-40 animate-ping rounded-full bg-green-400 opacity-20'></div>
+          </div>
+
+          {/* Visual cue */}
+          <h2 className='rounded-full bg-green-100 px-6 py-2 text-sm font-medium text-green-700'>
+            📸 Tap anywhere to continue
+          </h2>
+        </button>
+
+        {/* Cancel button - below the tap message */}
+        {onCancel && (
+          <div className='pb-8'>
+            <button
+              type='button'
+              onClick={onCancel}
+              className='rounded-lg border border-gray-200 bg-white px-6 py-3 text-gray-700 shadow-lg hover:bg-gray-50'
+            >
+              Cancel
+            </button>
+          </div>
+        )}
+
+        {/* Hidden file input */}
+        <input
+          ref={fileInputRef}
+          type='file'
+          accept='image/*'
+          capture='environment'
+          onChange={handleCameraFileInput}
+          className='hidden'
+        />
+      </div>
+    );
+  }
+
+  // Error state (Desktop)
   return (
-    <>
-      <CameraTrigger
-        hasCameraAPI={hasCameraAPI}
-        onStartCamera={startCamera}
-        onUploadPhoto={handleUploadPhoto}
-        onCameraFallback={handleCameraFallback}
-        onCancel={onCancel}
-        error={error}
-      />
-
-      {/* Hidden file input for camera fallback (with capture - opens camera) */}
-      <input
-        ref={fileInputRef}
-        type='file'
-        accept='image/*'
-        capture='environment'
-        onChange={handleCameraFileInput}
-        className='hidden'
-      />
-
-      {/* Hidden file input for gallery upload (without capture - opens gallery) */}
-      <input
-        ref={galleryInputRef}
-        type='file'
-        accept='image/*'
-        onChange={handleGalleryFileInput}
-        className='hidden'
-      />
-    </>
+    <div className='flex min-h-[400px] flex-col items-center justify-center space-y-4 p-8 text-center'>
+      <div className='rounded-lg border border-red-200 bg-red-50 p-4'>
+        <p className='text-sm text-red-600'>
+          {error || 'Unable to access camera. Please check permissions.'}
+        </p>
+      </div>
+      {onCancel && (
+        <button
+          type='button'
+          onClick={onCancel}
+          className='rounded-lg border border-gray-200 bg-white px-4 py-2 text-gray-700 hover:bg-gray-50'
+        >
+          Cancel
+        </button>
+      )}
+    </div>
   );
 };

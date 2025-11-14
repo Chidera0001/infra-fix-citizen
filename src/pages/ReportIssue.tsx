@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ArrowLeft, Camera, MapPin, Upload } from 'lucide-react';
+import { ArrowLeft, Camera, MapPin } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useCreateOnlineIssue } from '@/hooks/use-separate-issues';
 import { useAuth } from '@/contexts/AuthContext';
@@ -38,7 +38,6 @@ const ReportIssue = () => {
     category: ISSUE_CATEGORIES[0]?.value ?? '',
     urgency: '',
     location: '',
-    photo: null as File | null,
   });
   const [isGettingLocation, setIsGettingLocation] = useState(false);
 
@@ -118,20 +117,6 @@ const ReportIssue = () => {
       return;
     }
 
-    // Check photo size before submission
-    if (formData.photo) {
-      const maxSize = 4 * 1024 * 1024; // 4MB
-      if (formData.photo.size > maxSize) {
-        const fileSizeMB = (formData.photo.size / (1024 * 1024)).toFixed(2);
-        toast({
-          title: 'File Too Large',
-          description: `The selected photo (${fileSizeMB}MB) exceeds the 4MB limit. Please choose a smaller file.`,
-          variant: 'destructive',
-        });
-        return;
-      }
-    }
-
     try {
       const issueData = {
         title: formData.title.trim(),
@@ -146,7 +131,7 @@ const ReportIssue = () => {
       await createIssueMutation.mutateAsync({
         issueData,
         userId: user.id, // user is guaranteed to exist at this point
-        photos: formData.photo ? [formData.photo] : [],
+        photos: [], // No photo upload - use Report Now for photos
       });
 
       setTimeout(() => {
@@ -171,33 +156,6 @@ const ReportIssue = () => {
           variant: 'destructive',
         });
       }
-    }
-  };
-
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Check file size before setting it
-      const maxSize = 4 * 1024 * 1024; // 4MB
-      if (file.size > maxSize) {
-        const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
-        toast({
-          title: 'File Too Large',
-          description: `The selected file (${fileSizeMB}MB) exceeds the 4MB limit. Please choose a smaller file.`,
-          variant: 'destructive',
-        });
-        // Clear the input
-        e.target.value = '';
-        return;
-      }
-
-      setFormData({ ...formData, photo: file });
-
-      // Show success message
-      toast({
-        title: 'Photo Selected',
-        description: `${file.name} (${(file.size / (1024 * 1024)).toFixed(2)}MB) ready for upload`,
-      });
     }
   };
 
@@ -351,66 +309,28 @@ const ReportIssue = () => {
               </div>
 
               <div className='space-y-2'>
-                <Label htmlFor='photo'>Upload Photo</Label>
-                <div
-                  className={`rounded-lg border-2 border-dashed p-6 ${
-                    formData.photo && formData.photo.size > 4 * 1024 * 1024
-                      ? 'border-red-300 bg-red-50'
-                      : formData.photo
-                        ? 'border-green-300 bg-green-50'
-                        : 'border-gray-300'
-                  }`}
-                >
+                <div className='rounded-lg border-2 border-blue-200 bg-blue-50 p-6'>
                   <div className='text-center'>
-                    <Upload
-                      className={`mx-auto h-12 w-12 ${
-                        formData.photo && formData.photo.size > 4 * 1024 * 1024
-                          ? 'text-red-400'
-                          : formData.photo
-                            ? 'text-green-400'
-                            : 'text-gray-400'
-                      }`}
-                    />
+                    <Camera className='mx-auto h-12 w-12 text-blue-600' />
                     <div className='mt-4'>
-                      <label htmlFor='photo' className='cursor-pointer'>
-                        <span
-                          className={`mt-2 block text-sm font-medium ${
-                            formData.photo &&
-                            formData.photo.size > 4 * 1024 * 1024
-                              ? 'text-red-900'
-                              : formData.photo
-                                ? 'text-green-900'
-                                : 'text-gray-900'
-                          }`}
-                        >
-                          {formData.photo
-                            ? `${formData.photo.name} (${(formData.photo.size / (1024 * 1024)).toFixed(2)}MB)`
-                            : 'Click to upload photo'}
-                        </span>
-                        <input
-                          id='photo'
-                          type='file'
-                          accept='image/*'
-                          className='hidden'
-                          onChange={handlePhotoUpload}
-                        />
-                      </label>
-                      <p
-                        className={`mt-1 text-xs ${
-                          formData.photo &&
-                          formData.photo.size > 4 * 1024 * 1024
-                            ? 'text-red-500'
-                            : 'text-gray-500'
-                        }`}
-                      >
-                        PNG, JPG up to 4MB
-                        {formData.photo &&
-                          formData.photo.size > 4 * 1024 * 1024 && (
-                            <span className='block font-medium'>
-                              ⚠️ File exceeds size limit
-                            </span>
-                          )}
+                      <p className='text-sm font-medium text-blue-900'>
+                        Photo Upload Not Available
                       </p>
+                      <p className='mt-2 text-xs text-blue-700'>
+                        To submit a report with photo verification, please use
+                        the "Report Now" feature which captures photos directly
+                        from your camera with location data.
+                      </p>
+                      <Button
+                        type='button'
+                        variant='outline'
+                        size='sm'
+                        onClick={() => navigate('/report-now')}
+                        className='mt-4 border-blue-300 bg-white text-blue-700 hover:bg-blue-50'
+                      >
+                        <Camera className='mr-2 h-4 w-4' />
+                        Go to Report Now
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -420,10 +340,7 @@ const ReportIssue = () => {
                 <Button
                   type='submit'
                   className='flex-1 bg-blue-600 hover:bg-blue-700'
-                  disabled={
-                    createIssueMutation.isPending ||
-                    (formData.photo && formData.photo.size > 4 * 1024 * 1024)
-                  }
+                  disabled={createIssueMutation.isPending}
                 >
                   {createIssueMutation.isPending
                     ? 'Submitting...'

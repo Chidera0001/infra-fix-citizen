@@ -72,7 +72,7 @@ const HeroSection = () => {
           <div className='mx-auto max-w-4xl px-4 text-center'>
             <h1 className='mb-4 mt-4 flex flex-col items-center gap-2 font-["Manrope"] text-3xl font-semibold leading-tight tracking-tight text-white drop-shadow-lg sm:mb-6 sm:text-3xl md:text-4xl lg:text-5xl'>
               <span className='relative inline-flex flex-col items-center'>
-                Capture photos, Report{' '}
+                Capture Photos, Report{' '}
                 <span className='sm:h-13 lg:h-18 relative inline-flex h-10 items-center justify-center overflow-hidden text-center md:h-16'>
                   <AnimatePresence mode='wait'>
                     <motion.span
@@ -88,8 +88,7 @@ const HeroSection = () => {
                   </AnimatePresence>
                 </span>
                 <span className='pointer-events-none absolute left-1/2 top-full -translate-x-1/2 -translate-y-0 font-["Allura","cursive"] text-2xl text-emerald-200 drop-shadow-lg sm:text-3xl md:text-3xl lg:text-3xl'>
-                  <span className='sm:hidden'>&amp;</span>
-                  <span className='hidden sm:inline'>and</span>
+                  and
                 </span>
               </span>
               <span className='mt-6 block bg-gradient-to-r from-green-300 via-emerald-300 to-green-500 bg-clip-text text-center font-bold text-transparent'>
