@@ -233,7 +233,7 @@ const ReportNow = () => {
   };
 
   const handleBack = () => {
-    navigate('/citizen');
+    navigate(-1); // Go back to previous page
   };
 
   const handleTabChange = (tab: 'dashboard' | 'reports' | 'map') => {
@@ -290,51 +290,12 @@ const ReportNow = () => {
               />
             </div>
           ) : (
-            <div className='mx-auto max-w-4xl space-y-8'>
-              {/* Hero Section */}
-              <div className='mt-4 space-y-6 text-center'>
-                <div className='space-y-4'>
-                  <h2 className='text-xl font-bold text-gray-900 sm:text-2xl'>
-                    Take a Photo of the Issue
-                  </h2>
-                  <p className='mx-auto max-w-2xl text-sm text-black'>
-                    Capture the infrastructure problem and we'll automatically
-                    detect the location from your photo's GPS data
-                  </p>
-                </div>
-
-                {/* Feature Pills */}
-                <div className='flex flex-wrap justify-center gap-3'>
-                  <div className='flex items-center gap-2 rounded-full border border-green-200 bg-white/80 px-4 py-2 shadow-sm backdrop-blur-sm'>
-                    <MapPin className='h-4 w-4 text-green-600' />
-                    <span className='text-sm font-medium text-black'>
-                      Auto-detect Location
-                    </span>
-                  </div>
-                  <div className='flex items-center gap-2 rounded-full border border-green-200 bg-white/80 px-4 py-2 shadow-sm backdrop-blur-sm'>
-                    <Clock className='h-4 w-4 text-green-600' />
-                    <span className='text-sm font-medium text-black'>
-                      Submit in Seconds
-                    </span>
-                  </div>
-                  <div className='flex items-center gap-2 rounded-full border border-green-200 bg-white/80 px-4 py-2 shadow-sm backdrop-blur-sm'>
-                    <Sparkles className='h-4 w-4 text-green-600' />
-                    <span className='text-sm font-medium text-black'>
-                      AI-Verified Reports
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Camera Capture Card */}
-              <div className='overflow-hidden rounded-2xl border border-green-200/30 bg-white shadow-lg'>
-                <div className='p-6 sm:p-8'>
-                  <CameraCapture
-                    onPhotoCapture={handlePhotoCapture}
-                    onCancel={handleBack}
-                  />
-                </div>
-              </div>
+            <div className='mx-auto max-w-4xl'>
+              {/* Camera Capture - Full Width */}
+              <CameraCapture
+                onPhotoCapture={handlePhotoCapture}
+                onCancel={handleBack}
+              />
             </div>
           )}
         </main>

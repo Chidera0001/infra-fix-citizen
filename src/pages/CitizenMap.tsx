@@ -1,12 +1,16 @@
-import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, MapPin, Plus } from "lucide-react";
-import { useIssues } from "@/hooks/use-issues";
-import { L, MAP_CONFIG } from "@/components/maps/maps";
-import { groupIssuesByLocation, createMarkerIcon, addMarkerInteractions } from "@/components/maps/map-helpers";
+import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { ArrowLeft, MapPin, Plus } from 'lucide-react';
+import { useIssues } from '@/hooks/use-issues';
+import { L, MAP_CONFIG } from '@/components/maps/maps';
+import {
+  groupIssuesByLocation,
+  createMarkerIcon,
+  addMarkerInteractions,
+} from '@/components/maps/map-helpers';
 
 const CitizenMap = () => {
   const navigate = useNavigate();
@@ -14,10 +18,10 @@ const CitizenMap = () => {
   const mapInstance = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
   const { data: issues = [], isLoading } = useIssues({ limit: 100 });
-  
+
   // Use ref to store navigate function to prevent map re-initialization
   const navigateRef = useRef(navigate);
-  
+
   // Update navigate ref when it changes
   useEffect(() => {
     navigateRef.current = navigate;
@@ -27,11 +31,16 @@ const CitizenMap = () => {
     if (!mapRef.current || mapInstance.current) return;
 
     // Initialize map
-    const map = L.map(mapRef.current).setView(MAP_CONFIG.defaultCenter, MAP_CONFIG.defaultZoom);
-    
+    const map = L.map(mapRef.current).setView(
+      MAP_CONFIG.defaultCenter,
+      MAP_CONFIG.defaultZoom
+    );
+
     // Add tile layer
-    L.tileLayer(MAP_CONFIG.tileLayerUrl, MAP_CONFIG.tileLayerOptions).addTo(map);
-    
+    L.tileLayer(MAP_CONFIG.tileLayerUrl, MAP_CONFIG.tileLayerOptions).addTo(
+      map
+    );
+
     mapInstance.current = map;
 
     // Add click listener to report new issues using ref
@@ -50,7 +59,7 @@ const CitizenMap = () => {
         }
       });
       markersRef.current = [];
-      
+
       if (mapInstance.current) {
         mapInstance.current.remove();
         mapInstance.current = null;
@@ -76,68 +85,101 @@ const CitizenMap = () => {
 
       // Group issues by location for citizen view
       const groupedIssues = groupIssuesByLocation(issues);
-      
+
       if (groupedIssues.length === 0) {
         return;
       }
 
-      groupedIssues.forEach(({ lat, lng, issues: locationIssues, totalCount, resolvedCount, inProgressCount, openCount, status, category }) => {
-        // Validate coordinates
-        if (lat === undefined || lng === undefined || isNaN(lat) || isNaN(lng)) {
-          return;
+      groupedIssues.forEach(
+        ({
+          lat,
+          lng,
+          issues: locationIssues,
+          totalCount,
+          resolvedCount,
+          inProgressCount,
+          openCount,
+          status,
+          category,
+        }) => {
+          // Validate coordinates
+          if (
+            lat === undefined ||
+            lng === undefined ||
+            isNaN(lat) ||
+            isNaN(lng)
+          ) {
+            return;
+          }
+
+          try {
+            // Create marker icon with category (no count badge for citizens)
+            const markerIcon = createMarkerIcon(
+              status,
+              totalCount,
+              category,
+              false
+            );
+            const marker = L.marker([lat, lng], { icon: markerIcon }).addTo(
+              mapInstance.current!
+            );
+
+            // Add interactions (citizens don't see hover details)
+            addMarkerInteractions(
+              marker,
+              totalCount,
+              resolvedCount,
+              inProgressCount,
+              openCount,
+              locationIssues,
+              false
+            );
+
+            markersRef.current.push(marker);
+          } catch (error) {
+            console.error('Error creating marker:', error);
+          }
         }
-
-        try {
-          // Create marker icon with category (no count badge for citizens)
-          const markerIcon = createMarkerIcon(status, totalCount, category, false);
-          const marker = L.marker([lat, lng], { icon: markerIcon }).addTo(mapInstance.current!);
-
-          // Add interactions (citizens don't see hover details)
-          addMarkerInteractions(marker, totalCount, resolvedCount, inProgressCount, openCount, locationIssues, false);
-
-          markersRef.current.push(marker);
-        } catch (error) {
-          console.error('Error creating marker:', error);
-        }
-      });
+      );
     });
 
     return () => cancelAnimationFrame(rafId);
   }, [issues, isLoading]);
 
-    return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-indigo-50">
+  return (
+    <div className='min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-indigo-50'>
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm shadow-lg border-b border-white/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-4">
-            <div className="flex items-center space-x-4">
+      <header className='border-b border-white/20 bg-white/80 shadow-lg backdrop-blur-sm'>
+        <div className='mx-auto max-w-7xl px-4 sm:px-6 lg:px-8'>
+          <div className='flex items-center justify-between py-4'>
+            <div className='flex items-center space-x-4'>
               <Button
-                variant="ghost"
-                size="sm"
+                variant='ghost'
+                size='sm'
                 onClick={() => navigate('/citizen-dashboard')}
-                className="text-gray-600 hover:text-gray-900"
+                className='text-gray-600 hover:text-gray-900'
               >
-                <ArrowLeft className="h-4 w-4 mr-2" />
+                <ArrowLeft className='mr-2 h-4 w-4' />
                 Back to Dashboard
               </Button>
-              
+
               <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+                <h1 className='text-xl font-bold text-gray-900 sm:text-2xl'>
                   Community Map
                 </h1>
-                <p className="text-sm text-gray-600">
-                  Click anywhere on the map to report a new issue at that location
+                <p className='text-sm text-gray-600'>
+                  Click anywhere on the map to report a new issue at that
+                  location
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center space-x-3">
+            <div className='flex items-center space-x-3'>
               <Button
                 onClick={() => navigate('/report-issue')}
-                className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white shadow-lg"
+                className='bg-gradient-to-r from-green-600 to-green-500 text-white shadow-lg hover:from-green-700 hover:to-green-600'
               >
-                <Plus className="h-4 w-4 mr-2" />
+                <Plus className='mr-2 h-4 w-4' />
                 Report Issue
               </Button>
             </div>
@@ -145,50 +187,53 @@ const CitizenMap = () => {
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className='mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8'>
+        <div className='grid grid-cols-1 gap-6 lg:grid-cols-4'>
           {/* Map */}
-          <div className="lg:col-span-3">
-            <Card className="h-[600px] bg-white/80 backdrop-blur-sm border-0 shadow-xl">
-              <CardContent className="p-0 h-full">
-                <div ref={mapRef} className="w-full h-full rounded-lg" />
+          <div className='lg:col-span-3'>
+            <Card className='h-[600px] border-0 bg-white/80 shadow-xl backdrop-blur-sm'>
+              <CardContent className='h-full p-0'>
+                <div ref={mapRef} className='h-full w-full rounded-lg' />
               </CardContent>
             </Card>
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-4">
-            <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl">
+          <div className='space-y-4'>
+            <Card className='border-0 bg-white/80 shadow-xl backdrop-blur-sm'>
               <CardHeader>
-                <CardTitle className="text-lg">Quick Actions</CardTitle>
+                <CardTitle className='text-lg'>Quick Actions</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className='space-y-3'>
                 <Button
                   onClick={() => navigate('/report-issue')}
-                  className="w-full bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white"
+                  className='w-full bg-gradient-to-r from-green-600 to-green-500 text-white hover:from-green-700 hover:to-green-600'
                 >
-                  <Plus className="h-4 w-4 mr-2" />
+                  <Plus className='mr-2 h-4 w-4' />
                   Report New Issue
                 </Button>
-                
+
                 <Button
-                  variant="outline"
+                  variant='outline'
                   onClick={() => navigate('/citizen-dashboard')}
-                  className="w-full"
+                  className='w-full'
                 >
-                  <MapPin className="h-4 w-4 mr-2" />
+                  <MapPin className='mr-2 h-4 w-4' />
                   View Dashboard
                 </Button>
               </CardContent>
             </Card>
 
-            <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl">
+            <Card className='border-0 bg-white/80 shadow-xl backdrop-blur-sm'>
               <CardHeader>
-                <CardTitle className="text-lg">Map Instructions</CardTitle>
+                <CardTitle className='text-lg'>Map Instructions</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="text-sm text-gray-600 space-y-2">
-                  <p>• Click anywhere on the map to report an issue at that location</p>
+              <CardContent className='space-y-3'>
+                <div className='space-y-2 text-sm text-gray-600'>
+                  <p>
+                    • Click anywhere on the map to report an issue at that
+                    location
+                  </p>
                   <p>• Use zoom controls to navigate to specific areas</p>
                   <p>• Drag to pan around the map</p>
                 </div>
@@ -196,37 +241,51 @@ const CitizenMap = () => {
             </Card>
 
             {/* Recent Issues */}
-            <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl">
+            <Card className='border-0 bg-white/80 shadow-xl backdrop-blur-sm'>
               <CardHeader>
-                <CardTitle className="text-lg">Recent Issues</CardTitle>
+                <CardTitle className='text-lg'>Recent Issues</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className='space-y-4'>
                 {isLoading ? (
-                  <div className="text-center text-gray-500 py-4">
+                  <div className='py-4 text-center text-gray-500'>
                     Loading issues...
                   </div>
                 ) : issues.length === 0 ? (
-                  <div className="text-center text-gray-500 py-4">
+                  <div className='py-4 text-center text-gray-500'>
                     No issues found
                   </div>
                 ) : (
-                  issues.slice(0, 5).map((issue) => (
-                  <div key={issue.id} className="border-b pb-3 last:border-b-0">
-                    <div className="flex items-start justify-between mb-2">
-                      <h4 className="font-medium text-sm">{issue.title}</h4>
-                      <Badge variant={
-                        issue.status === "open" ? "destructive" :
-                        issue.status === "in-progress" ? "default" : "secondary"
-                      }>
-                        {issue.status}
-                      </Badge>
+                  issues.slice(0, 5).map(issue => (
+                    <div
+                      key={issue.id}
+                      className='border-b pb-3 last:border-b-0'
+                    >
+                      <div className='mb-2 flex items-start justify-between'>
+                        <h4 className='text-sm font-medium'>{issue.title}</h4>
+                        <Badge
+                          variant={
+                            issue.status === 'open'
+                              ? 'destructive'
+                              : issue.status === 'in-progress'
+                                ? 'default'
+                                : 'secondary'
+                          }
+                        >
+                          {issue.status}
+                        </Badge>
+                      </div>
+                      <p className='mb-2 text-xs text-gray-600'>
+                        {issue.location}
+                      </p>
+                      <div className='flex items-center justify-between'>
+                        <span className='text-xs text-gray-500'>
+                          {issue.category}
+                        </span>
+                        <span className='text-xs text-gray-500'>
+                          {issue.date}
+                        </span>
+                      </div>
                     </div>
-                    <p className="text-xs text-gray-600 mb-2">{issue.location}</p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-gray-500">{issue.category}</span>
-                      <span className="text-xs text-gray-500">{issue.date}</span>
-                    </div>
-                  </div>
                   ))
                 )}
               </CardContent>

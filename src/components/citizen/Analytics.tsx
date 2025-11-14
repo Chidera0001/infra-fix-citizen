@@ -81,7 +81,7 @@ export const Analytics = ({
           <h3 className='mb-4 text-lg font-semibold text-gray-900 sm:text-xl'>
             Community Impact
           </h3>
-          <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4'>
+          <div className='grid grid-cols-2 gap-4 lg:grid-cols-4'>
             <Card className='border-2 border-gray-200 shadow-md transition-transform duration-200 hover:scale-105'>
               <CardContent className='p-4 sm:p-6'>
                 <div className='flex flex-col items-center space-y-2 text-center'>
