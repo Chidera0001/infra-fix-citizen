@@ -31,6 +31,19 @@ function InteractiveMap({
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
+  
+  // Use refs to store callback functions to prevent unnecessary re-renders
+  const onLocationSelectRef = useRef(onLocationSelect);
+  const onIssueClickRef = useRef(onIssueClick);
+
+  // Update refs when callbacks change
+  useEffect(() => {
+    onLocationSelectRef.current = onLocationSelect;
+  }, [onLocationSelect]);
+
+  useEffect(() => {
+    onIssueClickRef.current = onIssueClick;
+  }, [onIssueClick]);
 
   // Initialize map
   useEffect(() => {
@@ -48,9 +61,11 @@ function InteractiveMap({
     L.tileLayer(MAP_CONFIG.tileLayerUrl, MAP_CONFIG.tileLayerOptions).addTo(mapInstance.current);
 
     // Add click listener for citizen view
-    if (!isAdmin && onLocationSelect) {
+    if (!isAdmin) {
       mapInstance.current.on('click', (e) => {
-        onLocationSelect({ lat: e.latlng.lat, lng: e.latlng.lng });
+        if (onLocationSelectRef.current) {
+          onLocationSelectRef.current({ lat: e.latlng.lat, lng: e.latlng.lng });
+        }
       });
     }
 
@@ -60,7 +75,7 @@ function InteractiveMap({
         mapInstance.current = null;
       }
     };
-  }, [onLocationSelect, isAdmin]);
+  }, [isAdmin]);
 
   // Add markers when issues change
   useEffect(() => {
@@ -74,8 +89,8 @@ function InteractiveMap({
     });
     markersRef.current = [];
 
-    // Add a small delay to ensure map is fully rendered
-    const timeoutId = setTimeout(() => {
+    // Use requestAnimationFrame for better performance and to avoid race conditions
+    const rafId = requestAnimationFrame(() => {
       if (!mapInstance.current) return;
 
       if (issues.length > 0) {
@@ -100,10 +115,12 @@ function InteractiveMap({
             // Add interactions (with issues array and admin flag)
             addMarkerInteractions(marker, totalCount, resolvedCount, inProgressCount, openCount, locationIssues, isAdmin);
 
-            // Handle marker click
-            if (onIssueClick && locationIssues.length > 0) {
+            // Handle marker click using ref to avoid dependency issues
+            if (onIssueClickRef.current && locationIssues.length > 0) {
               marker.on('click', () => {
-                onIssueClick(locationIssues[0]);
+                if (onIssueClickRef.current) {
+                  onIssueClickRef.current(locationIssues[0]);
+                }
               });
             }
 
@@ -152,10 +169,10 @@ function InteractiveMap({
           markersRef.current.push(selectedMarker);
         }
       }
-    }, 100);
+    });
 
-    return () => clearTimeout(timeoutId);
-  }, [issues, isAdmin, selectedLocation, showLocationSelector, onIssueClick]);
+    return () => cancelAnimationFrame(rafId);
+  }, [issues, isAdmin, selectedLocation, showLocationSelector]);
 
   return (
     <div className={`relative ${className}`} style={{ width: "100%", height: "100%" }}>

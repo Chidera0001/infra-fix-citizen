@@ -14,9 +14,17 @@ const CitizenMap = () => {
   const mapInstance = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
   const { data: issues = [], isLoading } = useIssues({ limit: 100 });
+  
+  // Use ref to store navigate function to prevent map re-initialization
+  const navigateRef = useRef(navigate);
+  
+  // Update navigate ref when it changes
+  useEffect(() => {
+    navigateRef.current = navigate;
+  }, [navigate]);
 
   useEffect(() => {
-    if (!mapRef.current) return;
+    if (!mapRef.current || mapInstance.current) return;
 
     // Initialize map
     const map = L.map(mapRef.current).setView(MAP_CONFIG.defaultCenter, MAP_CONFIG.defaultZoom);
@@ -26,11 +34,11 @@ const CitizenMap = () => {
     
     mapInstance.current = map;
 
-    // Add click listener to report new issues
+    // Add click listener to report new issues using ref
     map.on('click', (e: L.LeafletMouseEvent) => {
       const lat = e.latlng.lat;
       const lng = e.latlng.lng;
-      navigate(`/report-now?lat=${lat}&lng=${lng}`);
+      navigateRef.current(`/report-now?lat=${lat}&lng=${lng}`);
     });
 
     // Cleanup function
@@ -48,7 +56,7 @@ const CitizenMap = () => {
         mapInstance.current = null;
       }
     };
-  }, [navigate]);
+  }, []);
 
   // Add markers when issues change
   useEffect(() => {
@@ -62,8 +70,8 @@ const CitizenMap = () => {
     });
     markersRef.current = [];
 
-    // Add a small delay to ensure map is fully rendered
-    const timeoutId = setTimeout(() => {
+    // Use requestAnimationFrame for better performance and to avoid race conditions
+    const rafId = requestAnimationFrame(() => {
       if (!mapInstance.current || issues.length === 0) return;
 
       // Group issues by location for citizen view
@@ -92,9 +100,9 @@ const CitizenMap = () => {
           console.error('Error creating marker:', error);
         }
       });
-    }, 100);
+    });
 
-    return () => clearTimeout(timeoutId);
+    return () => cancelAnimationFrame(rafId);
   }, [issues, isLoading]);
 
     return (
