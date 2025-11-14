@@ -1,5 +1,16 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, Session, AuthError } from '@supabase/supabase-js';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from 'react';
+import {
+  User,
+  Session,
+  AuthError,
+  AuthApiError,
+} from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { clearProfileCache } from '@/lib/supabase-api';
 import { handleAuthError, logAuthError } from '@/utils/authErrorHandler';
@@ -49,6 +60,57 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Use navigator.onLine as fallback to avoid hook dependency issues
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 
+  const isInvalidRefreshError = useCallback((error: unknown) => {
+    if (!error) return false;
+    const message =
+      (error as AuthApiError)?.message?.toLowerCase() ||
+      (error as Error)?.message?.toLowerCase() ||
+      '';
+    const status = (error as AuthApiError)?.status;
+    const code = (error as AuthError)?.code || '';
+
+    return (
+      message.includes('invalid refresh token') ||
+      message.includes('refresh token not found') ||
+      code === 'refresh_token_not_found' ||
+      status === 400
+    );
+  }, []);
+
+  const clearInvalidSession = useCallback(
+    async (context: string) => {
+      console.warn(
+        `[Auth] Clearing invalid session (${context}) - forcing fresh sign in`
+      );
+      setSession(null);
+      setUser(null);
+      setLoading(false);
+      clearProfileCache();
+
+      try {
+        // Sign out to clear Supabase-managed storage (localStorage)
+        await supabase.auth.signOut();
+      } catch (signOutError) {
+        console.warn('Failed to sign out while clearing invalid session', signOutError);
+      }
+
+      if (typeof window !== 'undefined') {
+        try {
+          Object.keys(window.localStorage)
+            .filter(key => key.startsWith('sb-') || key.includes('supabase'))
+            .forEach(key => window.localStorage.removeItem(key));
+        } catch (storageError) {
+          console.warn('Failed to clear Supabase entries from localStorage', storageError);
+        }
+      }
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('auth:signout'));
+      }
+    },
+    []
+  );
+
   useEffect(() => {
     let isMounted = true;
     let timeoutId: NodeJS.Timeout;
@@ -76,6 +138,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           } = result;
           if (error) {
             console.error('Failed to get session:', error);
+            if (isInvalidRefreshError(error)) {
+              await clearInvalidSession('initial getSession');
+              return;
+            }
             // Still set loading to false even on error
             setSession(null);
             setUser(null);
@@ -89,10 +155,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } catch (error) {
         console.error('Error initializing auth:', error);
         if (isMounted) {
-          // Always set loading to false, even on error
-          setSession(null);
-          setUser(null);
-          setLoading(false);
+          if (isInvalidRefreshError(error)) {
+            await clearInvalidSession('initialization catch');
+          } else {
+            // Always set loading to false, even on error
+            setSession(null);
+            setUser(null);
+            setLoading(false);
+          }
         }
       } finally {
         if (timeoutId) {
@@ -117,6 +187,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           // Note: auth:signout event is dispatched from signOut() function
           // to avoid duplicate events and ensure proper cleanup order
           clearProfileCache();
+        }
+
+        if (!session?.user && event === 'TOKEN_REFRESHED') {
+          // Supabase may emit TOKEN_REFRESHED with null session when refresh fails
+          await clearInvalidSession('token refresh');
+          return;
         }
 
         // Handle email confirmation - auto-login after verification
@@ -162,7 +238,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
       subscription.unsubscribe();
     };
-  }, []);
+  }, [clearInvalidSession, isInvalidRefreshError]);
 
   // Listen for online/offline events
   useEffect(() => {
@@ -225,6 +301,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return { error };
     } catch (error) {
       logAuthError(error as AuthError, 'signUp', 'catch block');
+      if (isInvalidRefreshError(error)) {
+        await clearInvalidSession('signUp catch');
+      }
       const errorInfo = handleAuthError(error as AuthError, 'signUp');
       const friendlyError = new Error(errorInfo.userMessage) as AuthError;
       friendlyError.code = 'network_error';
@@ -260,11 +339,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         let retries = 0;
         const maxRetries = 30; // 30 retries × 100ms = 3 seconds max
         while (retries < maxRetries) {
-          // Check if user state has been updated by onAuthStateChange
-          const currentSession = await supabase.auth.getSession();
-          if (currentSession.data.session?.user?.id === data.session.user.id) {
-            // Wait a bit more to ensure onAuthStateChange has fired and state is updated
-            await new Promise(resolve => setTimeout(resolve, 100));
+          try {
+            // Check if user state has been updated by onAuthStateChange
+            const currentSession = await supabase.auth.getSession();
+            if (
+              currentSession.data.session?.user?.id === data.session.user.id
+            ) {
+              // Wait a bit more to ensure onAuthStateChange has fired and state is updated
+              await new Promise(resolve => setTimeout(resolve, 100));
+              break;
+            }
+          } catch (pollError) {
+            if (isInvalidRefreshError(pollError)) {
+              await clearInvalidSession('post-login polling');
+            }
             break;
           }
           await new Promise(resolve => setTimeout(resolve, 100));
@@ -275,6 +363,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return { error };
     } catch (error) {
       logAuthError(error as AuthError, 'signIn', 'catch block');
+      if (isInvalidRefreshError(error)) {
+        await clearInvalidSession('signIn catch');
+      }
       const errorInfo = handleAuthError(error as AuthError, 'signIn');
       const friendlyError = new Error(errorInfo.userMessage) as AuthError;
       friendlyError.code = 'network_error';
@@ -318,6 +409,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return { error };
     } catch (error) {
       logAuthError(error as AuthError, 'signInWithGoogle', 'catch block');
+      if (isInvalidRefreshError(error)) {
+        await clearInvalidSession('signInWithGoogle catch');
+      }
       const errorInfo = handleAuthError(error as AuthError, 'signInWithGoogle');
       const friendlyError = new Error(errorInfo.userMessage) as AuthError;
       friendlyError.code = 'network_error';

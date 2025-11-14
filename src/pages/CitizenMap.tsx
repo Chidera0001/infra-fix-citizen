@@ -6,15 +6,25 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, MapPin, Plus } from "lucide-react";
 import { useIssues } from "@/hooks/use-issues";
 import { L, MAP_CONFIG } from "@/components/maps/maps";
+import { groupIssuesByLocation, createMarkerIcon, addMarkerInteractions } from "@/components/maps/map-helpers";
 
 const CitizenMap = () => {
   const navigate = useNavigate();
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);
+  const markersRef = useRef<L.Marker[]>([]);
   const { data: issues = [], isLoading } = useIssues({ limit: 100 });
+  
+  // Use ref to store navigate function to prevent map re-initialization
+  const navigateRef = useRef(navigate);
+  
+  // Update navigate ref when it changes
+  useEffect(() => {
+    navigateRef.current = navigate;
+  }, [navigate]);
 
   useEffect(() => {
-    if (!mapRef.current) return;
+    if (!mapRef.current || mapInstance.current) return;
 
     // Initialize map
     const map = L.map(mapRef.current).setView(MAP_CONFIG.defaultCenter, MAP_CONFIG.defaultZoom);
@@ -24,21 +34,76 @@ const CitizenMap = () => {
     
     mapInstance.current = map;
 
-    // Add click listener to report new issues
+    // Add click listener to report new issues using ref
     map.on('click', (e: L.LeafletMouseEvent) => {
       const lat = e.latlng.lat;
       const lng = e.latlng.lng;
-      navigate(`/report-now?lat=${lat}&lng=${lng}`);
+      navigateRef.current(`/report-now?lat=${lat}&lng=${lng}`);
     });
 
     // Cleanup function
     return () => {
+      // Clear markers
+      markersRef.current.forEach(marker => {
+        if (mapInstance.current) {
+          mapInstance.current.removeLayer(marker);
+        }
+      });
+      markersRef.current = [];
+      
       if (mapInstance.current) {
         mapInstance.current.remove();
         mapInstance.current = null;
       }
     };
-  }, [navigate]);
+  }, []);
+
+  // Add markers when issues change
+  useEffect(() => {
+    if (!mapInstance.current || isLoading) return;
+
+    // Clear existing markers
+    markersRef.current.forEach(marker => {
+      if (mapInstance.current) {
+        mapInstance.current.removeLayer(marker);
+      }
+    });
+    markersRef.current = [];
+
+    // Use requestAnimationFrame for better performance and to avoid race conditions
+    const rafId = requestAnimationFrame(() => {
+      if (!mapInstance.current || issues.length === 0) return;
+
+      // Group issues by location for citizen view
+      const groupedIssues = groupIssuesByLocation(issues);
+      
+      if (groupedIssues.length === 0) {
+        return;
+      }
+
+      groupedIssues.forEach(({ lat, lng, issues: locationIssues, totalCount, resolvedCount, inProgressCount, openCount, status, category }) => {
+        // Validate coordinates
+        if (lat === undefined || lng === undefined || isNaN(lat) || isNaN(lng)) {
+          return;
+        }
+
+        try {
+          // Create marker icon with category (no count badge for citizens)
+          const markerIcon = createMarkerIcon(status, totalCount, category, false);
+          const marker = L.marker([lat, lng], { icon: markerIcon }).addTo(mapInstance.current!);
+
+          // Add interactions (citizens don't see hover details)
+          addMarkerInteractions(marker, totalCount, resolvedCount, inProgressCount, openCount, locationIssues, false);
+
+          markersRef.current.push(marker);
+        } catch (error) {
+          console.error('Error creating marker:', error);
+        }
+      });
+    });
+
+    return () => cancelAnimationFrame(rafId);
+  }, [issues, isLoading]);
 
     return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-indigo-50">

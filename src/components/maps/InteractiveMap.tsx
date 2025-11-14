@@ -31,6 +31,19 @@ function InteractiveMap({
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
+  
+  // Use refs to store callback functions to prevent unnecessary re-renders
+  const onLocationSelectRef = useRef(onLocationSelect);
+  const onIssueClickRef = useRef(onIssueClick);
+
+  // Update refs when callbacks change
+  useEffect(() => {
+    onLocationSelectRef.current = onLocationSelect;
+  }, [onLocationSelect]);
+
+  useEffect(() => {
+    onIssueClickRef.current = onIssueClick;
+  }, [onIssueClick]);
 
   // Initialize map
   useEffect(() => {
@@ -48,9 +61,11 @@ function InteractiveMap({
     L.tileLayer(MAP_CONFIG.tileLayerUrl, MAP_CONFIG.tileLayerOptions).addTo(mapInstance.current);
 
     // Add click listener for citizen view
-    if (!isAdmin && onLocationSelect) {
+    if (!isAdmin) {
       mapInstance.current.on('click', (e) => {
-        onLocationSelect({ lat: e.latlng.lat, lng: e.latlng.lng });
+        if (onLocationSelectRef.current) {
+          onLocationSelectRef.current({ lat: e.latlng.lat, lng: e.latlng.lng });
+        }
       });
     }
 
@@ -60,7 +75,7 @@ function InteractiveMap({
         mapInstance.current = null;
       }
     };
-  }, [onLocationSelect, isAdmin]);
+  }, [isAdmin]);
 
   // Add markers when issues change
   useEffect(() => {
@@ -74,36 +89,38 @@ function InteractiveMap({
     });
     markersRef.current = [];
 
-    // Add a small delay to ensure map is fully rendered
-    const timeoutId = setTimeout(() => {
+    // Use requestAnimationFrame for better performance and to avoid race conditions
+    const rafId = requestAnimationFrame(() => {
       if (!mapInstance.current) return;
 
-      if (isAdmin && issues.length > 0) {
-        // Group issues by location - ONLY for admin view
+      if (issues.length > 0) {
+        // Group issues by location for both admin and citizen views
         const groupedIssues = groupIssuesByLocation(issues);
         
         if (groupedIssues.length === 0) {
           return;
         }
 
-        groupedIssues.forEach(({ lat, lng, issues: locationIssues, totalCount, resolvedCount, inProgressCount, openCount, status }) => {
+        groupedIssues.forEach(({ lat, lng, issues: locationIssues, totalCount, resolvedCount, inProgressCount, openCount, status, category }) => {
           // Validate coordinates
           if (lat === undefined || lng === undefined || isNaN(lat) || isNaN(lng)) {
             return;
           }
 
           try {
-            // Create marker icon
-            const markerIcon = createMarkerIcon(status, totalCount);
+            // Create marker icon with category
+            const markerIcon = createMarkerIcon(status, totalCount, category, isAdmin);
             const marker = L.marker([lat, lng], { icon: markerIcon }).addTo(mapInstance.current!);
 
-            // Add interactions
-            addMarkerInteractions(marker, totalCount, resolvedCount, inProgressCount, openCount);
+            // Add interactions (with issues array and admin flag)
+            addMarkerInteractions(marker, totalCount, resolvedCount, inProgressCount, openCount, locationIssues, isAdmin);
 
-            // Handle marker click
-            if (onIssueClick && locationIssues.length > 0) {
+            // Handle marker click using ref to avoid dependency issues
+            if (onIssueClickRef.current && locationIssues.length > 0) {
               marker.on('click', () => {
-                onIssueClick(locationIssues[0]);
+                if (onIssueClickRef.current) {
+                  onIssueClickRef.current(locationIssues[0]);
+                }
               });
             }
 
@@ -112,7 +129,10 @@ function InteractiveMap({
             console.error('Error creating marker:', error);
           }
         });
-      } else if (!isAdmin && showLocationSelector && selectedLocation) {
+      }
+      
+      // Show selected location marker for citizen view (if needed)
+      if (!isAdmin && showLocationSelector && selectedLocation) {
         // Show selected location marker for citizen view
         if (selectedLocation.lat !== undefined && selectedLocation.lng !== undefined && 
             !isNaN(selectedLocation.lat) && !isNaN(selectedLocation.lng)) {
@@ -149,10 +169,10 @@ function InteractiveMap({
           markersRef.current.push(selectedMarker);
         }
       }
-    }, 100);
+    });
 
-    return () => clearTimeout(timeoutId);
-  }, [issues, isAdmin, selectedLocation, showLocationSelector, onIssueClick]);
+    return () => cancelAnimationFrame(rafId);
+  }, [issues, isAdmin, selectedLocation, showLocationSelector]);
 
   return (
     <div className={`relative ${className}`} style={{ width: "100%", height: "100%" }}>

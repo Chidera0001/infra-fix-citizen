@@ -143,7 +143,7 @@ export const InstantReportForm = ({
       toast({
         title: 'Photo Too Large',
         description: `The captured photo (${fileSizeMB}MB) exceeds the 4MB limit. Please retake with a smaller resolution.`,
-        variant: 'destructive',
+        variant: 'warning',
       });
       return;
     }
@@ -154,7 +154,7 @@ export const InstantReportForm = ({
       toast({
         title: 'Validation Error',
         description: errors.join(', '),
-        variant: 'destructive',
+        variant: 'warning',
       });
       return;
     }
@@ -182,6 +182,7 @@ export const InstantReportForm = ({
       if (!verificationResult.success) {
         // Parse and format the error message with emojis
         let formattedMessage = 'Please update the following:\n\n';
+        let toastTitle = '⚠️ Verification Failed';
 
         // Extract image error
         const imageErrorMatch = verificationResult.message.match(
@@ -199,16 +200,28 @@ export const InstantReportForm = ({
           formattedMessage += `📝 Description: ${descriptionErrorMatch[1].trim()}\n`;
         }
 
-        // If no specific errors found, use the original message
-        if (!imageErrorMatch && !descriptionErrorMatch) {
+        // Create dynamic title based on errors found
+        if (imageErrorMatch && descriptionErrorMatch) {
+          toastTitle = '⚠️ Image & Description Need Review';
+        } else if (imageErrorMatch) {
+          toastTitle = `⚠️ ${imageErrorMatch[1].trim()}`;
+        } else if (descriptionErrorMatch) {
+          toastTitle = `⚠️ ${descriptionErrorMatch[1].trim()}`;
+        } else {
+          // If no specific errors found, use the original message
           formattedMessage = verificationResult.message.replace(
             'Report failed verification. Please review the following issues:',
             'Please update the following:'
           );
+          // Extract first line or meaningful part for title
+          const firstLine = verificationResult.message.split('\n')[0].trim();
+          if (firstLine && firstLine.length < 60) {
+            toastTitle = `⚠️ ${firstLine}`;
+          }
         }
 
         toast({
-          title: '⚠️ Please Review Your Report',
+          title: toastTitle,
           description: formattedMessage.trim(),
           variant: 'warning',
           duration: 8000,
@@ -248,13 +261,13 @@ export const InstantReportForm = ({
         toast({
           title: 'Photo Upload Failed',
           description: 'Your photo could not be uploaded. Please try again.',
-          variant: 'destructive',
+          variant: 'warning',
         });
       } else {
         toast({
           title: 'Submission Failed',
           description: errorMessage,
-          variant: 'destructive',
+          variant: 'warning',
         });
       }
     } finally {

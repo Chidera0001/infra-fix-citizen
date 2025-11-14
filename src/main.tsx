@@ -1,11 +1,17 @@
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
-import { registerServiceWorker, updateServiceWorkerConfig } from './utils/serviceWorkerRegistration';
+import {
+  registerServiceWorker,
+  updateServiceWorkerConfig,
+} from './utils/serviceWorkerRegistration';
 import { supabase } from './integrations/supabase/client';
 
 // Register service worker for Background Sync (offline-first capabilities)
-if ('serviceWorker' in navigator) {
+const shouldRegisterServiceWorker =
+  import.meta.env.PROD || import.meta.env.VITE_ENABLE_SW === 'true';
+
+if (shouldRegisterServiceWorker && 'serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
     try {
       const registration = await registerServiceWorker();
@@ -25,6 +31,10 @@ if ('serviceWorker' in navigator) {
       console.error('Failed to register service worker:', error);
     }
   });
+} else {
+  console.info(
+    'Skipping service worker registration (development mode). Set VITE_ENABLE_SW=true to override.'
+  );
 }
 
 createRoot(document.getElementById('root')!).render(<App />);

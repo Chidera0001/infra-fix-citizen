@@ -111,17 +111,98 @@ export async function verifyReport(
     if (!response.ok) {
       const errorText = await response.text();
       let errorDetails = 'Unknown error';
+      let userFriendlyMessage = '';
 
       try {
         const errorJson = JSON.parse(errorText);
-        errorDetails = errorJson.details || errorJson.error || errorText;
+        // Try multiple possible error message fields (Supabase may use 'message', 'details', or 'error')
+        const errorMessage = errorJson.message || '';
+        errorDetails =
+          errorJson.message ||
+          errorJson.details ||
+          errorJson.error ||
+          errorText;
+        const errorDetailsStr = String(errorDetails).toLowerCase();
+        const errorMessageStr = String(errorMessage).toLowerCase();
+
+        // Handle specific error status codes with user-friendly messages
+        if (response.status === 401) {
+          // Unauthorized - Invalid or expired JWT token
+          userFriendlyMessage =
+            'Your session has expired. Please sign in again and try submitting your report.';
+        } else if (response.status === 502) {
+          // Bad Gateway - Usually means Gemini API is overloaded
+          if (
+            errorDetailsStr.includes('overloaded') ||
+            errorDetailsStr.includes('too many requests') ||
+            errorDetailsStr.includes('model is overloaded') ||
+            errorMessageStr.includes('overloaded') ||
+            errorMessageStr.includes('model is overloaded')
+          ) {
+            userFriendlyMessage =
+              'The AI service is currently overloaded with too many requests. Please try again in a few minutes.';
+          } else if (errorMessage && errorMessage.trim()) {
+            // If there's a specific error message, use it (it might already be user-friendly)
+            userFriendlyMessage = errorMessage;
+          } else {
+            userFriendlyMessage =
+              'The AI verification service is temporarily unavailable. Please try again in a few minutes.';
+          }
+        } else if (response.status === 500) {
+          // Internal server error
+          userFriendlyMessage =
+            'The verification service encountered an error. Please try again in a moment.';
+        } else if (response.status === 503) {
+          // Service unavailable
+          userFriendlyMessage =
+            'The verification service is temporarily unavailable. Please try again later.';
+        } else if (response.status === 429) {
+          // Too many requests
+          userFriendlyMessage =
+            'Too many requests. Please wait a few minutes before trying again.';
+        } else {
+          // For other errors, use the message if available, otherwise use details
+          userFriendlyMessage =
+            errorMessage ||
+            errorDetails ||
+            `Verification failed. Please try again. (Error ${response.status})`;
+        }
       } catch {
+        // If JSON parsing fails, use the raw text
         errorDetails = errorText.substring(0, 200);
+        const errorTextLower = errorText.toLowerCase();
+
+        if (response.status === 401) {
+          userFriendlyMessage =
+            'Your session has expired. Please sign in again and try submitting your report.';
+        } else if (response.status === 502) {
+          if (
+            errorTextLower.includes('overloaded') ||
+            errorTextLower.includes('too many requests') ||
+            errorTextLower.includes('model is overloaded')
+          ) {
+            userFriendlyMessage =
+              'The AI service is currently overloaded with too many requests. Please try again in a few minutes.';
+          } else {
+            userFriendlyMessage =
+              'The AI verification service is temporarily unavailable. Please try again in a few minutes.';
+          }
+        } else if (response.status === 429) {
+          userFriendlyMessage =
+            'Too many requests. Please wait a few minutes before trying again.';
+        } else {
+          userFriendlyMessage =
+            errorDetails ||
+            `Verification failed. Please try again. (Error ${response.status})`;
+        }
       }
 
-      throw new Error(
-        `AI Verification Failed: ${errorDetails} (Status: ${response.status})`
-      );
+      // Throw error with user-friendly message
+      const error = new Error(userFriendlyMessage);
+      // Attach original details for debugging
+      (error as any).originalDetails = errorDetails;
+      (error as any).statusCode = response.status;
+      throw error;
     }
 
     // Parse the response
@@ -153,9 +234,40 @@ export async function verifyReport(
     };
   } catch (error) {
     console.error('AI Verification error:', error);
+
+    // Preserve the actual error message if it's an Error instance
+    if (error instanceof Error) {
+      // Check for specific error types
+      if (error.message.includes('Fetch request timeout')) {
+        return {
+          success: false,
+          message:
+            'The verification request timed out. Please check your connection and try again.',
+        };
+      }
+
+      if (error.message.includes('Session timeout')) {
+        return {
+          success: false,
+          message:
+            'Unable to verify your session. Please sign in again and try submitting your report.',
+        };
+      }
+
+      // If the error already has a user-friendly message, use it
+      if (error.message && !error.message.includes('An unexpected error')) {
+        return {
+          success: false,
+          message: error.message,
+        };
+      }
+    }
+
+    // Fallback for truly unexpected errors
     return {
       success: false,
-      message: 'An unexpected error occurred during AI verification.',
+      message:
+        'An unexpected error occurred during AI verification. Please try again.',
     };
   }
 }
