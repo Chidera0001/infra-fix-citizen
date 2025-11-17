@@ -143,7 +143,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             // Clear timeout if successful
             if (timeoutId) clearTimeout(timeoutId);
           } catch (attemptError) {
-            console.warn(`Auth attempt ${attempts} failed:`, attemptError);
             if (timeoutId) clearTimeout(timeoutId);
 
             // If not last attempt, wait before retry
@@ -292,7 +291,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           } = await supabase.auth.getSession();
 
           if (error) {
-            console.warn('Session refresh on resume failed:', error);
             // Handle invalid session same as existing code
             if (isInvalidRefreshError(error)) {
               await clearInvalidSession('visibility change');
@@ -303,7 +301,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             setUser(session.user);
           }
         } catch (error) {
-          console.warn('Error refreshing session on resume:', error);
           // Silent fail - don't disrupt user experience
         }
       }
