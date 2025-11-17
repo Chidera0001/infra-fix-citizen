@@ -8,16 +8,10 @@ export function PWAUpdateNotification() {
   const [waitingWorker, setWaitingWorker] = useState<ServiceWorker | null>(null);
 
   useEffect(() => {
-    console.log('🔔 PWAUpdateNotification mounted');
-    
     if ('serviceWorker' in navigator) {
-      console.log('✅ Service Worker API available');
       navigator.serviceWorker.ready.then((registration) => {
-        console.log('✅ Service Worker ready:', registration);
-        
         // Check for updates every 60 seconds when the app is active
         const updateInterval = setInterval(() => {
-          console.log('🔄 Checking for updates...');
           registration.update();
         }, 60000);
 
@@ -33,7 +27,6 @@ export function PWAUpdateNotification() {
                 // New version available!
                 setWaitingWorker(newWorker);
                 setShowUpdate(true);
-                console.log('🎉 New PWA version available!');
               }
             });
           }
@@ -43,7 +36,6 @@ export function PWAUpdateNotification() {
         if (registration.waiting) {
           setWaitingWorker(registration.waiting);
           setShowUpdate(true);
-          console.log('🎉 PWA update already waiting!');
         }
 
         // Cleanup interval on unmount
@@ -52,7 +44,6 @@ export function PWAUpdateNotification() {
 
       // Listen for controller change (new SW activated)
       navigator.serviceWorker.addEventListener('controllerchange', () => {
-        console.log('✅ New service worker activated, reloading...');
         window.location.reload();
       });
     }
