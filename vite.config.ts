@@ -45,6 +45,16 @@ export default defineConfig(({ mode }) => ({
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/_/, /\/[^/?]+\.[^/]+$/],
+        // Prevent caching of API calls - this fixes the PWA data issue
+        runtimeCaching: [
+          {
+            // Never cache external API calls (Supabase, etc.)
+            urlPattern: ({ url }) => {
+              return url.origin !== self.location.origin;
+            },
+            handler: 'NetworkOnly',
+          },
+        ],
       },
     }),
   ],
@@ -55,6 +65,7 @@ export default defineConfig(({ mode }) => ({
   },
   publicDir: 'public',
   build: {
+    assetsDir: 'Assets', // Use capital A to match public folder structure
     rollupOptions: {
       input: {
         main: path.resolve(__dirname, 'index.html'),

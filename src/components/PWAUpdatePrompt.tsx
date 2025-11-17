@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Download, X } from 'lucide-react';
+import { X } from 'lucide-react';
 
 export function PWAUpdatePrompt() {
   const [showPrompt, setShowPrompt] = useState(false);
@@ -18,7 +18,10 @@ export function PWAUpdatePrompt() {
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
     return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener(
+        'beforeinstallprompt',
+        handleBeforeInstallPrompt
+      );
     };
   }, []);
 
@@ -27,13 +30,13 @@ export function PWAUpdatePrompt() {
 
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
-    
+
     if (outcome === 'accepted') {
       // User accepted the install prompt
     } else {
       // User dismissed the install prompt
     }
-    
+
     setDeferredPrompt(null);
     setShowPrompt(false);
   };
@@ -41,30 +44,31 @@ export function PWAUpdatePrompt() {
   if (!showPrompt) return null;
 
   return (
-    <Card className="fixed bottom-4 left-4 right-4 z-50 bg-green-50 border-green-200">
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Download className="h-5 w-5 text-green-600" />
+    <Card className='fixed bottom-4 left-4 right-4 z-50 border-green-200 bg-green-50'>
+      <CardContent className='p-4'>
+        <div className='flex items-center justify-between'>
+          <div className='flex items-center gap-3'>
             <div>
-              <h3 className="font-semibold text-green-800">Install Citizn App</h3>
-              <p className="text-sm text-green-700">Get quick access and offline functionality</p>
+              <h3 className='font-semibold text-green-800'>
+                Install Citizn App
+              </h3>
+              <p className='text-sm text-green-700'>www.citiznvoice.com</p>
             </div>
           </div>
-          <div className="flex gap-2">
-            <Button 
+          <div className='flex gap-2'>
+            <Button
               onClick={handleInstallClick}
-              size="sm"
-              className="bg-green-600 hover:bg-green-700"
+              size='sm'
+              className='bg-green-600 hover:bg-green-700'
             >
               Install
             </Button>
-            <Button 
+            <Button
               onClick={() => setShowPrompt(false)}
-              variant="ghost"
-              size="sm"
+              variant='ghost'
+              size='sm'
             >
-              <X className="h-4 w-4" />
+              <X className='h-4 w-4' />
             </Button>
           </div>
         </div>

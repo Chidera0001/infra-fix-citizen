@@ -11,10 +11,11 @@ import {
 	AllIssues, 
 	Users 
 } from "@/components/admin";
+import { AdminCommunityDashboard } from "@/components/admin/community/AdminCommunityDashboard";
 
 const AdminDashboard = () => {
 	const [showMap, setShowMap] = useState(false);
-	const [activeTab, setActiveTab] = useState<"dashboard" | "issues" | "map" | "users" | "analytics">("dashboard");
+	const [activeTab, setActiveTab] = useState<"dashboard" | "issues" | "map" | "users" | "analytics" | "community">("dashboard");
 	const navigate = useNavigate();
 	const { toast } = useToast();
 	const { signOut } = useAuth();
@@ -32,7 +33,7 @@ const AdminDashboard = () => {
 	};
 
 	// Handle tab changes
-	const handleTabChange = (tab: "dashboard" | "issues" | "map" | "users" | "analytics") => {
+	const handleTabChange = (tab: "dashboard" | "issues" | "map" | "users" | "analytics" | "community") => {
 		setActiveTab(tab);
 		if (tab === "map") {
 			setShowMap(true);
@@ -50,6 +51,8 @@ const AdminDashboard = () => {
 				return <Users />;
 			case "analytics":
 				return <Analytics />;
+			case "community":
+				return <AdminCommunityDashboard />;
 			case "dashboard":
 			default:
 				return <Dashboard onShowMap={() => setShowMap(true)} />;

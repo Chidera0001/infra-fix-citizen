@@ -19,6 +19,8 @@ import { useCreateOnlineIssue } from '@/hooks/use-separate-issues';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { fileToBase64, verifyReport } from '@/utils/aiVerification';
+import { useCheckDuplicate } from '@/hooks/use-community';
+import { DuplicateIssueDialog } from '@/components/community/DuplicateIssueDialog';
 import { ISSUE_CATEGORIES } from '@/constants';
 
 interface InstantReportFormProps {
@@ -40,7 +42,10 @@ export const InstantReportForm = ({
   const { user, session } = useAuth();
   const { toast } = useToast();
   const createOnlineIssueMutation = useCreateOnlineIssue();
+  const checkDuplicate = useCheckDuplicate();
 
+  const [duplicateIssue, setDuplicateIssue] = useState<any>(null);
+  const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     category: (ISSUE_CATEGORIES[0]?.value as IssueCategoryValue) ?? 'bad_roads',
@@ -162,14 +167,30 @@ export const InstantReportForm = ({
     setIsSubmitting(true);
 
     try {
-      // Step 1: Convert photo to base64 for AI verification
+      // Step 1: Check for duplicate issues
+      const duplicate = await checkDuplicate.mutateAsync({
+        category: formData.category,
+        lat: formData.location_lat,
+        lng: formData.location_lng,
+        address: formData.address,
+      });
+
+      if (duplicate) {
+        // Show duplicate dialog
+        setDuplicateIssue(duplicate);
+        setShowDuplicateDialog(true);
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Step 2: Convert photo to base64 for AI verification
       const base64DataUrl = await fileToBase64(photo);
       const mimeType = photo.type || 'image/jpeg';
 
       // Extract base64 data (remove 'data:image/jpeg;base64,' prefix)
       const base64Data = base64DataUrl.split(',')[1];
 
-      // Step 2: Verify report using AI (pass session token to avoid race conditions)
+      // Step 3: Verify report using AI (pass session token to avoid race conditions)
       const verificationResult = await verifyReport(
         base64Data,
         mimeType,
@@ -536,6 +557,13 @@ export const InstantReportForm = ({
           </form>
         </CardContent>
       </Card>
+
+      {/* Duplicate Issue Dialog */}
+      <DuplicateIssueDialog
+        open={showDuplicateDialog}
+        onClose={() => setShowDuplicateDialog(false)}
+        duplicateIssue={duplicateIssue}
+      />
     </div>
   );
 };

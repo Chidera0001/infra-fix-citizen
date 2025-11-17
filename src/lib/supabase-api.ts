@@ -361,6 +361,50 @@ export const issuesApi = {
     if (error) throw error;
     return data;
   },
+
+  async checkDuplicateIssue(
+    category: string,
+    lat: number,
+    lng: number,
+    address: string
+  ) {
+    const { data, error } = await supabase.rpc('check_duplicate_issue', {
+      p_category: category,
+      p_lat: lat,
+      p_lng: lng,
+      p_address: address,
+    });
+
+    if (error) throw error;
+    return data && data.length > 0 ? data[0] : null;
+  },
+
+  async getCommunityIssues(
+    lat: number,
+    lng: number,
+    radiusKm: number = 5,
+    category?: string,
+    status?: string,
+    sortBy: string = 'upvotes',
+    limit: number = 50,
+    offset: number = 0,
+    excludeOwnIssues: boolean = true
+  ) {
+    const { data, error } = await supabase.rpc('get_community_issues', {
+      p_lat: lat,
+      p_lng: lng,
+      p_radius_km: radiusKm,
+      p_category: category || null,
+      p_status: status || null,
+      p_sort_by: sortBy,
+      p_limit: limit,
+      p_offset: offset,
+      p_exclude_own_issues: excludeOwnIssues,
+    });
+
+    if (error) throw error;
+    return data || [];
+  },
 };
 
 // Comments API

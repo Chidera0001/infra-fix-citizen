@@ -5,7 +5,9 @@ import { useCreateOnlineIssue } from '@/hooks/use-separate-issues';
 import { useAuth } from '@/contexts/AuthContext';
 import { getCurrentLocationWithAddress } from '@/utils/geocoding';
 import { useFormValidation } from '@/hooks/useFormValidation';
+import { useCheckDuplicate } from '@/hooks/use-community';
 import LocationSelectionMap from './ReportForm/LocationSelectionMap';
+import { DuplicateIssueDialog } from '@/components/community/DuplicateIssueDialog';
 import { ISSUE_CATEGORIES } from '@/constants';
 
 interface ReportFormProps {
@@ -34,9 +36,12 @@ const ReportForm = ({ onBack }: ReportFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [locationAddress, setLocationAddress] = useState<string>('');
   const [showLocationMap, setShowLocationMap] = useState(false);
+  const [duplicateIssue, setDuplicateIssue] = useState<any>(null);
+  const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
   const { toast } = useToast();
   const createOnlineIssueMutation = useCreateOnlineIssue();
   const { validateForm, cleanTitle } = useFormValidation();
+  const checkDuplicate = useCheckDuplicate();
 
   const totalSteps = 4;
 
@@ -167,6 +172,22 @@ const ReportForm = ({ onBack }: ReportFormProps) => {
     setIsSubmitting(true);
 
     try {
+      // Check for duplicate issues
+      const duplicate = await checkDuplicate.mutateAsync({
+        category: formData.category,
+        lat: formData.location_lat,
+        lng: formData.location_lng,
+        address: formData.address,
+      });
+
+      if (duplicate) {
+        // Show duplicate dialog
+        setDuplicateIssue(duplicate);
+        setShowDuplicateDialog(true);
+        setIsSubmitting(false);
+        return;
+      }
+
       // Clean the title
       const cleanedTitle = cleanTitle(formData.title);
 
@@ -258,6 +279,13 @@ const ReportForm = ({ onBack }: ReportFormProps) => {
           </div>
         </>
       )}
+
+      {/* Duplicate Issue Dialog */}
+      <DuplicateIssueDialog
+        open={showDuplicateDialog}
+        onClose={() => setShowDuplicateDialog(false)}
+        duplicateIssue={duplicateIssue}
+      />
     </div>
   );
 };

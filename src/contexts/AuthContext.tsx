@@ -5,12 +5,7 @@ import React, {
   useState,
   useCallback,
 } from 'react';
-import {
-  User,
-  Session,
-  AuthError,
-  AuthApiError,
-} from '@supabase/supabase-js';
+import { User, Session, AuthError, AuthApiError } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { clearProfileCache } from '@/lib/supabase-api';
 import { handleAuthError, logAuthError } from '@/utils/authErrorHandler';
@@ -77,39 +72,42 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     );
   }, []);
 
-  const clearInvalidSession = useCallback(
-    async (context: string) => {
+  const clearInvalidSession = useCallback(async (context: string) => {
+    console.warn(
+      `[Auth] Clearing invalid session (${context}) - forcing fresh sign in`
+    );
+    setSession(null);
+    setUser(null);
+    setLoading(false);
+    clearProfileCache();
+
+    try {
+      // Sign out to clear Supabase-managed storage (localStorage)
+      await supabase.auth.signOut();
+    } catch (signOutError) {
       console.warn(
-        `[Auth] Clearing invalid session (${context}) - forcing fresh sign in`
+        'Failed to sign out while clearing invalid session',
+        signOutError
       );
-      setSession(null);
-      setUser(null);
-      setLoading(false);
-      clearProfileCache();
+    }
 
+    if (typeof window !== 'undefined') {
       try {
-        // Sign out to clear Supabase-managed storage (localStorage)
-        await supabase.auth.signOut();
-      } catch (signOutError) {
-        console.warn('Failed to sign out while clearing invalid session', signOutError);
+        Object.keys(window.localStorage)
+          .filter(key => key.startsWith('sb-') || key.includes('supabase'))
+          .forEach(key => window.localStorage.removeItem(key));
+      } catch (storageError) {
+        console.warn(
+          'Failed to clear Supabase entries from localStorage',
+          storageError
+        );
       }
+    }
 
-      if (typeof window !== 'undefined') {
-        try {
-          Object.keys(window.localStorage)
-            .filter(key => key.startsWith('sb-') || key.includes('supabase'))
-            .forEach(key => window.localStorage.removeItem(key));
-        } catch (storageError) {
-          console.warn('Failed to clear Supabase entries from localStorage', storageError);
-        }
-      }
-
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('auth:signout'));
-      }
-    },
-    []
-  );
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('auth:signout'));
+    }
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -118,20 +116,46 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Get initial session with timeout and error handling
     const initializeAuth = async () => {
       try {
-        // Set a timeout to prevent infinite loading
-        const sessionPromise = supabase.auth.getSession();
-        const timeoutPromise = new Promise<never>((_, reject) => {
-          timeoutId = setTimeout(() => {
-            reject(new Error('Session check timeout'));
-          }, 10000); // 10 second timeout
-        });
+        // Try to get session with retry logic for mobile
+        let attempts = 0;
+        const maxAttempts = 3;
+        let result: {
+          data: { session: Session | null };
+          error: AuthError | null;
+        } | null = null;
 
-        const result = (await Promise.race([
-          sessionPromise,
-          timeoutPromise,
-        ])) as { data: { session: Session | null }; error: AuthError | null };
+        while (attempts < maxAttempts && !result) {
+          attempts++;
 
-        if (isMounted) {
+          try {
+            const sessionPromise = supabase.auth.getSession();
+            const timeoutPromise = new Promise<never>((_, reject) => {
+              timeoutId = setTimeout(() => {
+                reject(new Error('Session check timeout'));
+              }, 15000); // 15 second timeout per attempt
+            });
+
+            result = (await Promise.race([sessionPromise, timeoutPromise])) as {
+              data: { session: Session | null };
+              error: AuthError | null;
+            };
+
+            // Clear timeout if successful
+            if (timeoutId) clearTimeout(timeoutId);
+          } catch (attemptError) {
+            if (timeoutId) clearTimeout(timeoutId);
+
+            // If not last attempt, wait before retry
+            if (attempts < maxAttempts) {
+              await new Promise(resolve => setTimeout(resolve, 1000)); // 1 second between retries
+            } else {
+              // Last attempt failed, throw error
+              throw attemptError;
+            }
+          }
+        }
+
+        if (isMounted && result) {
           const {
             data: { session },
             error,
@@ -253,6 +277,41 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
+
+  // Handle PWA resume from background (fixes mobile data loading issue)
+  useEffect(() => {
+    const handleVisibilityChange = async () => {
+      // Only refresh when PWA becomes visible (user switches back)
+      if (!document.hidden) {
+        try {
+          // Get fresh session without timeout - direct call
+          const {
+            data: { session },
+            error,
+          } = await supabase.auth.getSession();
+
+          if (error) {
+            // Handle invalid session same as existing code
+            if (isInvalidRefreshError(error)) {
+              await clearInvalidSession('visibility change');
+            }
+          } else if (session) {
+            // Session valid - update state
+            setSession(session);
+            setUser(session.user);
+          }
+        } catch (error) {
+          // Silent fail - don't disrupt user experience
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [isInvalidRefreshError, clearInvalidSession]);
 
   // Handle offline mode
   useEffect(() => {
