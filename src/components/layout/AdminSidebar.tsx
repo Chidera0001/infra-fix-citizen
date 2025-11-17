@@ -19,7 +19,7 @@ import { useState } from "react";
 
 interface AdminSidebarProps {
 	activeTab: string;
-	onTabChange: (tab: "dashboard" | "issues" | "map" | "users" | "analytics") => void;
+	onTabChange: (tab: "dashboard" | "issues" | "map" | "users" | "analytics" | "community") => void;
 	profile: any;
 }
 
@@ -51,7 +51,7 @@ export const AdminSidebar = ({ activeTab, onTabChange, profile }: AdminSidebarPr
 		}
 	};
 
-	const handleMenuItemClick = (tab: "dashboard" | "issues" | "map" | "users" | "analytics") => {
+	const handleMenuItemClick = (tab: "dashboard" | "issues" | "map" | "users" | "analytics" | "community") => {
 		onTabChange(tab);
 		setIsOpen(false); // Close sidebar on mobile after selection
 	};
@@ -60,8 +60,9 @@ export const AdminSidebar = ({ activeTab, onTabChange, profile }: AdminSidebarPr
 		{ id: "dashboard", icon: LayoutDashboard, label: "Dashboard" },
 		{ id: "issues", icon: FileText, label: "All Issues" },
 		{ id: "map", icon: Map, label: "Map View" },
-		{ id: "users", icon: Users, label: "Users" },
-		{ id: "analytics", icon: BarChart3, label: "Analytics" },
+		{ id: "users", icon: Users, label: "Users", svgIcon: "/Assets/icons/Users.png" },
+		{ id: "community", icon: Activity, label: "Community", svgIcon: "/Assets/icons/community icon.png" },
+		{ id: "analytics", icon: BarChart3, label: "Analytics", svgIcon: "/Assets/icons/Analytics.svg" },
 	];
 
 	return (
@@ -110,7 +111,7 @@ export const AdminSidebar = ({ activeTab, onTabChange, profile }: AdminSidebarPr
 
 			{/* Navigation Menu */}
 			<nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-				{menuItems.map((item) => {
+				{menuItems.map((item: any) => {
 					const Icon = item.icon;
 					const isActive = activeTab === item.id;
 					
@@ -124,7 +125,16 @@ export const AdminSidebar = ({ activeTab, onTabChange, profile }: AdminSidebarPr
 									: "text-black hover:bg-gray-50"
 							}`}
 						>
-							<Icon className={`h-5 w-5 ${isActive ? "text-green-600" : "text-gray-500"}`} />
+							{item.svgIcon ? (
+								<img 
+									src={item.svgIcon} 
+									alt={item.label}
+									className={`h-5 w-5 ${isActive ? "brightness-0 saturate-100" : "opacity-60"}`}
+									style={isActive ? { filter: 'invert(42%) sepia(93%) saturate(1352%) hue-rotate(87deg) brightness(119%) contrast(119%)' } : {}}
+								/>
+							) : (
+								<Icon className={`h-5 w-5 ${isActive ? "text-green-600" : "text-gray-500"}`} />
+							)}
 							<span>{item.label}</span>
 						</button>
 					);

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import type { Issue } from '@/lib/supabase-api';
+import { triggerConfettiShower } from '@/utils/confetti';
 
 interface AchievementBadgeProps {
   reports: Issue[];
@@ -37,45 +38,6 @@ const achievementMessages = [
   '🌟 Your dedication to community improvement is inspiring!',
 ];
 
-// Confetti component
-const Confetti = () => {
-  const [particles, setParticles] = useState<
-    Array<{ id: number; x: number; y: number; color: string; delay: number }>
-  >([]);
-
-  useEffect(() => {
-    const colors = ['#10b981', '#059669', '#047857', '#065f46', '#064e3b'];
-    const newParticles = Array.from({ length: 50 }, (_, i) => ({
-      id: i,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      color: colors[Math.floor(Math.random() * colors.length)],
-      delay: Math.random() * 2,
-    }));
-    setParticles(newParticles);
-
-    const timer = setTimeout(() => setParticles([]), 3000);
-    return () => clearTimeout(timer);
-  }, []);
-
-  return (
-    <div className='pointer-events-none absolute inset-0 overflow-hidden'>
-      {particles.map(particle => (
-        <div
-          key={particle.id}
-          className='absolute h-2 w-2 animate-bounce rounded-full'
-          style={{
-            left: `${particle.x}%`,
-            top: `${particle.y}%`,
-            backgroundColor: particle.color,
-            animationDelay: `${particle.delay}s`,
-            animationDuration: '1s',
-          }}
-        />
-      ))}
-    </div>
-  );
-};
 
 // Achievement logic
 const getAchievement = (reports: Issue[], allIssues: Issue[]) => {
@@ -173,14 +135,12 @@ export const AchievementBadge = ({
   reports,
   allIssues,
 }: AchievementBadgeProps) => {
-  const [showConfetti, setShowConfetti] = useState(false);
   const achievement = getAchievement(reports, allIssues);
 
   useEffect(() => {
     if (achievement.showConfetti) {
-      setShowConfetti(true);
-      const timer = setTimeout(() => setShowConfetti(false), 3000);
-      return () => clearTimeout(timer);
+      // Trigger confetti shower when user has an achievement
+      triggerConfettiShower();
     }
   }, [achievement.showConfetti]);
 
@@ -188,7 +148,6 @@ export const AchievementBadge = ({
 
   return (
     <div className='relative mb-6'>
-      {showConfetti && <Confetti />}
       <Card className='border-0 bg-gradient-to-r from-green-50 via-emerald-50 to-teal-50 shadow-lg'>
         <CardContent className='p-6'>
           <div className='flex items-center justify-center space-x-3'>
