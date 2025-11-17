@@ -13,7 +13,7 @@ export default defineConfig(({ mode }) => ({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'favicon.svg', 'placeholder.svg'],
+      includeAssets: ['favicon.ico', 'favicon.svg', 'placeholder.svg', 'Assets/logo/Trademark.png'],
       manifest: {
         name: 'Citizn - Infrastructure Issue Management',
         short_name: 'Citizn',
@@ -42,17 +42,38 @@ export default defineConfig(({ mode }) => ({
         globPatterns: [
           '**/*.{js,css,html,ico,png,svg,jpg,jpeg,gif,webp,woff,woff2,ttf,eot}',
         ],
+        // Exclude manifest icons from glob-based precaching to avoid conflicts
+        globIgnores: ['**/logo/Trademark.png'],
+        // Don't add revision hashes to these files (they already have them or don't need them)
+        dontCacheBustURLsMatching: /\/logo\/Trademark\.png$/,
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/_/, /\/[^/?]+\.[^/]+$/],
         // Prevent caching of API calls - this fixes the PWA data issue
         runtimeCaching: [
           {
-            // Never cache external API calls (Supabase, etc.)
+            // Only block Supabase API calls from caching
             urlPattern: ({ url }) => {
-              return url.origin !== self.location.origin;
+              return url.hostname.includes('supabase.co');
             },
             handler: 'NetworkOnly',
+          },
+          {
+            // Cache Google Fonts and other CDN resources for offline use
+            urlPattern: ({ url }) => {
+              return url.origin.includes('googleapis.com') || 
+                     url.origin.includes('gstatic.com') ||
+                     url.origin.includes('unpkg.com') ||
+                     url.origin.includes('jsdelivr.net');
+            },
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'cdn-cache',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
+              },
+            },
           },
         ],
       },
