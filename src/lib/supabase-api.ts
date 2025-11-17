@@ -365,12 +365,14 @@ export const issuesApi = {
   async checkDuplicateIssue(
     category: string,
     lat: number,
-    lng: number
+    lng: number,
+    address: string
   ) {
     const { data, error } = await supabase.rpc('check_duplicate_issue', {
       p_category: category,
       p_lat: lat,
       p_lng: lng,
+      p_address: address,
     });
 
     if (error) throw error;

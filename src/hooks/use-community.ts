@@ -11,11 +11,13 @@ export function useCheckDuplicate() {
       category,
       lat,
       lng,
+      address,
     }: {
       category: string;
       lat: number;
       lng: number;
-    }) => issuesApi.checkDuplicateIssue(category, lat, lng),
+      address: string;
+    }) => issuesApi.checkDuplicateIssue(category, lat, lng, address),
   });
 }
 
