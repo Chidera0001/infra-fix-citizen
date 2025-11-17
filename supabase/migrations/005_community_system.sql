@@ -33,22 +33,24 @@ BEGIN
     -- Set category-based detection radius (in meters)
     search_radius := CASE p_category
         -- LINEAR INFRASTRUCTURE (roads span longer distances)
-        WHEN 'bad_roads' THEN 80           -- Catches same road, avoids parallel roads
-        WHEN 'sidewalk_issues' THEN 60     -- Sidewalks are narrower than roads
+        WHEN 'bad_roads' THEN 80              -- Roads span blocks
+        WHEN 'collapsed_bridges' THEN 60      -- Bridges are specific but can span
         
         -- AREA INFRASTRUCTURE (medium spread)
-        WHEN 'potholes' THEN 60            -- Often part of road issues
-        WHEN 'flooding' THEN 80            -- Flooding affects larger areas
-        WHEN 'garbage_accumulation' THEN 40 -- Smaller accumulation zones
+        WHEN 'floods' THEN 80                 -- Flooding affects larger areas
+        WHEN 'erosion_sites' THEN 70          -- Erosion can spread
+        WHEN 'dump_sites' THEN 40             -- Dump sites vary in size
         
         -- POINT INFRASTRUCTURE (specific locations)
-        WHEN 'street_lighting' THEN 20     -- Very specific pole locations
-        WHEN 'water_supply' THEN 25        -- Connection points are exact
-        WHEN 'drainage_issues' THEN 30     -- Drain covers semi-specific
-        WHEN 'public_toilet' THEN 20       -- Exact building locations
-        WHEN 'traffic_lights' THEN 20      -- Intersection-specific
+        WHEN 'broken_streetlights' THEN 20    -- Streetlights are fixed poles
+        WHEN 'open_manholes' THEN 15          -- Manholes are very specific locations
+        WHEN 'bad_traffic_signals' THEN 20    -- Traffic signals are intersection-specific
+        WHEN 'water_supply_issues' THEN 25    -- Water supply points are specific
+        WHEN 'unsafe_crossings' THEN 25       -- Crosswalks/intersections are specific
+        WHEN 'poor_drainages' THEN 30         -- Drainage points semi-specific
+        WHEN 'construction_debris' THEN 35    -- Debris can be scattered
         
-        -- DEFAULT for unlisted categories
+        -- DEFAULT for any other categories
         ELSE 40
     END;
 
