@@ -7,6 +7,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import AuthGuard from './components/auth/AuthGuard';
 import AdminAuthGuard from './components/admin/AdminAuthGuard';
 import { PWAUpdatePrompt } from '@/components/PWAUpdatePrompt';
+import { PWAUpdateNotification } from '@/components/PWAUpdateNotification';
 import Index from './pages/Index';
 import Auth from './pages/Auth';
 import EmailConfirm from './pages/EmailConfirm';
@@ -100,6 +101,7 @@ const App = () => (
           </Routes>
         </BrowserRouter>
         <PWAUpdatePrompt />
+        <PWAUpdateNotification />
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>

@@ -34,6 +34,9 @@ export const supabase = createClient<Database>(
         'X-Client-Info': 'infra-fix-citizen',
         // Add Accept header to fix 406 Not Acceptable errors
         'Accept': 'application/json',
+        // Prevent caching of API responses in PWA
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
       },
     },
     // Add realtime configuration
