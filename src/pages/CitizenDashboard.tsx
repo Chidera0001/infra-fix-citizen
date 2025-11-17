@@ -8,11 +8,12 @@ import { useAutoSync } from '@/hooks/use-auto-sync';
 import { useOfflineUserManager } from '@/hooks/use-offline-user-manager';
 import { CitizenSidebar } from '@/components/layout/CitizenSidebar';
 import { Dashboard, MyReports, Analytics } from '@/components/citizen';
+import { CommunityPage } from '@/components/community/CommunityPage';
 // import { OfflineDebugger } from "@/components/debug/OfflineDebugger";
 
 const CitizenDashboard = () => {
   const [searchParams] = useSearchParams();
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'reports' | 'map' | 'analytics'>(
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'reports' | 'map' | 'analytics' | 'community'>(
     'dashboard'
   );
   const [showReportForm, setShowReportForm] = useState(false);
@@ -43,8 +44,8 @@ const CitizenDashboard = () => {
   // Handle URL parameters for tab navigation
   useEffect(() => {
     const tabParam = searchParams.get('tab');
-    if (tabParam && ['dashboard', 'reports', 'map', 'analytics'].includes(tabParam)) {
-      setActiveTab(tabParam as 'dashboard' | 'reports' | 'map' | 'analytics');
+    if (tabParam && ['dashboard', 'reports', 'map', 'analytics', 'community'].includes(tabParam)) {
+      setActiveTab(tabParam as 'dashboard' | 'reports' | 'map' | 'analytics' | 'community');
       if (tabParam === 'map') {
         setShowMap(true);
       } else {
@@ -60,7 +61,7 @@ const CitizenDashboard = () => {
   };
 
   // Handle tab changes
-  const handleTabChange = (tab: 'dashboard' | 'reports' | 'map' | 'analytics') => {
+  const handleTabChange = (tab: 'dashboard' | 'reports' | 'map' | 'analytics' | 'community') => {
     setActiveTab(tab);
     setShowReportForm(false); // Close report form when changing tabs
     if (tab === 'map') {
@@ -121,6 +122,10 @@ const CitizenDashboard = () => {
           currentUserId={profile?.id}
         />
       );
+    }
+
+    if (activeTab === 'community') {
+      return <CommunityPage />;
     }
 
     // Default dashboard view
