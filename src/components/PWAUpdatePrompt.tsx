@@ -8,8 +8,11 @@ export function PWAUpdatePrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
   useEffect(() => {
+    console.log('🎯 PWAUpdatePrompt mounted');
+    
     // Listen for the beforeinstallprompt event
     const handleBeforeInstallPrompt = (e: Event) => {
+      console.log('📥 Install prompt event received!', e);
       e.preventDefault();
       setDeferredPrompt(e);
       setShowPrompt(true);
