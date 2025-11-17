@@ -118,20 +118,44 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Get initial session with timeout and error handling
     const initializeAuth = async () => {
       try {
-        // Set a timeout to prevent infinite loading
-        const sessionPromise = supabase.auth.getSession();
-        const timeoutPromise = new Promise<never>((_, reject) => {
-          timeoutId = setTimeout(() => {
-            reject(new Error('Session check timeout'));
-          }, 10000); // 10 second timeout
-        });
+        // Try to get session with retry logic for mobile
+        let attempts = 0;
+        const maxAttempts = 3;
+        let result: { data: { session: Session | null }; error: AuthError | null } | null = null;
 
-        const result = (await Promise.race([
-          sessionPromise,
-          timeoutPromise,
-        ])) as { data: { session: Session | null }; error: AuthError | null };
+        while (attempts < maxAttempts && !result) {
+          attempts++;
+          
+          try {
+            const sessionPromise = supabase.auth.getSession();
+            const timeoutPromise = new Promise<never>((_, reject) => {
+              timeoutId = setTimeout(() => {
+                reject(new Error('Session check timeout'));
+              }, 15000); // 15 second timeout per attempt
+            });
 
-        if (isMounted) {
+            result = (await Promise.race([
+              sessionPromise,
+              timeoutPromise,
+            ])) as { data: { session: Session | null }; error: AuthError | null };
+            
+            // Clear timeout if successful
+            if (timeoutId) clearTimeout(timeoutId);
+          } catch (attemptError) {
+            console.warn(`Auth attempt ${attempts} failed:`, attemptError);
+            if (timeoutId) clearTimeout(timeoutId);
+            
+            // If not last attempt, wait before retry
+            if (attempts < maxAttempts) {
+              await new Promise(resolve => setTimeout(resolve, 1000)); // 1 second between retries
+            } else {
+              // Last attempt failed, throw error
+              throw attemptError;
+            }
+          }
+        }
+
+        if (isMounted && result) {
           const {
             data: { session },
             error,
