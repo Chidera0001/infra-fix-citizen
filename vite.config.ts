@@ -48,11 +48,28 @@ export default defineConfig(({ mode }) => ({
         // Prevent caching of API calls - this fixes the PWA data issue
         runtimeCaching: [
           {
-            // Never cache external API calls (Supabase, etc.)
+            // Only block Supabase API calls from caching
             urlPattern: ({ url }) => {
-              return url.origin !== self.location.origin;
+              return url.hostname.includes('supabase.co');
             },
             handler: 'NetworkOnly',
+          },
+          {
+            // Cache Google Fonts and other CDN resources for offline use
+            urlPattern: ({ url }) => {
+              return url.origin.includes('googleapis.com') || 
+                     url.origin.includes('gstatic.com') ||
+                     url.origin.includes('unpkg.com') ||
+                     url.origin.includes('jsdelivr.net');
+            },
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'cdn-cache',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
+              },
+            },
           },
         ],
       },
