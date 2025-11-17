@@ -1,7 +1,10 @@
 -- Migration: Community System with Duplicate Detection and Upvoting
 -- Description: Adds functions for checking duplicate issues and fetching community issues
 
--- Function to check for duplicate issues within 100 meters
+-- Drop the old function first to allow return type changes
+DROP FUNCTION IF EXISTS check_duplicate_issue(issue_category, DECIMAL, DECIMAL);
+
+-- Function to check for duplicate issues within 50 meters
 CREATE OR REPLACE FUNCTION check_duplicate_issue(
     p_category issue_category,
     p_lat DECIMAL,
@@ -15,6 +18,7 @@ RETURNS TABLE (
     image_urls TEXT[],
     upvotes INTEGER,
     distance_meters DECIMAL,
+    reporter_id UUID,
     reporter_name TEXT,
     created_at TIMESTAMP WITH TIME ZONE
 ) AS $$
@@ -33,6 +37,7 @@ BEGIN
                 ST_GeographyFromText('POINT(' || i.location_lng || ' ' || i.location_lat || ')')
             )::numeric
         ) as distance_meters,
+        i.reporter_id,
         p.full_name as reporter_name,
         i.created_at
     FROM issues i
@@ -43,7 +48,7 @@ BEGIN
         AND ST_DWithin(
             ST_GeographyFromText('POINT(' || p_lng || ' ' || p_lat || ')'),
             ST_GeographyFromText('POINT(' || i.location_lng || ' ' || i.location_lat || ')'),
-            100
+            50
         )
     ORDER BY distance_meters ASC
     LIMIT 1;
