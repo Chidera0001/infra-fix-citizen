@@ -13,7 +13,7 @@ export default defineConfig(({ mode }) => ({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'favicon.svg', 'placeholder.svg'],
+      includeAssets: ['favicon.ico', 'favicon.svg', 'placeholder.svg', 'Assets/logo/Trademark.png'],
       manifest: {
         name: 'Citizn - Infrastructure Issue Management',
         short_name: 'Citizn',
@@ -42,6 +42,10 @@ export default defineConfig(({ mode }) => ({
         globPatterns: [
           '**/*.{js,css,html,ico,png,svg,jpg,jpeg,gif,webp,woff,woff2,ttf,eot}',
         ],
+        // Exclude manifest icons from glob-based precaching to avoid conflicts
+        globIgnores: ['**/logo/Trademark.png'],
+        // Don't add revision hashes to these files (they already have them or don't need them)
+        dontCacheBustURLsMatching: /\/logo\/Trademark\.png$/,
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/_/, /\/[^/?]+\.[^/]+$/],
