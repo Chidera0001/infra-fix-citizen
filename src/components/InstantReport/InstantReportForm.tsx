@@ -172,6 +172,7 @@ export const InstantReportForm = ({
         category: formData.category,
         lat: formData.location_lat,
         lng: formData.location_lng,
+        address: formData.address,
       });
 
       if (duplicate) {

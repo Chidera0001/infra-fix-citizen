@@ -1,14 +1,19 @@
 -- Migration: Community System with Duplicate Detection and Upvoting
 -- Description: Adds functions for checking duplicate issues and fetching community issues
 
--- Drop the old function first to allow return type changes
-DROP FUNCTION IF EXISTS check_duplicate_issue(issue_category, DECIMAL, DECIMAL);
+-- Enable pg_trgm extension for address similarity matching
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
--- Function to check for duplicate issues within 50 meters
+-- Drop the old function first to allow signature changes
+DROP FUNCTION IF EXISTS check_duplicate_issue(issue_category, DECIMAL, DECIMAL);
+DROP FUNCTION IF EXISTS check_duplicate_issue(issue_category, DECIMAL, DECIMAL, TEXT);
+
+-- Function to check for duplicate issues with category-based radius and address matching
 CREATE OR REPLACE FUNCTION check_duplicate_issue(
     p_category issue_category,
     p_lat DECIMAL,
-    p_lng DECIMAL
+    p_lng DECIMAL,
+    p_address TEXT
 )
 RETURNS TABLE (
     issue_id UUID,
@@ -22,7 +27,31 @@ RETURNS TABLE (
     reporter_name TEXT,
     created_at TIMESTAMP WITH TIME ZONE
 ) AS $$
+DECLARE
+    search_radius DECIMAL;
 BEGIN
+    -- Set category-based detection radius (in meters)
+    search_radius := CASE p_category
+        -- LINEAR INFRASTRUCTURE (roads span longer distances)
+        WHEN 'bad_roads' THEN 80           -- Catches same road, avoids parallel roads
+        WHEN 'sidewalk_issues' THEN 60     -- Sidewalks are narrower than roads
+        
+        -- AREA INFRASTRUCTURE (medium spread)
+        WHEN 'potholes' THEN 60            -- Often part of road issues
+        WHEN 'flooding' THEN 80            -- Flooding affects larger areas
+        WHEN 'garbage_accumulation' THEN 40 -- Smaller accumulation zones
+        
+        -- POINT INFRASTRUCTURE (specific locations)
+        WHEN 'street_lighting' THEN 20     -- Very specific pole locations
+        WHEN 'water_supply' THEN 25        -- Connection points are exact
+        WHEN 'drainage_issues' THEN 30     -- Drain covers semi-specific
+        WHEN 'public_toilet' THEN 20       -- Exact building locations
+        WHEN 'traffic_lights' THEN 20      -- Intersection-specific
+        
+        -- DEFAULT for unlisted categories
+        ELSE 40
+    END;
+
     RETURN QUERY
     SELECT 
         i.id as issue_id,
@@ -45,11 +74,13 @@ BEGIN
     WHERE 
         i.category = p_category
         AND i.status IN ('open', 'in_progress')
+        AND i.created_at > NOW() - INTERVAL '30 days'  -- Only check recent issues (30 days)
         AND ST_DWithin(
             ST_GeographyFromText('POINT(' || p_lng || ' ' || p_lat || ')'),
             ST_GeographyFromText('POINT(' || i.location_lng || ' ' || i.location_lat || ')'),
-            50
+            search_radius  -- Use category-based radius
         )
+        AND similarity(LOWER(i.address), LOWER(p_address)) > 0.5  -- Address similarity check (50%)
     ORDER BY distance_meters ASC
     LIMIT 1;
 END;
