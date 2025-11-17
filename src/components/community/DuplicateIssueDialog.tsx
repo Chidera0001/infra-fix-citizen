@@ -11,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToggleUpvote } from '@/hooks/use-issues';
+import { useCurrentProfile } from '@/hooks/use-profile';
 import { triggerConfetti } from '@/utils/confetti';
 import { format } from 'date-fns';
 
@@ -22,6 +23,7 @@ interface DuplicateIssue {
   image_urls: string[];
   upvotes: number;
   distance_meters: number;
+  reporter_id: string;
   reporter_name: string;
   created_at: string;
 }
@@ -40,8 +42,12 @@ export function DuplicateIssueDialog({
   const [isUpvoting, setIsUpvoting] = useState(false);
   const toggleUpvote = useToggleUpvote();
   const navigate = useNavigate();
+  const { data: currentProfile } = useCurrentProfile();
 
   if (!duplicateIssue) return null;
+
+  // Check if the current user is the reporter of the duplicate issue
+  const isOwnReport = currentProfile?.id === duplicateIssue.reporter_id;
 
   const handleUpvote = async () => {
     if (!duplicateIssue?.issue_id) return;
@@ -72,11 +78,12 @@ export function DuplicateIssueDialog({
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-green-700">
-            Issue Already Reported
+            {isOwnReport ? 'You Already Reported This Issue' : 'Issue Already Reported'}
           </DialogTitle>
           <DialogDescription>
-            Someone has already reported a similar issue in this area. You can
-            upvote it to show it affects you too!
+            {isOwnReport
+              ? 'You have already submitted a report for this issue at this location. Please check your reports or the community page to view it.'
+              : 'Someone has already reported a similar issue in this area. You can upvote it to show it affects you too!'}
           </DialogDescription>
         </DialogHeader>
 
@@ -135,23 +142,50 @@ export function DuplicateIssueDialog({
 
           {/* Action Buttons */}
           <div className="flex gap-3 pt-4">
-            <Button
-              onClick={handleUpvote}
-              disabled={isUpvoting}
-              className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-              size="lg"
-            >
-              <ThumbsUp className="h-5 w-5 mr-2" />
-              {isUpvoting ? 'Upvoting...' : 'Upvote This Issue'}
-            </Button>
-            <Button
-              onClick={onClose}
-              variant="outline"
-              size="lg"
-              className="flex-1"
-            >
-              Cancel
-            </Button>
+            {isOwnReport ? (
+              // If it's user's own report, show only View and Close buttons
+              <>
+                <Button
+                  onClick={() => {
+                    onClose();
+                    navigate('/citizen?tab=reports');
+                  }}
+                  className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                  size="lg"
+                >
+                  View My Reports
+                </Button>
+                <Button
+                  onClick={onClose}
+                  variant="outline"
+                  size="lg"
+                  className="flex-1"
+                >
+                  Close
+                </Button>
+              </>
+            ) : (
+              // If it's someone else's report, show Upvote and Cancel buttons
+              <>
+                <Button
+                  onClick={handleUpvote}
+                  disabled={isUpvoting}
+                  className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                  size="lg"
+                >
+                  <ThumbsUp className="h-5 w-5 mr-2" />
+                  {isUpvoting ? 'Upvoting...' : 'Upvote This Issue'}
+                </Button>
+                <Button
+                  onClick={onClose}
+                  variant="outline"
+                  size="lg"
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </DialogContent>
