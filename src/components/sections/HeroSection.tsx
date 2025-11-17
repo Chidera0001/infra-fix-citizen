@@ -8,18 +8,18 @@ import { useNavigate } from 'react-router-dom';
 import StatsSection from './StatsSection';
 
 const ISSUE_TYPES = [
-  'Bad Roads',
-  'Broken Streetlights',
-  'Dump Sites',
-  'Floods',
-  'Water Supply Issues',
-  'Bad Traffic Signals',
-  'Poor Drainages',
-  'Erosion Sites',
-  'Collapsed Bridges',
-  'Open Manholes',
-  'Unsafe Crossings',
-  'Construction Debris',
+  'bad roads',
+  'broken streetlights',
+  'dump sites',
+  'floods',
+  'water supply issues',
+  'bad traffic signals',
+  'poor drainages',
+  'erosion sites',
+  'collapsed bridges',
+  'open manholes',
+  'unsafe crossings',
+  'construction debris',
 ];
 
 const HeroSection = () => {
@@ -72,7 +72,7 @@ const HeroSection = () => {
           <div className='mx-auto max-w-4xl px-4 text-center'>
             <h1 className='mb-4 mt-4 flex flex-col items-center gap-2 font-["Manrope"] text-3xl font-semibold leading-tight tracking-tight text-white drop-shadow-lg sm:mb-6 sm:text-3xl md:text-4xl lg:text-5xl'>
               <span className='relative inline-flex flex-col items-center'>
-                Capture Photos, Report{' '}
+                Capture photos, Report{' '}
                 <span className='sm:h-13 lg:h-18 relative inline-flex h-10 items-center justify-center overflow-hidden text-center md:h-16'>
                   <AnimatePresence mode='wait'>
                     <motion.span
@@ -92,7 +92,7 @@ const HeroSection = () => {
                 </span>
               </span>
               <span className='mt-6 block bg-gradient-to-r from-green-300 via-emerald-300 to-green-500 bg-clip-text text-center font-bold text-transparent'>
-                Monitor Resolutions
+                Monitor resolutions
               </span>
             </h1>
             <p className='hidden font-["Manrope"] text-base font-medium leading-relaxed text-white/95 drop-shadow-lg sm:mx-auto sm:mb-8 sm:block sm:max-w-3xl sm:text-lg md:text-xl'>

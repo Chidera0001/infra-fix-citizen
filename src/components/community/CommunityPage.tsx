@@ -122,8 +122,8 @@ export function CommunityPage() {
 
         {/* Loading Location */}
         {!userLocation && !locationError && isRequestingLocation && (
-          <div className='mb-6 rounded-lg border-2 border-blue-200 bg-blue-50 p-6 text-center'>
-            <Loader2 className='mx-auto mb-3 h-12 w-12 animate-spin text-blue-600' />
+          <div className='mb-6 rounded-lg bg-green-50 p-6 text-center'>
+            <Loader2 className='mx-auto mb-3 h-12 w-12 animate-spin text-green-600' />
             <p className='text-sm text-gray-700'>Requesting your location...</p>
             <p className='mt-2 text-xs text-gray-500'>
               Please allow location access in your browser
