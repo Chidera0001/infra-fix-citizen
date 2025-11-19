@@ -206,115 +206,129 @@ export function useSyncPendingReports() {
       }
 
       if (failedResults.length > 0) {
-        // Show specific error messages from AI verification
-        const errorMessages = failedResults
-          .map(r => r.error)
-          .filter((error): error is string => !!error);
+        // Helper function to format error message for a single report
+        const formatErrorMessage = (errorMessage: string): string => {
+          let formattedMessage = 'Please review the following:\n\n';
 
-        if (errorMessages.length > 0) {
-          // If all failures have the same message, show it once
-          const uniqueErrors = [...new Set(errorMessages)];
+          // Pattern 1: "Image Error: ..." or "Description Error: ..." (from AI response)
+          const imageErrorMatch = errorMessage.match(
+            /Image Error:\s*(.+?)(?:\n|$)/i
+          );
+          const descriptionErrorMatch = errorMessage.match(
+            /Description Error:\s*(.+?)(?:\n|$)/i
+          );
 
-          if (uniqueErrors.length === 1) {
-            // Format the error message with icons and line breaks (like AI error popup)
-            let formattedMessage = 'Please review the following:\n\n';
+          // Pattern 2: "Image: ..." or "Description: ..." (from formatted error with both)
+          const imageErrorAltMatch = errorMessage.match(
+            /Image:\s*(.+?)(?:\.|$)/i
+          );
+          const descriptionErrorAltMatch = errorMessage.match(
+            /Description:\s*(.+?)(?:\.|$)/i
+          );
 
-            // Extract image and description errors if present
-            const imageErrorMatch = uniqueErrors[0].match(
-              /Image Error:\s*(.+?)(?:\n|$)/i
-            );
-            const descriptionErrorMatch = uniqueErrors[0].match(
-              /Description Error:\s*(.+?)(?:\n|$)/i
-            );
+          // Pattern 3: "Image does not match issue category: ..." (most specific)
+          const imageCategoryMatch = errorMessage.match(
+            /Image does not match issue category:\s*(.+?)(?:\.|$|Description:|Description Error:)/i
+          );
 
-            // Also check for "Image:" and "Description:" patterns in the error message
-            const imageErrorAltMatch = uniqueErrors[0].match(
-              /Image:\s*(.+?)(?:\.|$)/i
-            );
-            const descriptionErrorAltMatch = uniqueErrors[0].match(
-              /Description:\s*(.+?)(?:\.|$)/i
-            );
+          // Pattern 4: "The image does not match... {any error text}"
+          const imageOnlyMatch = errorMessage.match(
+            /(?:Sync failed:)?\s*The image does not match the selected category\.\s*((?!Description:|Description Error:).+?)(?:\.|$|Description:|Description Error:)/is
+          );
 
-            if (imageErrorMatch) {
-              formattedMessage += `📷 Image: ${imageErrorMatch[1]}\n`;
-            } else if (imageErrorAltMatch) {
-              formattedMessage += `📷 Image: ${imageErrorAltMatch[1]}\n`;
-            }
+          // Pattern 5: "The description does not match..."
+          const descriptionOnlyMatch = errorMessage.match(
+            /(?:Sync failed:)?\s*The description does not match the selected category\.\s*(.+?)(?:\.|$)/is
+          );
 
-            if (descriptionErrorMatch) {
-              formattedMessage += `📝 Description: ${descriptionErrorMatch[1]}\n`;
-            } else if (descriptionErrorAltMatch) {
-              formattedMessage += `📝 Description: ${descriptionErrorAltMatch[1]}\n`;
-            }
+          // Pattern 6: "Please use keywords related to..."
+          const descriptionKeywordsMatch = errorMessage.match(
+            /Please use keywords related to.*?(?:\.|$)/i
+          );
 
-            // If no specific errors found, use the original message without "Sync failed:" prefix
-            if (
-              !imageErrorMatch &&
-              !descriptionErrorMatch &&
-              !imageErrorAltMatch &&
-              !descriptionErrorAltMatch
-            ) {
-              formattedMessage = uniqueErrors[0].replace(
-                /Sync failed:\s*/i,
-                ''
-              );
-            }
+          // Extract image error
+          if (imageErrorMatch) {
+            formattedMessage += `📷 Image: ${imageErrorMatch[1].trim()}\n`;
+          } else if (imageErrorAltMatch) {
+            formattedMessage += `📷 Image: ${imageErrorAltMatch[1].trim()}\n`;
+          } else if (imageCategoryMatch) {
+            formattedMessage += `📷 Image: ${imageCategoryMatch[1].trim()}\n`;
+          } else if (imageOnlyMatch) {
+            formattedMessage += `📷 Image: ${imageOnlyMatch[1].trim()}\n`;
+          }
 
-            toast({
-              title: '⚠️ Offline Sync Failed',
-              description: formattedMessage,
-              variant: 'warning',
-              duration: 8000,
-            });
-          } else {
-            // Multiple different errors - format the first one with icons
-            let formattedMessage = 'Please review the following:\n\n';
+          // Extract description error
+          if (descriptionErrorMatch) {
+            formattedMessage += `📝 Description: ${descriptionErrorMatch[1].trim()}\n`;
+          } else if (descriptionErrorAltMatch) {
+            formattedMessage += `📝 Description: ${descriptionErrorAltMatch[1].trim()}\n`;
+          } else if (descriptionOnlyMatch) {
+            formattedMessage += `📝 Description: ${descriptionOnlyMatch[1].trim()}\n`;
+          } else if (descriptionKeywordsMatch) {
+            formattedMessage += `📝 Description: ${descriptionKeywordsMatch[0].trim()}\n`;
+          }
 
-            const imageErrorMatch = uniqueErrors[0].match(
-              /Image Error:\s*(.+?)(?:\n|$)/i
-            );
-            const descriptionErrorMatch = uniqueErrors[0].match(
-              /Description Error:\s*(.+?)(?:\n|$)/i
-            );
-            const imageErrorAltMatch = uniqueErrors[0].match(
-              /Image:\s*(.+?)(?:\.|$)/i
-            );
-            const descriptionErrorAltMatch = uniqueErrors[0].match(
-              /Description:\s*(.+?)(?:\.|$)/i
-            );
+          // If no specific errors found, use the original message
+          if (
+            !imageErrorMatch &&
+            !descriptionErrorMatch &&
+            !imageErrorAltMatch &&
+            !descriptionErrorAltMatch &&
+            !imageCategoryMatch &&
+            !imageOnlyMatch &&
+            !descriptionOnlyMatch &&
+            !descriptionKeywordsMatch
+          ) {
+            formattedMessage = errorMessage.replace(/Sync failed:\s*/i, '');
+          }
 
-            if (imageErrorMatch) {
-              formattedMessage += `📷 Image: ${imageErrorMatch[1]}\n`;
-            } else if (imageErrorAltMatch) {
-              formattedMessage += `📷 Image: ${imageErrorAltMatch[1]}\n`;
-            }
+          return formattedMessage;
+        };
 
-            if (descriptionErrorMatch) {
-              formattedMessage += `📝 Description: ${descriptionErrorMatch[1]}\n`;
-            } else if (descriptionErrorAltMatch) {
-              formattedMessage += `📝 Description: ${descriptionErrorAltMatch[1]}\n`;
-            }
+        // Get error messages with report IDs for tracking
+        const errorReports = failedResults
+          .map(r => ({
+            error: r.error || 'Unknown error',
+            reportId: r.reportId,
+          }))
+          .filter(r => r.error);
 
-            if (
-              !imageErrorMatch &&
-              !descriptionErrorMatch &&
-              !imageErrorAltMatch &&
-              !descriptionErrorAltMatch
-            ) {
-              formattedMessage = `${failedResults.length} report(s) failed to sync. ${uniqueErrors[0].replace(/Sync failed:\s*/i, '')}`;
-            }
+        if (errorReports.length > 0) {
+          // Show reports sequentially: first one immediately, then update every 5-6 seconds
+          const firstError = formatErrorMessage(errorReports[0].error);
+          const toastController = toast({
+            title: `⚠️ Offline Sync Failed (1/${errorReports.length})`,
+            description: firstError,
+            variant: 'warning',
+            duration: 6000, // 6 seconds per report
+          });
 
-            toast({
-              title: `⚠️ Offline Sync Failed`,
-              description: formattedMessage,
-              variant: 'warning',
-              duration: 8000,
-            });
+          // If multiple reports, update toast sequentially
+          if (errorReports.length > 1) {
+            let currentIndex = 0;
+            const showNextReport = () => {
+              currentIndex++;
+              if (currentIndex < errorReports.length) {
+                const nextError = formatErrorMessage(
+                  errorReports[currentIndex].error
+                );
+                toastController.update({
+                  title: `⚠️ Offline Sync Failed (${currentIndex + 1}/${errorReports.length})`,
+                  description: nextError,
+                  variant: 'warning',
+                  duration: 6000,
+                } as any);
+                // Schedule next update after 5.5 seconds (slight overlap for smooth transition)
+                setTimeout(showNextReport, 5500);
+              }
+            };
+            // Start showing next report after 5.5 seconds
+            setTimeout(showNextReport, 5500);
           }
         } else {
           // Fallback for errors without specific messages
           toast({
-            title: `⚠️ Offline Sync Failed`,
+            title: '⚠️ Offline Sync Failed',
             description:
               'Some reports failed to sync. Please check pending reports.',
             variant: 'warning',
@@ -357,7 +371,6 @@ export function useDeletePendingReport() {
       });
     },
     onError: (error: Error) => {
-      console.error('🗑️ DELETE: Error deleting report:', error);
       toast({
         title: 'Delete Failed',
         description: error.message || 'Failed to delete report',

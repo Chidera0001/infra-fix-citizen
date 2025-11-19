@@ -31,9 +31,12 @@ let supabaseConfig = null;
  */
 function blobsToFiles(blobs, photoNames = []) {
   if (!blobs || blobs.length === 0) return [];
-  
+
   return blobs.map((blob, index) => {
-    const name = photoNames && photoNames[index] ? photoNames[index] : `photo_${index}.jpg`;
+    const name =
+      photoNames && photoNames[index]
+        ? photoNames[index]
+        : `photo_${index}.jpg`;
     return new File([blob], name, { type: blob.type || 'image/jpeg' });
   });
 }
@@ -51,15 +54,15 @@ async function uploadPhotos(photos, supabaseUrl, supabaseKey, authToken) {
     try {
       const fileExt = photo.name.split('.').pop() || 'jpg';
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-      
+
       // Upload to Supabase Storage using correct API format
       const uploadResponse = await fetch(
         `${supabaseUrl}/storage/v1/object/${bucket}/${fileName}`,
         {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${authToken}`,
-            'apikey': supabaseKey,
+            Authorization: `Bearer ${authToken}`,
+            apikey: supabaseKey,
             'x-upsert': 'false',
           },
           body: photo,
@@ -68,14 +71,15 @@ async function uploadPhotos(photos, supabaseUrl, supabaseKey, authToken) {
 
       if (!uploadResponse.ok) {
         const errorText = await uploadResponse.text();
-        throw new Error(`Upload failed: ${uploadResponse.status} - ${errorText}`);
+        throw new Error(
+          `Upload failed: ${uploadResponse.status} - ${errorText}`
+        );
       }
 
       // Get public URL
       const publicUrl = `${supabaseUrl}/storage/v1/object/public/${bucket}/${fileName}`;
       uploadedUrls.push(publicUrl);
     } catch (error) {
-      console.error('Photo upload error:', error);
       throw error;
     }
   }
@@ -99,7 +103,8 @@ async function submitReport(report, supabaseUrl, supabaseKey, authToken) {
       other: 'other',
     };
 
-    const mappedCategory = categoryMapping[report.issueData.category] || 'other';
+    const mappedCategory =
+      categoryMapping[report.issueData.category] || 'other';
 
     // Convert Blob[] to File[]
     const photos = blobsToFiles(report.photos || [], report.photoNames || []);
@@ -107,21 +112,26 @@ async function submitReport(report, supabaseUrl, supabaseKey, authToken) {
     // Upload photos first
     let imageUrls = [];
     if (photos.length > 0 && authToken) {
-      imageUrls = await uploadPhotos(photos, supabaseUrl, supabaseKey, authToken);
+      imageUrls = await uploadPhotos(
+        photos,
+        supabaseUrl,
+        supabaseKey,
+        authToken
+      );
     }
 
     // Get user profile to get reporter_id
     // Query profiles table by user_id (Supabase Auth user ID)
     let reporterId = null;
-    
+
     if (authToken && report.userId) {
       try {
         const profileResponse = await fetch(
           `${supabaseUrl}/rest/v1/profiles?user_id=eq.${report.userId}&select=id`,
           {
             headers: {
-              'apikey': supabaseKey,
-              'Authorization': `Bearer ${authToken}`,
+              apikey: supabaseKey,
+              Authorization: `Bearer ${authToken}`,
               'Content-Type': 'application/json',
             },
           }
@@ -134,15 +144,18 @@ async function submitReport(report, supabaseUrl, supabaseKey, authToken) {
           }
         }
       } catch (error) {
-        console.error('Error fetching profile:', error);
-        // If profile query fails, try alternative approach
+        // If profile query fails, throw error
         // The profile might need to be created first
-        throw new Error('Failed to fetch user profile. Please ensure your profile exists.');
+        throw new Error(
+          'Failed to fetch user profile. Please ensure your profile exists.'
+        );
       }
     }
 
     if (!reporterId) {
-      throw new Error(`User profile not found for user_id: ${report.userId || 'undefined'}`);
+      throw new Error(
+        `User profile not found for user_id: ${report.userId || 'undefined'}`
+      );
     }
 
     // Submit issue
@@ -162,9 +175,9 @@ async function submitReport(report, supabaseUrl, supabaseKey, authToken) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'apikey': supabaseKey,
-        'Authorization': `Bearer ${authToken}`,
-        'Prefer': 'return=representation',
+        apikey: supabaseKey,
+        Authorization: `Bearer ${authToken}`,
+        Prefer: 'return=representation',
       },
       body: JSON.stringify(issueData),
     });
@@ -176,7 +189,6 @@ async function submitReport(report, supabaseUrl, supabaseKey, authToken) {
 
     return await response.json();
   } catch (error) {
-    console.error('Submit report error:', error);
     throw error;
   }
 }
@@ -186,20 +198,36 @@ async function submitReport(report, supabaseUrl, supabaseKey, authToken) {
  */
 async function syncPendingReports() {
   try {
+    // Check if app is active - if so, skip (Main App sync will handle it)
+    // Service Worker sync should only run when app is closed/inactive
+    const clients = await self.clients.matchAll({ includeUncontrolled: true });
+    const hasActiveClients = clients.some(client => {
+      // Client is considered active if it has focus or is visible
+      return (
+        client.focused ||
+        (client.visibilityState && client.visibilityState === 'visible')
+      );
+    });
+
+    // If app is active, skip - Main App sync will handle it
+    // Only sync in background when app is closed/inactive
+    if (hasActiveClients) {
+      return { success: true, synced: 0, failed: 0, skipped: true };
+    }
+
     if (!supabaseConfig) {
-      console.error('Supabase config not available');
       // Request config from main app
-      const clients = await self.clients.matchAll();
       clients.forEach(client => {
         client.postMessage({ type: 'REQUEST_CONFIG' });
       });
       return { success: false, error: 'Configuration missing' };
     }
 
-    // Get pending reports
+    // Get pending reports - filter out reports with >= 3 attempts
     const pendingReports = await db.reports
       .where('syncStatus')
       .anyOf(['pending', 'failed'])
+      .filter(report => (report.syncAttempts || 0) < MAX_RETRY_ATTEMPTS)
       .toArray();
 
     if (pendingReports.length === 0) {
@@ -212,12 +240,9 @@ async function syncPendingReports() {
     let failedCount = 0;
 
     for (const report of pendingReports) {
-      // Skip if exceeded max retries
+      // Skip if exceeded max retries - delete permanently
       if (report.syncAttempts >= MAX_RETRY_ATTEMPTS) {
-        await db.reports.update(report.id, {
-          syncStatus: 'failed',
-          syncError: 'Max retry attempts reached',
-        });
+        await db.reports.delete(report.id);
         failedCount++;
         continue;
       }
@@ -236,24 +261,31 @@ async function syncPendingReports() {
         // Success - delete from Dexie
         await db.reports.delete(report.id);
         syncedCount++;
-
-        console.log(`Successfully synced report ${report.id}`);
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        
-        await db.reports.update(report.id, {
-          syncStatus: 'failed',
-          syncError: errorMessage,
-          lastSyncAttempt: new Date().toISOString(),
-        });
-        
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error';
+
+        // Get current syncAttempts after increment
+        const currentReport = await db.reports.get(report.id);
+        const currentAttempts = currentReport?.syncAttempts || 0;
+
+        if (currentAttempts >= MAX_RETRY_ATTEMPTS) {
+          // Max retries reached - delete permanently
+          await db.reports.delete(report.id);
+        } else {
+          // Still has retries left - mark as failed for retry
+          await db.reports.update(report.id, {
+            syncStatus: 'failed',
+            syncError: errorMessage,
+            lastSyncAttempt: new Date().toISOString(),
+          });
+        }
+
         failedCount++;
-        console.error(`Failed to sync report ${report.id}:`, errorMessage);
       }
     }
 
-    // Notify clients
-    const clients = await self.clients.matchAll();
+    // Notify clients (reuse clients from earlier check)
     clients.forEach(client => {
       client.postMessage({
         type: 'SYNC_COMPLETE',
@@ -263,7 +295,6 @@ async function syncPendingReports() {
 
     return { success: true, synced: syncedCount, failed: failedCount };
   } catch (error) {
-    console.error('Sync error:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -274,7 +305,7 @@ async function syncPendingReports() {
 /**
  * Background Sync event listener
  */
-self.addEventListener('sync', (event) => {
+self.addEventListener('sync', event => {
   if (event.tag === SYNC_TAG) {
     event.waitUntil(syncPendingReports());
   }
@@ -283,12 +314,11 @@ self.addEventListener('sync', (event) => {
 /**
  * Handle messages from main app
  */
-self.addEventListener('message', (event) => {
+self.addEventListener('message', event => {
   if (event.data) {
     if (event.data.type === 'UPDATE_CONFIG') {
       // Store Supabase configuration
       supabaseConfig = event.data.config;
-      console.log('Service worker config updated');
     } else if (event.data.type === 'SYNC_NOW') {
       // Trigger immediate sync
       syncPendingReports().then(result => {
@@ -303,13 +333,13 @@ self.addEventListener('message', (event) => {
 /**
  * Install event
  */
-self.addEventListener('install', (event) => {
+self.addEventListener('install', event => {
   self.skipWaiting();
 });
 
 /**
  * Activate event
  */
-self.addEventListener('activate', (event) => {
+self.addEventListener('activate', event => {
   event.waitUntil(self.clients.claim());
 });

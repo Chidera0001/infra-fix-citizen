@@ -63,15 +63,40 @@ const OfflineReportIssue = () => {
         location_lng: 3.3792,
       };
 
-      await createOfflineIssueMutation.mutateAsync({
+      // Show toast immediately - independent of mutation completion
+      // This ensures toast appears even if mutation hangs in DevTools offline mode
+      toast({
+        title: '📱 Report Saved Offline',
+        description: "Your report will be submitted when you're back online",
+      });
+
+      // Start mutation but don't wait for it - navigate independently
+      // This ensures form closes even if mutation hangs in DevTools offline mode
+      const mutationPromise = createOfflineIssueMutation.mutateAsync({
         issueData,
         userId: 'offline-user', // Use a placeholder for offline users
         photos: formData.photo ? [formData.photo] : [],
       });
 
-      setTimeout(() => {
+      // Set up timeout to navigate even if mutation hangs
+      // Navigation happens independently of mutation completion
+      const navigationTimeout = setTimeout(() => {
         navigate('/');
-      }, 2000);
+      }, 1500); // Delay to ensure toast is visible before navigation
+
+      // If mutation completes quickly, navigate normally
+      mutationPromise
+        .then(() => {
+          clearTimeout(navigationTimeout);
+          // Brief delay to show toast before navigating
+          setTimeout(() => {
+            navigate('/');
+          }, 500);
+        })
+        .catch(() => {
+          // Clear timeout but don't navigate on error - let user see error message
+          clearTimeout(navigationTimeout);
+        });
     } catch (error) {
       // Error handling is done by the mutation
     }
