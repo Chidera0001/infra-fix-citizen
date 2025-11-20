@@ -25,6 +25,7 @@ export function useAutoSync() {
   }, [isOnline, hasPendingReports, syncMutation]);
 
   // Listen to sync service events and show toast for auto-sync
+  // Note: Error toasts are handled by useSyncPendingReports hook (amber/warning variant)
   useEffect(() => {
     const unsubscribe = syncService.addListener(result => {
       if (result.success) {
@@ -32,14 +33,8 @@ export function useAutoSync() {
           title: '🔄 Auto-Sync Complete',
           description: 'Your offline report has been automatically synced!',
         });
-      } else if (result.error) {
-        // Show specific AI verification error message
-        toast({
-          title: '⚠️ Auto-Sync Failed',
-          description: result.error,
-          variant: 'destructive',
-        });
       }
+      // Error handling is done by useSyncPendingReports hook (amber/warning variant)
     });
 
     return unsubscribe;

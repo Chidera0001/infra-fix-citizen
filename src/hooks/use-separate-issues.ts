@@ -70,33 +70,38 @@ export function useCreateOfflineIssue() {
       // Register background sync for when connection is restored
       // AI verification will happen during sync, not here
       if ('serviceWorker' in navigator) {
-        registerBackgroundSync('sync-pending-reports').catch(() => {
-          // Silent failure - background sync might not be available
-        });
+        setTimeout(() => {
+          registerBackgroundSync('sync-pending-reports').catch(() => {
+            // Silent failure - background sync might not be available
+          });
+        }, 0);
       }
 
       return { id: reportId, offline: true };
     },
     onSuccess: data => {
-      // Invalidate pending reports query to refresh the list
-      queryClient.invalidateQueries({ queryKey: ['pending-reports'] });
+      // Defer query invalidation to prevent blocking - run in next tick
+      // This prevents hangs if invalidation triggers network requests when offline
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['pending-reports'] });
+      }, 0);
 
+      // Only show toast if report was synced (not for initial offline save)
+      // Offline save toast is shown immediately in the form handler for better UX
       if (data.synced) {
         toast({
           title: '✅ Report Submitted!',
           description: 'Your report has been successfully submitted',
         });
         // Also refresh issues list
-        queryClient.invalidateQueries({ queryKey: ['issues'] });
-      } else {
-        toast({
-          title: '📱 Report Saved Offline',
-          description: "Your report will be submitted when you're back online",
-        });
+        setTimeout(() => {
+          queryClient.invalidateQueries({ queryKey: ['issues'] });
+        }, 0);
       }
+      // Note: Offline save toast is now shown in the form submission handler
+      // to ensure it appears immediately, independent of mutation completion
     },
     onError: (error: Error) => {
-      console.error('📱 OFFLINE-CREATE: Error:', error);
       toast({
         title: 'Error',
         description: error.message || 'Failed to save offline report',
