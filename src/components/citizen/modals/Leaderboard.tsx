@@ -27,26 +27,100 @@ const generateAvatarUrl = (userId: string): string => {
     seed: userId, // Use userId as seed for consistency
     size: 128,
     // Fun, vibrant background colors similar to Kahoot
-    backgroundColor: ['b6e3f4', 'c0aede', 'd1d4f9', 'ffd5dc', 'ffdfbf', 'a8e6cf', 'ffd3b6', 'ffaaa5', 'c7ceea', 'ffb3ba'],
+    backgroundColor: [
+      'b6e3f4',
+      'c0aede',
+      'd1d4f9',
+      'ffd5dc',
+      'ffdfbf',
+      'a8e6cf',
+      'ffd3b6',
+      'ffaaa5',
+      'c7ceea',
+      'ffb3ba',
+    ],
   });
-  
+
   return avatar.toDataUri();
 };
 
 // Cool username generators
 const coolAdjectives = [
-  'Swift', 'Bold', 'Noble', 'Brave', 'Wise', 'Bright', 'Sharp', 'Quick',
-  'Mighty', 'Clever', 'Fierce', 'Calm', 'Wild', 'Smooth', 'Rapid', 'Steady',
-  'Vivid', 'Crisp', 'Neon', 'Cosmic', 'Stellar', 'Lunar', 'Solar', 'Aurora',
-  'Thunder', 'Storm', 'Blaze', 'Frost', 'Shadow', 'Light', 'Crystal', 'Diamond'
+  'Swift',
+  'Bold',
+  'Noble',
+  'Brave',
+  'Wise',
+  'Bright',
+  'Sharp',
+  'Quick',
+  'Mighty',
+  'Clever',
+  'Fierce',
+  'Calm',
+  'Wild',
+  'Smooth',
+  'Rapid',
+  'Steady',
+  'Vivid',
+  'Crisp',
+  'Neon',
+  'Cosmic',
+  'Stellar',
+  'Lunar',
+  'Solar',
+  'Aurora',
+  'Thunder',
+  'Storm',
+  'Blaze',
+  'Frost',
+  'Shadow',
+  'Light',
+  'Crystal',
+  'Diamond',
 ];
 
 const coolNouns = [
-  'Phoenix', 'Eagle', 'Wolf', 'Lion', 'Tiger', 'Dragon', 'Falcon', 'Hawk',
-  'Panther', 'Jaguar', 'Raven', 'Fox', 'Bear', 'Shark', 'Orca', 'Leopard',
-  'Warrior', 'Guardian', 'Champion', 'Hero', 'Legend', 'Master', 'Ace', 'Pro',
-  'Nova', 'Comet', 'Star', 'Planet', 'Galaxy', 'Nebula', 'Quasar', 'Pulsar',
-  'Blade', 'Arrow', 'Shield', 'Sword', 'Spear', 'Axe', 'Bow', 'Crossbow'
+  'Phoenix',
+  'Eagle',
+  'Wolf',
+  'Lion',
+  'Tiger',
+  'Dragon',
+  'Falcon',
+  'Hawk',
+  'Panther',
+  'Jaguar',
+  'Raven',
+  'Fox',
+  'Bear',
+  'Shark',
+  'Orca',
+  'Leopard',
+  'Warrior',
+  'Guardian',
+  'Champion',
+  'Hero',
+  'Legend',
+  'Master',
+  'Ace',
+  'Pro',
+  'Nova',
+  'Comet',
+  'Star',
+  'Planet',
+  'Galaxy',
+  'Nebula',
+  'Quasar',
+  'Pulsar',
+  'Blade',
+  'Arrow',
+  'Shield',
+  'Sword',
+  'Spear',
+  'Axe',
+  'Bow',
+  'Crossbow',
 ];
 
 // Generate a consistent cool username from user ID
@@ -56,19 +130,19 @@ const generateCoolUsername = (userId: string): string => {
   for (let i = 0; i < userId.length; i++) {
     hash = userId.charCodeAt(i) + ((hash << 5) - hash);
   }
-  
+
   // Use hash to pick consistent adjective and noun
   const adjIndex = Math.abs(hash) % coolAdjectives.length;
   const nounIndex = Math.abs(hash >> 8) % coolNouns.length;
-  
+
   // Sometimes add a number for variety
   const number = Math.abs(hash >> 16) % 999;
   const useNumber = Math.abs(hash >> 24) % 3 === 0; // 33% chance
-  
+
   if (useNumber && number > 0) {
     return `${coolAdjectives[adjIndex]}${coolNouns[nounIndex]}${number}`;
   }
-  
+
   return `${coolAdjectives[adjIndex]}${coolNouns[nounIndex]}`;
 };
 
@@ -141,19 +215,20 @@ export const Leaderboard = ({ allIssues, currentUserId }: LeaderboardProps) => {
   }, [leaderboard, currentUserRank]);
 
   // Fetch profiles for all leaderboard entries
-  const profileIds = useMemo(
-    () => {
-      const ids = displayEntries.map(entry => entry.userId).filter(Boolean);
-      return [...new Set(ids)]; // Remove duplicates
-    },
-    [displayEntries]
-  );
+  const profileIds = useMemo(() => {
+    const ids = displayEntries.map(entry => entry.userId).filter(Boolean);
+    return [...new Set(ids)]; // Remove duplicates
+  }, [displayEntries]);
 
-  const { data: profiles = [], isLoading: isLoadingProfiles, error: profilesError } = useQuery({
+  const {
+    data: profiles = [],
+    isLoading: isLoadingProfiles,
+    error: profilesError,
+  } = useQuery({
     queryKey: ['leaderboard-profiles', profileIds.sort().join(',')],
     queryFn: async () => {
       if (profileIds.length === 0) return [];
-      
+
       // Fetch profiles in batches if needed (Supabase has a limit on .in() queries)
       const batchSize = 100;
       const batches = [];
@@ -161,19 +236,19 @@ export const Leaderboard = ({ allIssues, currentUserId }: LeaderboardProps) => {
         const batch = profileIds.slice(i, i + batchSize);
         const { data, error } = await supabase
           .from('profiles')
-          .select('id, full_name, email')
+          .select('id, full_name, email, user_nickname')
           .in('id', batch);
-        
+
         if (error) {
           console.error('Error fetching profiles batch:', error);
           throw error;
         }
-        
+
         if (data) {
           batches.push(...data);
         }
       }
-      
+
       return batches;
     },
     enabled: profileIds.length > 0,
@@ -248,41 +323,36 @@ export const Leaderboard = ({ allIssues, currentUserId }: LeaderboardProps) => {
       {/* Leaderboard List */}
       <div className='space-y-2'>
         {profilesError && (
-          <div className='text-center py-2 text-xs text-red-500'>
+          <div className='py-2 text-center text-xs text-red-500'>
             Error loading user information
           </div>
         )}
         {isLoadingProfiles && (
-          <div className='text-center py-4 text-sm text-gray-500'>
+          <div className='py-4 text-center text-sm text-gray-500'>
             Loading user information...
           </div>
         )}
         {displayEntries.map(entry => {
           const isCurrentUser = entry.userId === currentProfileId;
           const profile = profilesMap.get(entry.userId);
-          
-          // For privacy: only show real name for current user, use cool username for others
+
+          // For privacy: show "You" for current user, use nickname or generated name for others
           let userName: string;
           if (isCurrentUser) {
-            // Current user sees their real name
-            if (profile) {
-              if (profile.full_name && profile.full_name.trim()) {
-                userName = profile.full_name.trim();
-              } else if (profile.email) {
-                userName = profile.email.split('@')[0];
-              } else {
-                userName = 'You';
-              }
-            } else {
-              userName = 'You';
-            }
+            // Current user always sees "You"
+            userName = 'You';
           } else {
-            // Other users get cool generated usernames
-            userName = generateCoolUsername(entry.userId);
+            // Other users: use nickname if available, otherwise fallback to generated name
+            if (profile?.user_nickname && profile.user_nickname.trim()) {
+              userName = profile.user_nickname.trim();
+            } else {
+              userName = generateCoolUsername(entry.userId);
+            }
           }
-          
+
           // Get avatar URL from memoized map
-          const avatarUrl = avatarUrlsMap.get(entry.userId) || generateAvatarUrl(entry.userId);
+          const avatarUrl =
+            avatarUrlsMap.get(entry.userId) || generateAvatarUrl(entry.userId);
 
           return (
             <Card

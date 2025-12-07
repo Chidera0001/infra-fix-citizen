@@ -30,6 +30,7 @@ export function useCurrentProfile() {
         profile = await profileApi.createOrUpdateProfile(user.id, {
           email: user.email || '',
           full_name: user.user_metadata?.full_name || 'User',
+          user_nickname: user.user_metadata?.user_nickname || null,
         });
       }
 
@@ -39,6 +40,7 @@ export function useCurrentProfile() {
           profile = await profileApi.updateProfile(user.id, {
             email: user.email || '',
             full_name: user.user_metadata?.full_name || 'User',
+            user_nickname: user.user_metadata?.user_nickname || profile.user_nickname || null,
           });
         } catch (error) {
           // Failed to update profile

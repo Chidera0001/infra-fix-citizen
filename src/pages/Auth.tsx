@@ -29,6 +29,7 @@ const Auth = () => {
     email: '',
     password: '',
     fullName: '',
+    nickname: '',
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -70,10 +71,18 @@ const Auth = () => {
 
     try {
       if (mode === 'signup') {
+        // Validate nickname is not the same as full name
+        if (formData.nickname.trim().toLowerCase() === formData.fullName.trim().toLowerCase()) {
+          setError('Nickname must be different from your real name');
+          setIsSubmitting(false);
+          return;
+        }
+
         const { error } = await signUp(
           formData.email,
           formData.password,
-          formData.fullName
+          formData.fullName,
+          formData.nickname
         );
         if (error) {
           setError(error.message);
@@ -86,11 +95,12 @@ const Auth = () => {
             'Account created successfully! Please check your email to verify your account. You can sign in once verified.'
           );
 
-          // Clear fullName and switch to signin mode
+          // Clear fullName and nickname, switch to signin mode
           setFormData({
             email: userEmail,
             password: userPassword,
             fullName: '',
+            nickname: '',
           });
 
           // Switch to signin mode
@@ -220,19 +230,37 @@ const Auth = () => {
 
                 <form onSubmit={handleSubmit} className='space-y-4'>
                   {mode === 'signup' && (
-                    <div className='space-y-2'>
-                      <Label htmlFor='fullName'>Full Name</Label>
-                      <Input
-                        id='fullName'
-                        name='fullName'
-                        type='text'
-                        value={formData.fullName}
-                        onChange={handleInputChange}
-                        placeholder='Enter your full name'
-                        required
-                        className='rounded-xl border-green-300 focus:border-green-500 focus:ring-green-500'
-                      />
-                    </div>
+                    <>
+                      <div className='space-y-2'>
+                        <Label htmlFor='fullName'>Full Name</Label>
+                        <Input
+                          id='fullName'
+                          name='fullName'
+                          type='text'
+                          value={formData.fullName}
+                          onChange={handleInputChange}
+                          placeholder='Enter your full name'
+                          required
+                          className='rounded-xl border-green-300 focus:border-green-500 focus:ring-green-500'
+                        />
+                      </div>
+                      <div className='space-y-2'>
+                        <Label htmlFor='nickname'>Nickname</Label>
+                        <Input
+                          id='nickname'
+                          name='nickname'
+                          type='text'
+                          value={formData.nickname}
+                          onChange={handleInputChange}
+                          placeholder='Choose a fun nickname for the leaderboard'
+                          required
+                          className='rounded-xl border-green-300 focus:border-green-500 focus:ring-green-500'
+                        />
+                        <p className='text-xs text-gray-500'>
+                          This will be shown on the leaderboard (not your real name)
+                        </p>
+                      </div>
+                    </>
                   )}
 
                   <div className='space-y-2'>

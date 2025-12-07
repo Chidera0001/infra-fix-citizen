@@ -232,11 +232,21 @@ export async function seedDatabase() {
       return;
     }
 
+    // Get current authenticated user for seeding
+    const {
+      data: { user: authUser },
+    } = await supabase.auth.getUser();
+
+    if (!authUser) {
+      // No authenticated user, cannot create profile (user_id requires auth user)
+      return;
+    }
+
     // Create a default admin profile for seeding
     const { data: adminProfile, error: profileError } = await supabase
       .from('profiles')
       .upsert({
-        clerk_user_id: 'seed-admin',
+        user_id: authUser.id,
         email: 'admin@citizn.ng',
         full_name: 'System Administrator',
         role: 'admin',
