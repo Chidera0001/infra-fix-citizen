@@ -1,4 +1,4 @@
-import { Clock, Users } from 'lucide-react';
+import { Clock, Users, Mail, Phone } from 'lucide-react';
 
 const FooterSection = () => {
   return (
@@ -52,9 +52,28 @@ const FooterSection = () => {
           </div>
         </div>
 
+        {/* Contact Info */}
+        <div className='mb-4 flex flex-col items-center justify-center gap-4 text-sm text-[#D9D9D9] sm:flex-row sm:gap-8'>
+          <a
+            href='mailto:info@citiznvoice.com'
+            className='flex items-center gap-2 transition-colors hover:text-white'
+          >
+            <Mail className='h-4 w-4' />
+            <span>info@citiznvoice.com</span>
+          </a>
+
+          <a
+            href='tel:+250792402831'
+            className='flex items-center gap-2 transition-colors hover:text-white'
+          >
+            <Phone className='h-4 w-4' />
+            <span>+250 792 402 831</span>
+          </a>
+        </div>
+
         {/* Copyright */}
         <p className='px-4 text-xs text-[#D9D9D9] sm:text-sm'>
-          © 2024 Citizn. Building better communities together.
+          © 2025 Citizn. Building better communities together.
         </p>
       </div>
     </footer>

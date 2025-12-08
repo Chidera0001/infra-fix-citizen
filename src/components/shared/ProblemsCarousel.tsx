@@ -226,10 +226,10 @@ const ProblemsCards: React.FC = () => {
                   "url('/Assets/icons/Alert-triangle.svg') no-repeat center / contain",
               }}
             />
-            The Problem
+            What is wrong?
           </Badge>
           <h3 className='text-l mb-6 px-4 font-semibold text-gray-900 sm:mb-8 sm:text-2xl md:text-3xl lg:text-3xl'>
-            Issues You Can Report
+            Common Infrastructure Issues
           </h3>
         </div>
 

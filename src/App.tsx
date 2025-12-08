@@ -19,6 +19,9 @@ import ApiDocs from './pages/ApiDocs';
 import NotFound from './pages/NotFound';
 import ReportNow from './pages/ReportNow';
 import OfflineReportIssue from './pages/OfflineReportIssue';
+import About from './pages/About';
+import Api from './pages/Api';
+import MainLayout from './components/layouts/MainLayout';
 import { useEffect } from 'react';
 
 const queryClient = new QueryClient({
@@ -70,7 +73,30 @@ const App = () => (
             <Route path='/auth/confirm' element={<EmailConfirm />} />
             <Route path='/auth/callback' element={<OAuthCallback />} />
             <Route path='/admin-login' element={<AdminLogin />} />
-            <Route path='/' element={<Index />} />
+            <Route
+              path='/'
+              element={
+                <MainLayout>
+                  <Index />
+                </MainLayout>
+              }
+            />
+            <Route
+              path='/about'
+              element={
+                <MainLayout>
+                  <About />
+                </MainLayout>
+              }
+            />
+            <Route
+              path='/api'
+              element={
+                <MainLayout>
+                  <Api />
+                </MainLayout>
+              }
+            />
             <Route path='/offline-report' element={<OfflineReportIssue />} />
             <Route
               path='/citizen'
