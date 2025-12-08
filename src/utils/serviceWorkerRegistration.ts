@@ -37,15 +37,6 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
       }
     });
 
-    // Listen for controller change (auto-update)
-    let refreshing = false;
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (!refreshing) {
-        refreshing = true;
-        window.location.reload();
-      }
-    });
-
     return registration;
   } catch (error) {
     return null;
