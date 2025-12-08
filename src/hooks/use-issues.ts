@@ -157,6 +157,8 @@ export function useToggleUpvote() {
     onSuccess: () => {
       // Invalidate all related queries to refresh stats
       queryClient.invalidateQueries({ queryKey: ['issues'] });
+      queryClient.invalidateQueries({ queryKey: ['recent-issues'] });
+      queryClient.invalidateQueries({ queryKey: ['community-issues'] });
       queryClient.invalidateQueries({ queryKey: ['issue-statistics'] });
       queryClient.invalidateQueries({ queryKey: ['stats'] });
     },

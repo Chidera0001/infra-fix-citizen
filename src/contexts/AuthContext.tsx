@@ -19,7 +19,8 @@ interface AuthContextType {
   signUp: (
     email: string,
     password: string,
-    fullName: string
+    fullName: string,
+    nickname: string
   ) => Promise<{ error: AuthError | null }>;
   signIn: (
     email: string,
@@ -328,7 +329,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsOfflineMode(true);
   };
 
-  const signUp = async (email: string, password: string, fullName: string) => {
+  const signUp = async (email: string, password: string, fullName: string, nickname: string) => {
     if (!isOnline) {
       const error = new Error('Cannot sign up while offline') as AuthError;
       error.code = 'offline_error';
@@ -342,6 +343,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         options: {
           data: {
             full_name: fullName,
+            user_nickname: nickname,
           },
           // Redirect to confirmation page after email verification
           emailRedirectTo: `${window.location.origin}/auth/confirm`,

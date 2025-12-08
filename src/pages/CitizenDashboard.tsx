@@ -9,6 +9,7 @@ import { useOfflineUserManager } from '@/hooks/use-offline-user-manager';
 import { CitizenSidebar } from '@/components/layout/CitizenSidebar';
 import { Dashboard, MyReports, Analytics } from '@/components/citizen';
 import { CommunityPage } from '@/components/community/CommunityPage';
+import { NicknamePrompt } from '@/components/citizen/NicknamePrompt';
 // import { OfflineDebugger } from "@/components/debug/OfflineDebugger";
 
 const CitizenDashboard = () => {
@@ -151,6 +152,9 @@ const CitizenDashboard = () => {
 
       {/* Main Content */}
       <div className='flex-1 overflow-y-auto'>{renderContent()}</div>
+
+      {/* Nickname Prompt for existing users */}
+      <NicknamePrompt />
 
       {/* Debug Component */}
       {/* <OfflineDebugger /> */}

@@ -583,6 +583,7 @@ export async function getCurrentUserProfile(
       user_id: userId,
       email: userData?.email || '',
       full_name: userData?.user_metadata?.full_name || 'User',
+      user_nickname: userData?.user_metadata?.user_nickname || null,
       role: 'citizen',
       is_active: true,
     })
