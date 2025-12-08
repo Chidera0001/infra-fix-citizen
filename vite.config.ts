@@ -12,8 +12,16 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     VitePWA({
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.ts',
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'favicon.svg', 'placeholder.svg', 'Assets/logo/Trademark.png'],
+      includeAssets: [
+        'favicon.ico',
+        'favicon.svg',
+        'placeholder.svg',
+        'Assets/logo/Trademark.png',
+      ],
       manifest: {
         name: 'Citizn - Infrastructure Issue Management',
         short_name: 'Citizn',
@@ -38,7 +46,7 @@ export default defineConfig(({ mode }) => ({
           },
         ],
       },
-      workbox: {
+      injectManifest: {
         globPatterns: [
           '**/*.{js,css,html,ico,png,svg,jpg,jpeg,gif,webp,woff,woff2,ttf,eot}',
         ],
@@ -47,35 +55,10 @@ export default defineConfig(({ mode }) => ({
         // Don't add revision hashes to these files (they already have them or don't need them)
         dontCacheBustURLsMatching: /\/logo\/Trademark\.png$/,
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB
-        navigateFallback: '/index.html',
-        navigateFallbackDenylist: [/^\/_/, /\/[^/?]+\.[^/]+$/],
-        // Prevent caching of API calls - this fixes the PWA data issue
-        runtimeCaching: [
-          {
-            // Only block Supabase API calls from caching
-            urlPattern: ({ url }) => {
-              return url.hostname.includes('supabase.co');
-            },
-            handler: 'NetworkOnly',
-          },
-          {
-            // Cache Google Fonts and other CDN resources for offline use
-            urlPattern: ({ url }) => {
-              return url.origin.includes('googleapis.com') || 
-                     url.origin.includes('gstatic.com') ||
-                     url.origin.includes('unpkg.com') ||
-                     url.origin.includes('jsdelivr.net');
-            },
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'cdn-cache',
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
-              },
-            },
-          },
-        ],
+      },
+      devOptions: {
+        enabled: true,
+        type: 'module',
       },
     }),
   ],
