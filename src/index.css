@@ -115,8 +115,18 @@ html {
     @apply border-border;
   }
 
+  html,
   body {
-    @apply bg-background font-sans text-foreground;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    background: transparent;
+  }
+
+  body {
+    @apply bg-transparent font-sans text-foreground;
     font-family:
       'Manrope',
       ui-sans-serif,
