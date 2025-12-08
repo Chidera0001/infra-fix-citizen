@@ -26,7 +26,7 @@ const AboutUsSection = () => {
               className='hidden h-full w-full rounded-lg object-cover md:block'
             />
             <img
-              src='/Assets/Images/Phone-Dashboard.png'
+              src='/Assets/Images/Phone-Dashboard.webp'
               alt='Citizn Dashboard'
               className='block h-full w-full rounded-lg object-cover md:hidden'
             />
