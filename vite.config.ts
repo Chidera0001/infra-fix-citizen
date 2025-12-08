@@ -16,12 +16,7 @@ export default defineConfig(({ mode }) => ({
       srcDir: 'src',
       filename: 'sw.ts',
       registerType: 'autoUpdate',
-      includeAssets: [
-        'favicon.ico',
-        'favicon.svg',
-        'placeholder.svg',
-        'Assets/logo/Trademark.png',
-      ],
+      includeAssets: ['placeholder.svg', 'Assets/logo/Trademark.png'],
       manifest: {
         name: 'Citizn - Infrastructure Issue Management',
         short_name: 'Citizn',
@@ -54,7 +49,7 @@ export default defineConfig(({ mode }) => ({
         globIgnores: ['**/logo/Trademark.png'],
         // Don't add revision hashes to these files (they already have them or don't need them)
         dontCacheBustURLsMatching: /\/logo\/Trademark\.png$/,
-        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB
+        maximumFileSizeToCacheInBytes: 10 * 1024 * 1024, // 10 MB
       },
       devOptions: {
         enabled: true,
