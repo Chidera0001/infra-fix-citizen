@@ -1,12 +1,10 @@
 import { useEffect } from 'react';
-import ProblemsCards from '@/components/shared/ProblemsCarousel';
-import SolutionSection from '@/components/sections/SolutionSection';
-import FadeInWhenVisible from '@/components/shared/FadeInWhenVisible';
 import {
   HeroSection,
   FeaturesSection,
-  FooterSection,
-  ReportNowSection,
+  UpvoteSection,
+  LeaderboardSection,
+  RecentIssuesSection,
 } from '@/components/sections';
 
 const Index = () => {
@@ -15,37 +13,22 @@ const Index = () => {
   }, []);
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-indigo-50'>
+    <>
       {/* Hero Section with video background and stats */}
       <HeroSection />
 
       {/* Features Section - How Citizn Works */}
       <FeaturesSection />
 
-      {/* Instant Report Section */}
-      <section id='instant-report'>
-        <FadeInWhenVisible>
-          <ReportNowSection />
-        </FadeInWhenVisible>
-      </section>
+      {/* Upvote Section */}
+      <UpvoteSection />
 
-      {/* Problems Cards Section */}
-      <section id='problems'>
-        <FadeInWhenVisible>
-          <ProblemsCards />
-        </FadeInWhenVisible>
-      </section>
+      {/* Leaderboard Section */}
+      <LeaderboardSection />
 
-      {/* Solution Section */}
-      <section id='solution'>
-        <FadeInWhenVisible>
-          <SolutionSection />
-        </FadeInWhenVisible>
-      </section>
-
-      {/* Footer Section */}
-      <FooterSection />
-    </div>
+      {/* Recent Issues Section */}
+      <RecentIssuesSection />
+    </>
   );
 };
 
