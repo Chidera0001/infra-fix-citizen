@@ -1,11 +1,13 @@
+'use client';
+
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import LoadingPage from '@/components/ui/LoadingPage';
 import { supabase } from '@/integrations/supabase/client';
 
-const OAuthCallback = () => {
-  const navigate = useNavigate();
+export default function OAuthCallbackPage() {
+  const router = useRouter();
   const { user, loading } = useAuth();
   const [status, setStatus] = useState<'processing' | 'success' | 'error'>(
     'processing'
@@ -24,7 +26,7 @@ const OAuthCallback = () => {
         // If the user context already has a user, we can finish immediately
         if (user) {
           setStatus('success');
-          navigate('/citizen', { replace: true });
+          router.push('/citizen');
           return;
         }
 
@@ -89,7 +91,7 @@ const OAuthCallback = () => {
         if (session?.user || user) {
           setStatus('success');
           await new Promise(resolve => setTimeout(resolve, 300));
-          navigate('/citizen', { replace: true });
+          router.push('/citizen');
           return;
         }
 
@@ -113,7 +115,7 @@ const OAuthCallback = () => {
     if (!loading) {
       handleOAuthCallback();
     }
-  }, [navigate, loading, hasProcessed, user]);
+  }, [router, loading, hasProcessed, user]);
 
   if (loading || status === 'processing') {
     return (
@@ -198,6 +200,5 @@ const OAuthCallback = () => {
       </div>
     </div>
   );
-};
+}
 
-export default OAuthCallback;

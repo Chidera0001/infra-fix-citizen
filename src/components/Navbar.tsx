@@ -1,17 +1,19 @@
+'use client';
+
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Menu, X } from 'lucide-react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useRouter, usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Navbar: React.FC = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
+  const router = useRouter();
+  const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const currentPath = location.pathname;
+  const currentPath = pathname;
   const isHome = currentPath === '/';
 
   const toggleMobileMenu = () => {
@@ -34,7 +36,7 @@ const Navbar: React.FC = () => {
                 src='/Assets/logo/Citizn-full-logo.png'
                 alt='Citizn Logo'
                 className='h-[4rem] w-auto cursor-pointer'
-                onClick={() => navigate('/')}
+                onClick={() => router.push('/')}
               />
 
               {/* Desktop Navigation Links and Auth Buttons */}
@@ -43,7 +45,7 @@ const Navbar: React.FC = () => {
                 <div className='flex items-center space-x-3'>
                   {!isHome && (
                     <Button
-                      onClick={() => navigate('/')}
+                      onClick={() => router.push('/')}
                       className='border-0 bg-gradient-to-r from-green-600 to-green-700 px-4 py-2 font-semibold text-white shadow-lg transition-all duration-300 hover:from-green-700 hover:to-green-800 hover:shadow-xl'
                       size='sm'
                     >
@@ -52,7 +54,7 @@ const Navbar: React.FC = () => {
                   )}
                   {currentPath !== '/about' && (
                     <Button
-                      onClick={() => navigate('/about')}
+                      onClick={() => router.push('/about')}
                       className='border-0 bg-gradient-to-r from-green-600 to-green-700 px-4 py-2 font-semibold text-white shadow-lg transition-all duration-300 hover:from-green-700 hover:to-green-800 hover:shadow-xl'
                       size='sm'
                     >
@@ -61,7 +63,7 @@ const Navbar: React.FC = () => {
                   )}
                   {currentPath !== '/api' && (
                     <Button
-                      onClick={() => navigate('/api')}
+                      onClick={() => router.push('/api')}
                       className='border-0 bg-gradient-to-r from-green-600 to-green-700 px-4 py-2 font-semibold text-white shadow-lg transition-all duration-300 hover:from-green-700 hover:to-green-800 hover:shadow-xl'
                       size='sm'
                     >
@@ -72,7 +74,7 @@ const Navbar: React.FC = () => {
                 {user ? (
                   <div className='flex items-center space-x-3'>
                     <Button
-                      onClick={() => navigate('/citizen')}
+                      onClick={() => router.push('/citizen')}
                       className='border-0 bg-gradient-to-r from-green-600 to-green-700 px-4 py-2 font-semibold text-white shadow-lg transition-all duration-300 hover:from-green-700 hover:to-green-800 hover:shadow-xl'
                       size='sm'
                     >
@@ -82,7 +84,7 @@ const Navbar: React.FC = () => {
                 ) : (
                   <div className='flex items-center space-x-3'>
                     <Button
-                      onClick={() => navigate('/auth?mode=signup')}
+                      onClick={() => router.push('/auth?mode=signup')}
                       className='border-0 bg-gradient-to-r from-green-600 to-green-700 px-4 py-2 font-semibold text-white shadow-lg transition-all duration-300 hover:from-green-700 hover:to-green-800 hover:shadow-xl'
                       size='sm'
                     >
@@ -146,7 +148,7 @@ const Navbar: React.FC = () => {
                     <div className='border-b border-gray-100 pb-4'>
                       <button
                         onClick={() => {
-                          navigate('/');
+                          router.push('/');
                           closeMobileMenu();
                         }}
                         className='flex w-full items-center justify-between text-lg font-medium text-gray-900'
@@ -160,7 +162,7 @@ const Navbar: React.FC = () => {
                     <div className='border-b border-gray-100 pb-4'>
                       <button
                         onClick={() => {
-                          navigate('/about');
+                          router.push('/about');
                           closeMobileMenu();
                         }}
                         className='flex w-full items-center justify-between text-lg font-medium text-gray-900'
@@ -174,7 +176,7 @@ const Navbar: React.FC = () => {
                     <div className='border-b border-gray-100 pb-4'>
                       <button
                         onClick={() => {
-                          navigate('/api');
+                          router.push('/api');
                           closeMobileMenu();
                         }}
                         className='flex w-full items-center justify-between text-lg font-medium text-gray-900'
@@ -195,7 +197,7 @@ const Navbar: React.FC = () => {
                       </span>
                       <Button
                         onClick={() => {
-                          navigate('/citizen');
+                          router.push('/citizen');
                           closeMobileMenu();
                         }}
                         className='w-full rounded-xl bg-green-600 py-6 text-lg font-bold text-white shadow-lg hover:bg-green-700'
@@ -206,7 +208,7 @@ const Navbar: React.FC = () => {
                   ) : (
                     <Button
                       onClick={() => {
-                        navigate('/auth?mode=signup');
+                        router.push('/auth?mode=signup');
                         closeMobileMenu();
                       }}
                       className='w-full rounded-xl bg-green-600 py-6 text-lg font-bold text-white shadow-lg hover:bg-green-700'

@@ -1,27 +1,29 @@
+'use client';
+
 import { Camera, AlertTriangle, CheckCircle, WifiOff } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOnlineStatus } from '@/hooks/use-online-status';
 import FadeInWhenVisible from '@/components/shared/FadeInWhenVisible';
 import ReportNowBackground from '@/components/backgrounds/ReportNowBackground';
 
 const FeaturesSection = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { user } = useAuth();
   const { isOnline } = useOnlineStatus();
 
   const handleReportNow = () => {
     if (user) {
-      navigate('/report-now');
+      router.push('/report-now');
     } else {
-      navigate('/auth');
+      router.push('/auth');
     }
   };
 
   const handleOfflineReport = () => {
-    navigate('/offline-report');
+    router.push('/offline-report');
   };
 
   return (

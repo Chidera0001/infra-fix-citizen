@@ -71,7 +71,9 @@ export const Dashboard = ({
         onShowMap={onShowMap}
         onMapClick={coordinates => {
           // Navigate to report now with pre-filled location
-          window.location.href = `/report-now?lat=${coordinates.lat}&lng=${coordinates.lng}`;
+          if (typeof window !== 'undefined') {
+            window.location.href = `/report-now?lat=${coordinates.lat}&lng=${coordinates.lng}`;
+          }
         }}
       />
 

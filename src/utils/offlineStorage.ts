@@ -1,5 +1,13 @@
 import type { PendingReport } from '@/types/offline';
-import { dexieDb, filesToBlobs, blobsToFiles } from './dexieDb';
+import { filesToBlobs, blobsToFiles } from './fileHelpers';
+
+/**
+ * Lazy getter for dexieDb to avoid SSR issues
+ */
+async function getDexieDb() {
+  const { getDb } = await import('./dexieDb');
+  return getDb();
+}
 
 /**
  * OfflineStorage using Dexie.js for offline-first capabilities
@@ -23,12 +31,14 @@ class OfflineStorage {
     };
 
     // Dexie auto-increments the ID
-    const id = await dexieDb.reports.add(pendingReport);
+    const db = await getDexieDb();
+    const id = await db.reports.add(pendingReport);
     return id;
   }
 
   async getPendingReports(): Promise<PendingReport[]> {
-    const reports = await dexieDb.reports.toArray();
+    const db = await getDexieDb();
+    const reports = await db.reports.toArray();
     
     // Convert Blob[] back to File[] for compatibility
     return reports.map(report => ({
@@ -39,7 +49,8 @@ class OfflineStorage {
   }
 
   async getPendingReport(id: number | string): Promise<PendingReport | null> {
-    const report = await dexieDb.reports.get(Number(id));
+    const db = await getDexieDb();
+    const report = await db.reports.get(Number(id));
     if (!report) return null;
 
     return {
@@ -54,7 +65,8 @@ class OfflineStorage {
     status: PendingReport['syncStatus'],
     error?: string
   ): Promise<void> {
-    const report = await dexieDb.reports.get(Number(id));
+    const db = await getDexieDb();
+    const report = await db.reports.get(Number(id));
     if (!report) {
       throw new Error('Report not found');
     }
@@ -72,11 +84,12 @@ class OfflineStorage {
       updates.syncAttempts = (report.syncAttempts || 0) + 1;
     }
 
-    await dexieDb.reports.update(Number(id), updates);
+    await db.reports.update(Number(id), updates);
   }
 
   async updatePendingReport(id: number | string, updates: Partial<PendingReport>): Promise<void> {
-    const report = await dexieDb.reports.get(Number(id));
+    const db = await getDexieDb();
+    const report = await db.reports.get(Number(id));
     if (!report) {
       throw new Error('Report not found');
     }
@@ -89,15 +102,17 @@ class OfflineStorage {
       updates.photoNames = photoNames;
     }
 
-    await dexieDb.reports.update(Number(id), updates);
+    await db.reports.update(Number(id), updates);
   }
 
   async deletePendingReport(id: number | string): Promise<void> {
-    await dexieDb.reports.delete(Number(id));
+    const db = await getDexieDb();
+    await db.reports.delete(Number(id));
   }
 
   async getPendingCount(): Promise<number> {
-    const count = await dexieDb.reports
+    const db = await getDexieDb();
+    const count = await db.reports
       .where('syncStatus')
       .anyOf(['pending', 'failed', 'syncing'])
       .count();
@@ -105,16 +120,19 @@ class OfflineStorage {
   }
 
   async clearSyncedReports(): Promise<void> {
-    await dexieDb.reports.where('syncStatus').equals('synced').delete();
+    const db = await getDexieDb();
+    await db.reports.where('syncStatus').equals('synced').delete();
   }
 
   async clearAllPendingReports(): Promise<void> {
-    await dexieDb.reports.clear();
+    const db = await getDexieDb();
+    await db.reports.clear();
   }
 
   // Additional Dexie-specific methods
   async getPendingReportsByStatus(status: PendingReport['syncStatus']): Promise<PendingReport[]> {
-    const reports = await dexieDb.reports.where('syncStatus').equals(status).toArray();
+    const db = await getDexieDb();
+    const reports = await db.reports.where('syncStatus').equals(status).toArray();
     return reports.map(report => ({
       ...report,
       id: report.id as number,
@@ -123,7 +141,8 @@ class OfflineStorage {
   }
 
   async getPendingReportsRaw(): Promise<Omit<PendingReport, 'photos'> & { photos: Blob[] }[]> {
-    return dexieDb.reports.toArray();
+    const db = await getDexieDb();
+    return db.reports.toArray();
   }
 }
 

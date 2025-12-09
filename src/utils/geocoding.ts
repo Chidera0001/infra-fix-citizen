@@ -4,11 +4,11 @@
  */
 
 // Geoapify API configuration
-const GEOAPIFY_API_KEY = import.meta.env.VITE_GEOAPIFY_API_KEY || '';
+const GEOAPIFY_API_KEY = process.env.NEXT_PUBLIC_GEOAPIFY_API_KEY || '';
 const GEOAPIFY_BASE_URL = 'https://api.geoapify.com/v1/geocode/reverse';
 
 // Validate API key on module load (only in production)
-if (import.meta.env.PROD && !GEOAPIFY_API_KEY) {
+if (process.env.NODE_ENV === 'production' && !GEOAPIFY_API_KEY) {
   // API key validation - geocoding will fallback to coordinates if missing
 }
 

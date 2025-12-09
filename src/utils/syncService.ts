@@ -1,4 +1,4 @@
-import { offlineStorage } from '@/utils/offlineStorage';
+import { offlineStorage } from '@/utils/offlineStorage.client';
 import type { PendingReport, SyncResult } from '@/types/offline';
 import {
   prepareReportForSync,

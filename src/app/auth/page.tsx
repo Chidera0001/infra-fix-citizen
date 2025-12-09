@@ -1,5 +1,7 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+'use client';
+
+import { useState, useEffect, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,9 +17,9 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Eye, EyeOff } from 'lucide-react';
 import LoadingPage from '@/components/ui/LoadingPage';
 
-const Auth = () => {
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+function AuthPageContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, loading, signUp, signIn, signInWithGoogle } = useAuth();
 
   // Set initial mode from URL parameter, default to signin
@@ -53,9 +55,9 @@ const Auth = () => {
       if (pendingNavigation) {
         setPendingNavigation(false);
       }
-      navigate('/citizen');
+      router.push('/citizen');
     }
-  }, [user, loading, navigate, pendingNavigation]);
+  }, [user, loading, router, pendingNavigation]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -363,6 +365,13 @@ const Auth = () => {
       </div>
     </div>
   );
-};
+}
 
-export default Auth;
+export default function AuthPage() {
+  return (
+    <Suspense fallback={<LoadingPage text="Loading..." />}>
+      <AuthPageContent />
+    </Suspense>
+  );
+}
+

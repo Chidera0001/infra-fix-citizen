@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOnlineStatus } from '@/hooks/use-online-status';
 import { usePendingReports } from '@/hooks/use-issues';
-import { offlineStorage } from '@/utils/offlineStorage';
+import { offlineStorage } from '@/utils/offlineStorage.client';
 
 interface OfflineUserManager {
   hasOfflineReports: boolean;

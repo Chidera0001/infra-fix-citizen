@@ -1,6 +1,6 @@
 import { ArrowLeft } from 'lucide-react';
 import { useIssues } from '@/hooks/use-issues';
-import InteractiveMap from './InteractiveMap';
+import InteractiveMap from './InteractiveMap.dynamic';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 interface IssueMapProps {

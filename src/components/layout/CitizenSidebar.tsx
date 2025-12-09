@@ -1,3 +1,5 @@
+'use client';
+
 import {
   Home,
   FileText,
@@ -12,7 +14,7 @@ import {
 import { Button } from '@/components/ui/button';
 import CitiznLogo from '@/components/CitiznLogo';
 import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 interface CitizenSidebarProps {
@@ -27,7 +29,7 @@ export const CitizenSidebar = ({
   onTabChange,
 }: CitizenSidebarProps) => {
   const { user, signOut } = useAuth();
-  const navigate = useNavigate();
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
 
   const handleSignOut = async () => {
@@ -37,11 +39,11 @@ export const CitizenSidebar = ({
       // Wait a bit more to ensure user state is cleared and caches are cleared
       await new Promise(resolve => setTimeout(resolve, 100));
       // Navigate to home page after cleanup completes
-      navigate('/');
+      router.push('/');
     } catch (error) {
       console.warn('Sign out failed:', error);
       // Navigate to home page even if sign out fails
-      navigate('/');
+      router.push('/');
     }
   };
 

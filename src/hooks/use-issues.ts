@@ -3,7 +3,7 @@ import { issuesApi, type Issue } from '@/lib/supabase-api';
 import { useToast } from './use-toast';
 import { useOnlineStatus } from './use-online-status';
 import { useAuth } from '@/contexts/AuthContext';
-import { offlineStorage } from '@/utils/offlineStorage';
+import { offlineStorage } from '@/utils/offlineStorage.client';
 import { syncService } from '@/utils/syncService';
 import type { PendingReport } from '@/types/offline';
 

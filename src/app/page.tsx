@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import {
   HeroSection,
   FeaturesSection,
@@ -6,14 +5,15 @@ import {
   LeaderboardSection,
   RecentIssuesSection,
 } from '@/components/sections';
+import MainLayout from '@/components/layouts/MainLayout';
 
-const Index = () => {
-  useEffect(() => {
-    document.title = 'Citizn';
-  }, []);
+export const metadata = {
+  title: 'Citizn',
+};
 
+export default function HomePage() {
   return (
-    <>
+    <MainLayout>
       {/* Hero Section with video background and stats */}
       <HeroSection />
 
@@ -28,8 +28,7 @@ const Index = () => {
 
       {/* Recent Issues Section */}
       <RecentIssuesSection />
-    </>
+    </MainLayout>
   );
-};
+}
 
-export default Index;

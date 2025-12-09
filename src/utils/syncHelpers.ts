@@ -1,9 +1,15 @@
-import type { PendingReport, SyncResult } from '@/utils/offlineStorage';
-import { blobsToFiles } from './dexieDb';
+import type { PendingReport } from '@/types/offline';
+
+export type SyncResult = {
+  success: boolean;
+  error?: string;
+  reportId: string;
+};
+import { blobsToFiles } from './fileHelpers';
 import { verifyOfflineReport } from './offlineReportVerification';
 import { geocodeAddressToLocation } from './geocoding';
 import { issuesApi } from '@/lib/supabase-api';
-import { offlineStorage } from './offlineStorage';
+import { offlineStorage } from './offlineStorage.client';
 
 // Map offline form categories to database enum values
 const categoryMapping: Record<string, string> = {

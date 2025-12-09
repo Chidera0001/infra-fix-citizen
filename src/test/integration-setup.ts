@@ -14,8 +14,8 @@ afterEach(() => {
 // Integration test setup
 beforeAll(() => {
   // Mock environment variables for integration tests
-  process.env.VITE_SUPABASE_URL = 'https://test-project.supabase.co';
-  process.env.VITE_SUPABASE_ANON_KEY = 'test-anon-key';
+  process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test-project.supabase.co';
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key';
 
   // Mock navigator for geolocation tests
   Object.defineProperty(navigator, 'geolocation', {

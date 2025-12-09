@@ -24,7 +24,7 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import { usePendingReports, useSyncSingleReport } from '@/hooks/use-issues';
-import { offlineStorage } from '@/utils/offlineStorage';
+import { offlineStorage } from '@/utils/offlineStorage.client';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import type { PendingReport } from '@/types/offline';

@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+'use client';
+
+import React, { useState, useEffect, Suspense } from 'react';
 import { CameraCapture, InstantReportForm } from '@/components/InstantReport';
 import { getLocationFromPhoto, type LocationData } from '@/utils/exifExtractor';
 import {
@@ -9,14 +11,14 @@ import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, MapPin, Clock, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams, useRouter } from 'next/navigation';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { CitizenSidebar } from '@/components/layout/CitizenSidebar';
 
-const ReportNow = () => {
-  const navigate = useNavigate();
+function ReportNowPageContent() {
+  const router = useRouter();
   const { toast } = useToast();
-  const [searchParams] = useSearchParams();
+  const searchParams = useSearchParams();
   const [capturedPhoto, setCapturedPhoto] = useState<File | null>(null);
   const [locationData, setLocationData] = useState<LocationData | null>(null);
   const [isExtractingLocation, setIsExtractingLocation] = useState(false);
@@ -233,13 +235,13 @@ const ReportNow = () => {
   };
 
   const handleBack = () => {
-    navigate(-1); // Go back to previous page
+    router.back(); // Go back to previous page
   };
 
   const handleTabChange = (tab: 'dashboard' | 'reports' | 'map') => {
     setActiveTab(tab);
     // Navigate to the citizen dashboard with the selected tab
-    navigate(`/citizen?tab=${tab}`);
+    router.push(`/citizen?tab=${tab}`);
   };
 
   return (
@@ -302,6 +304,13 @@ const ReportNow = () => {
       </div>
     </div>
   );
-};
+}
 
-export default ReportNow;
+export default function ReportNowPage() {
+  return (
+    <Suspense fallback={<LoadingSpinner text="Loading..." />}>
+      <ReportNowPageContent />
+    </Suspense>
+  );
+}
+

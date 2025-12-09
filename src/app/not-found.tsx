@@ -1,26 +1,24 @@
-import { useLocation, useNavigate } from "react-router-dom";
+'use client';
+
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Home, ArrowLeft, Search, AlertTriangle } from "lucide-react";
 
-const NotFound = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
+export default function NotFound() {
+  const pathname = usePathname();
+  const router = useRouter();
 
   useEffect(() => {
     // 404 Error: User attempted to access non-existent route
-  }, [location.pathname]);
+  }, [pathname]);
 
   const handleGoBack = () => {
-    if (window.history.length > 1) {
-      navigate(-1);
-    } else {
-      navigate('/');
-    }
+    router.back();
   };
 
   const handleGoHome = () => {
-    navigate('/');
+    router.push('/');
   };
 
   return (
@@ -53,7 +51,7 @@ const NotFound = () => {
               Oops! The page you're looking for doesn't exist.
             </p>
             <p className="text-sm text-gray-500">
-              The page <code className="bg-gray-100 px-2 py-1 rounded text-xs">{location.pathname}</code> could not be found.
+              The page <code className="bg-gray-100 px-2 py-1 rounded text-xs">{pathname}</code> could not be found.
             </p>
           </div>
 
@@ -84,14 +82,14 @@ const NotFound = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-2 justify-center text-sm">
               <button
-                onClick={() => navigate('/')}
+                onClick={() => router.push('/')}
                 className="text-green-600 hover:text-green-700 underline"
               >
                 Browse our homepage
               </button>
               <span className="hidden sm:inline text-gray-300">•</span>
               <button
-                onClick={() => navigate('/auth')}
+                onClick={() => router.push('/auth')}
                 className="text-green-600 hover:text-green-700 underline"
               >
                 Sign in to your account
@@ -102,6 +100,5 @@ const NotFound = () => {
       </div>
     </div>
   );
-};
+}
 
-export default NotFound;

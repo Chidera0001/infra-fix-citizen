@@ -1,6 +1,8 @@
+'use client';
+
 import { ArrowLeft, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 
 interface OfflineHeaderProps {
   title?: string;
@@ -8,14 +10,14 @@ interface OfflineHeaderProps {
 }
 
 export function OfflineHeader({ title, showOfflineIndicator = true }: OfflineHeaderProps) {
-  const navigate = useNavigate();
+  const router = useRouter();
 
   return (
     <header className="bg-white/80 backdrop-blur-md shadow-sm border-b border-gray-200/50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center justify-between relative">
           {/* Back Button - Left */}
-          <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="flex-shrink-0">
+          <Button variant="ghost" size="sm" onClick={() => router.push('/')} className="flex-shrink-0">
             <ArrowLeft className="h-4 w-4 sm:mr-2" />
             <span className="hidden sm:inline">Back to Home</span>
           </Button>

@@ -1,5 +1,7 @@
+'use client';
+
 import { ReactNode } from 'react';
-import { useLocation } from 'react-router-dom';
+import { usePathname } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import { FooterSection } from '@/components/sections';
 
@@ -8,8 +10,8 @@ interface MainLayoutProps {
 }
 
 const MainLayout = ({ children }: MainLayoutProps) => {
-  const location = useLocation();
-  const isHomePage = location.pathname === '/';
+  const pathname = usePathname();
+  const isHomePage = pathname === '/';
 
   return (
     <div className='min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-indigo-50'>

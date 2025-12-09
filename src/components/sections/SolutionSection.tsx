@@ -1,11 +1,13 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import FadeInWhenVisible from '@/components/shared/FadeInWhenVisible';
 
 const SolutionSection: React.FC = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [fade, setFade] = useState(true);
 
@@ -47,7 +49,7 @@ const SolutionSection: React.FC = () => {
   }, [cardContents.length]);
 
   const handleExplorePlatform = () => {
-    navigate('/auth');
+    router.push('/auth');
   };
 
   const currentContent = cardContents[currentIndex];

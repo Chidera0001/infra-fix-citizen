@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { ReportGridCard } from '@/components/citizen/MyReports/ReportGridCard';

@@ -1,3 +1,5 @@
+'use client';
+
 import FadeInWhenVisible from '@/components/shared/FadeInWhenVisible';
 import CountUp from '@/components/ui/CountUp';
 import { useStats } from '@/hooks/use-stats';

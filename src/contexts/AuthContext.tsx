@@ -9,7 +9,7 @@ import { User, Session, AuthError, AuthApiError } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { clearProfileCache } from '@/lib/supabase-api';
 import { handleAuthError, logAuthError } from '@/utils/authErrorHandler';
-import { offlineStorage } from '@/utils/offlineStorage';
+import { offlineStorage } from '@/utils/offlineStorage.client';
 
 interface AuthContextType {
   user: User | null;

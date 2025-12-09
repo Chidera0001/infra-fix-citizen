@@ -17,7 +17,7 @@ import {
 	X,
 	Check
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Issue } from "@/lib/supabase-api";
 
 interface ShareReportModalProps {
@@ -62,9 +62,15 @@ const socialPlatforms = [
 export const ShareReportModal = ({ issue, isOpen, onClose }: ShareReportModalProps) => {
 	const [copied, setCopied] = useState(false);
 	const [customMessage, setCustomMessage] = useState("");
+	const [baseUrl, setBaseUrl] = useState("");
 
-	const baseUrl = window.location.origin;
-	const issueUrl = `${baseUrl}/issue/${issue?.id}`;
+	useEffect(() => {
+		if (typeof window !== 'undefined') {
+			setBaseUrl(window.location.origin);
+		}
+	}, []);
+
+	const issueUrl = baseUrl ? `${baseUrl}/issue/${issue?.id}` : '';
 	const defaultMessage = `Check out this infrastructure issue report: ${issue?.title}`;
 	const shareMessage = customMessage || defaultMessage;
 

@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { issuesApi } from '@/lib/supabase-api';
 import { useToast } from './use-toast';
-import { offlineStorage } from '@/utils/offlineStorage';
+import { offlineStorage } from '@/utils/offlineStorage.client';
 import { syncService } from '@/utils/syncService';
 import { registerBackgroundSync } from '@/utils/serviceWorkerRegistration';
 

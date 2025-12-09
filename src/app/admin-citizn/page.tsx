@@ -1,5 +1,9 @@
+'use client';
+
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 import IssueMap from "@/components/maps/IssueMap";
 import { useToast } from "@/hooks/use-toast";
 import { useCurrentProfile } from "@/hooks/use-profile";
@@ -13,10 +17,10 @@ import {
 } from "@/components/admin";
 import { AdminCommunityDashboard } from "@/components/admin/community/AdminCommunityDashboard";
 
-const AdminDashboard = () => {
+export default function AdminDashboardPage() {
 	const [showMap, setShowMap] = useState(false);
 	const [activeTab, setActiveTab] = useState<"dashboard" | "issues" | "map" | "users" | "analytics" | "community">("dashboard");
-	const navigate = useNavigate();
+	const router = useRouter();
 	const { toast } = useToast();
 	const { signOut } = useAuth();
 
@@ -82,6 +86,5 @@ return (
 			</div>
 		</div>
 	);
-};
+}
 
-export default AdminDashboard;

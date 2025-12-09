@@ -1,3 +1,5 @@
+'use client';
+
 import { 
 	LayoutDashboard, 
 	FileText, 
@@ -10,9 +12,10 @@ import {
 	Menu,
 	X
 } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import CitiznLogo from "@/components/CitiznLogo";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
@@ -24,7 +27,7 @@ interface AdminSidebarProps {
 }
 
 export const AdminSidebar = ({ activeTab, onTabChange, profile }: AdminSidebarProps) => {
-	const navigate = useNavigate();
+	const router = useRouter();
 	const { toast } = useToast();
 	const { signOut } = useAuth();
 	const [isOpen, setIsOpen] = useState(false);
@@ -39,7 +42,7 @@ export const AdminSidebar = ({ activeTab, onTabChange, profile }: AdminSidebarPr
 				title: "Logged Out",
 				description: "You have been successfully logged out",
 			});
-			navigate("/");
+			router.push("/");
 		} catch (error) {
 			console.warn('Sign out failed:', error);
 			// Still show toast and navigate even if sign out fails
@@ -47,7 +50,7 @@ export const AdminSidebar = ({ activeTab, onTabChange, profile }: AdminSidebarPr
 				title: "Logged Out",
 				description: "You have been logged out",
 			});
-			navigate("/");
+			router.push("/");
 		}
 	};
 

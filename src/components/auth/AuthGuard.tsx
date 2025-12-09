@@ -1,5 +1,7 @@
-import { Navigate } from 'react-router-dom';
-import { useContext } from 'react';
+'use client';
+
+import { useRouter } from 'next/navigation';
+import { useContext, useEffect } from 'react';
 import { AuthContext } from '@/contexts/AuthContext';
 import LoadingPage from '@/components/ui/LoadingPage';
 
@@ -14,6 +16,7 @@ const AuthGuard = ({
   requireAuth = true,
   requiredRole,
 }: AuthGuardProps) => {
+  const router = useRouter();
   // Use useContext directly to handle undefined context gracefully during HMR
   const authContext = useContext(AuthContext);
 
@@ -29,6 +32,14 @@ const AuthGuard = ({
 
   const { user, loading } = authContext;
 
+  useEffect(() => {
+    if (!loading) {
+      if (requireAuth && !user) {
+        router.push('/auth');
+      }
+    }
+  }, [loading, user, requireAuth, router]);
+
   if (loading) {
     return (
       <LoadingPage
@@ -39,7 +50,7 @@ const AuthGuard = ({
   }
 
   if (requireAuth && !user) {
-    return <Navigate to='/auth' replace />;
+    return null; // Will redirect via useEffect
   }
 
   // For citizen route, allow any authenticated user (since all users are citizens by default)

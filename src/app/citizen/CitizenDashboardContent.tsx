@@ -1,5 +1,7 @@
+'use client';
+
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'next/navigation';
 import ReportForm from '@/components/forms/ReportForm';
 import IssueMap from '@/components/maps/IssueMap';
 import { useIssues, useIssueStatistics } from '@/hooks/use-issues';
@@ -10,10 +12,11 @@ import { CitizenSidebar } from '@/components/layout/CitizenSidebar';
 import { Dashboard, MyReports, Analytics } from '@/components/citizen';
 import { CommunityPage } from '@/components/community/CommunityPage';
 import { NicknamePrompt } from '@/components/citizen/NicknamePrompt';
-// import { OfflineDebugger } from "@/components/debug/OfflineDebugger";
+import { useRouter } from 'next/navigation';
 
-const CitizenDashboard = () => {
-  const [searchParams] = useSearchParams();
+export default function CitizenDashboardPageContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<'dashboard' | 'reports' | 'map' | 'analytics' | 'community'>(
     'dashboard'
   );
@@ -95,7 +98,7 @@ const CitizenDashboard = () => {
             isAdmin={false}
             onLocationSelect={coordinates => {
               // Navigate to report now with pre-filled location
-              window.location.href = `/report-now?lat=${coordinates.lat}&lng=${coordinates.lng}`;
+              router.push(`/report-now?lat=${coordinates.lat}&lng=${coordinates.lng}`);
             }}
           />
         </div>
@@ -110,7 +113,7 @@ const CitizenDashboard = () => {
         <MyReports
           reports={myReports}
           isLoading={isLoading}
-          onReportIssue={() => (window.location.href = '/report-now')}
+          onReportIssue={() => router.push('/report-now')}
         />
       );
     }
@@ -137,7 +140,7 @@ const CitizenDashboard = () => {
         statistics={statistics}
         isLoading={isLoading}
         userId={profile?.id}
-        onReportIssue={() => (window.location.href = '/report-now')}
+        onReportIssue={() => router.push('/report-now')}
         onExploreMap={() => setShowMap(true)}
         onViewAnalytics={() => setActiveTab('analytics')}
         onShowMap={() => setShowMap(true)}
@@ -160,6 +163,5 @@ const CitizenDashboard = () => {
       {/* <OfflineDebugger /> */}
     </div>
   );
-};
+}
 
-export default CitizenDashboard;

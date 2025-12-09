@@ -15,8 +15,8 @@ afterEach(() => {
 beforeAll(() => {
   // Set up production-like environment variables
   process.env.NODE_ENV = 'production';
-  process.env.VITE_SUPABASE_URL = 'https://your-production-project.supabase.co';
-  process.env.VITE_SUPABASE_ANON_KEY = 'your-production-anon-key';
+  process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://your-production-project.supabase.co';
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'your-production-anon-key';
 
   // Mock production APIs and services
   Object.defineProperty(navigator, 'geolocation', {

@@ -1,11 +1,13 @@
+'use client';
+
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import LoadingPage from '@/components/ui/LoadingPage';
 import { supabase } from '@/integrations/supabase/client';
 
-const EmailConfirm = () => {
-  const navigate = useNavigate();
+export default function EmailConfirmPage() {
+  const router = useRouter();
   const { user, loading } = useAuth();
   const [status, setStatus] = useState<'verifying' | 'success' | 'error'>('verifying');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -34,7 +36,7 @@ const EmailConfirm = () => {
           if (data.session?.user) {
             setStatus('success');
             setTimeout(() => {
-              navigate('/citizen', { replace: true });
+              router.push('/citizen');
             }, 1500);
             return;
           }
@@ -57,7 +59,7 @@ const EmailConfirm = () => {
             setStatus('success');
             // Redirect to dashboard after a brief success message
             setTimeout(() => {
-              navigate('/citizen', { replace: true });
+              router.push('/citizen');
             }, 1500);
           } else {
             setStatus('error');
@@ -68,7 +70,7 @@ const EmailConfirm = () => {
           if (user) {
             setStatus('success');
             setTimeout(() => {
-              navigate('/citizen', { replace: true });
+              router.push('/citizen');
             }, 1500);
           } else {
             setStatus('error');
@@ -86,7 +88,7 @@ const EmailConfirm = () => {
     if (!loading) {
       handleEmailConfirmation();
     }
-  }, [navigate, user, loading]);
+  }, [router, user, loading]);
 
   if (loading || status === 'verifying') {
     return (
@@ -147,7 +149,7 @@ const EmailConfirm = () => {
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Verification Failed</h1>
           <p className="text-gray-600 text-sm mb-6">{errorMessage}</p>
           <button
-            onClick={() => navigate('/auth')}
+            onClick={() => router.push('/auth')}
             className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
           >
             Go to Sign In
@@ -156,7 +158,5 @@ const EmailConfirm = () => {
       </div>
     </div>
   );
-};
-
-export default EmailConfirm;
+}
 

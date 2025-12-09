@@ -54,8 +54,8 @@ export async function updateServiceWorkerConfig(
       data: { session },
     } = await supabase.auth.getSession();
 
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     const authToken = session?.access_token || null;
 
     if (!supabaseUrl || !supabaseKey) {

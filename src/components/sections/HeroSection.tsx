@@ -1,10 +1,12 @@
+'use client';
+
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import Navbar from '@/components/Navbar';
 import FadeInWhenVisible from '@/components/shared/FadeInWhenVisible';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import StatsSection from './StatsSection';
 
 const ISSUE_TYPES = [
@@ -24,7 +26,7 @@ const ISSUE_TYPES = [
 
 const HeroSection = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
+  const router = useRouter();
   const [issueIndex, setIssueIndex] = useState(0);
 
   useEffect(() => {
@@ -37,9 +39,9 @@ const HeroSection = () => {
 
   const handleGetStarted = () => {
     if (user) {
-      navigate('/citizen');
+      router.push('/citizen');
     } else {
-      navigate('/auth?mode=signup');
+      router.push('/auth?mode=signup');
     }
   };
 

@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,9 +14,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+
 import { MapPin, Send, RotateCcw } from 'lucide-react';
 import type { LocationData } from '@/utils/exifExtractor';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { useCreateOnlineIssue } from '@/hooks/use-separate-issues';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -38,7 +41,7 @@ export const InstantReportForm = ({
   locationSource,
   onRetake,
 }: InstantReportFormProps) => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { user, session } = useAuth();
   const { toast } = useToast();
   const createOnlineIssueMutation = useCreateOnlineIssue();
@@ -270,7 +273,7 @@ export const InstantReportForm = ({
       });
 
       // Redirect immediately on success
-      navigate('/citizen');
+      router.push('/citizen');
     } catch (error) {
       console.error('Error submitting instant report:', error);
 

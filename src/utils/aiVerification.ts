@@ -40,7 +40,7 @@ export async function verifyReport(
 
   try {
     // Get the Supabase anon key from environment
-    const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
     // Use the direct function URL provided by user
     const FUNCTION_URL =

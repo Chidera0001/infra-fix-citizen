@@ -1,5 +1,7 @@
-import { Navigate } from "react-router-dom";
-import { useContext } from "react";
+'use client';
+
+import { useRouter } from "next/navigation";
+import { useContext, useEffect } from "react";
 import { AuthContext } from "@/contexts/AuthContext";
 import { useCurrentProfile } from "@/hooks/use-profile";
 import LoadingPage from "@/components/ui/LoadingPage";
@@ -9,6 +11,7 @@ interface AdminAuthGuardProps {
 }
 
 const AdminAuthGuard = ({ children }: AdminAuthGuardProps) => {
+	const router = useRouter();
 	// Use useContext directly to handle undefined context gracefully during HMR
 	const authContext = useContext(AuthContext);
 	
@@ -20,19 +23,24 @@ const AdminAuthGuard = ({ children }: AdminAuthGuardProps) => {
 	const { user, loading } = authContext;
 	const { data: profile, isLoading: profileLoading } = useCurrentProfile();
 
+	useEffect(() => {
+		if (!loading && !profileLoading) {
+			if (!user) {
+				router.push('/admin-login');
+			} else if (profile?.role !== 'admin') {
+				router.push('/');
+			}
+		}
+	}, [loading, profileLoading, user, profile, router]);
+
 	// Show loading while checking authentication
 	if (loading || profileLoading) {
 		return <LoadingPage text="Verifying Admin Access..." subtitle="Checking your administrative privileges" />;
 	}
 
-	// Redirect to admin login if not authenticated
-	if (!user) {
-		return <Navigate to="/admin-login" replace />;
-	}
-
-	// Check if user has admin role
-	if (profile?.role !== 'admin') {
-		return <Navigate to="/" replace />;
+	// Will redirect via useEffect if not authenticated or not admin
+	if (!user || profile?.role !== 'admin') {
+		return null;
 	}
 
 	return <>{children}</>;

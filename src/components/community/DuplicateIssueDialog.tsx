@@ -1,5 +1,7 @@
+'use client';
+
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { ThumbsUp, MapPin, Calendar } from 'lucide-react';
 import {
   Dialog,
@@ -41,7 +43,7 @@ export function DuplicateIssueDialog({
 }: DuplicateIssueDialogProps) {
   const [isUpvoting, setIsUpvoting] = useState(false);
   const toggleUpvote = useToggleUpvote();
-  const navigate = useNavigate();
+  const router = useRouter();
   const { data: currentProfile } = useCurrentProfile();
 
   if (!duplicateIssue) return null;
@@ -60,7 +62,7 @@ export function DuplicateIssueDialog({
       // Wait a moment for confetti animation
       setTimeout(() => {
         onClose();
-        navigate('/citizen?tab=community');
+        router.push('/citizen?tab=community');
       }, 1000);
     } catch (error) {
       console.error('Error upvoting:', error);
@@ -148,7 +150,7 @@ export function DuplicateIssueDialog({
                 <Button
                   onClick={() => {
                     onClose();
-                    navigate('/citizen?tab=reports');
+                    router.push('/citizen?tab=reports');
                   }}
                   className="flex-1 bg-green-600 hover:bg-green-700 text-white"
                   size="lg"

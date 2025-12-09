@@ -1,3 +1,5 @@
+'use client';
+
 import { useEffect } from 'react';
 import ProblemsCards from '@/components/shared/ProblemsCarousel';
 import SolutionSection from '@/components/sections/SolutionSection';
@@ -5,14 +7,15 @@ import AboutUsSection from '@/components/sections/AboutUsSection';
 import ProblemStatementSection from '@/components/sections/ProblemStatementSection';
 import SDGSection from '@/components/sections/SDGSection';
 import FadeInWhenVisible from '@/components/shared/FadeInWhenVisible';
+import MainLayout from '@/components/layouts/MainLayout';
 
-const About = () => {
+export default function AboutPage() {
   useEffect(() => {
     document.title = 'About - Citizn';
   }, []);
 
   return (
-    <>
+    <MainLayout>
       {/* About Us Section */}
       <AboutUsSection />
 
@@ -35,8 +38,7 @@ const About = () => {
 
       {/* SDG Section */}
       <SDGSection />
-    </>
+    </MainLayout>
   );
-};
+}
 
-export default About;
