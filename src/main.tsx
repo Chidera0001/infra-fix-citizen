@@ -1,4 +1,5 @@
 import { createRoot } from 'react-dom/client';
+import { inject } from '@vercel/analytics';
 import App from './App.tsx';
 import './index.css';
 import {
@@ -6,6 +7,9 @@ import {
   updateServiceWorkerConfig,
 } from './utils/serviceWorkerRegistration';
 import { supabase } from './integrations/supabase/client';
+
+// Initialize Vercel Web Analytics
+inject();
 
 // Register service worker for Background Sync (offline-first capabilities)
 const shouldRegisterServiceWorker =
