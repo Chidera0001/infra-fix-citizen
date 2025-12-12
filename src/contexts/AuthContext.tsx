@@ -329,7 +329,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsOfflineMode(true);
   };
 
-  const signUp = async (email: string, password: string, fullName: string, nickname: string) => {
+  const signUp = async (
+    email: string,
+    password: string,
+    fullName: string,
+    nickname: string
+  ) => {
     if (!isOnline) {
       const error = new Error('Cannot sign up while offline') as AuthError;
       error.code = 'offline_error';
@@ -337,7 +342,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
 
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -345,10 +350,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             full_name: fullName,
             user_nickname: nickname,
           },
-          // Redirect to confirmation page after email verification
           emailRedirectTo: `${window.location.origin}/auth/confirm`,
         },
       });
+
+      // Check if user already exists (Supabase returns success but no email sent)
+      if (!error && !data.user) {
+        // User already exists - offer to resend verification
+        return {
+          error: new Error(
+            'An account with this email already exists. Please sign in or request a new verification email.'
+          ) as AuthError,
+        };
+      }
 
       // Handle errors using the error handler
       if (error) {
@@ -514,6 +528,37 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
 
     return { error: null };
+  };
+
+  const resendVerificationEmail = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/confirm`,
+        },
+      });
+
+      if (error) {
+        logAuthError(error, 'resendVerification');
+        const errorInfo = handleAuthError(error, 'resendVerification');
+        const friendlyError = new Error(errorInfo.userMessage) as AuthError;
+        friendlyError.code = error.code || 'resend_error';
+        return { error: friendlyError };
+      }
+
+      return { error: null };
+    } catch (error) {
+      logAuthError(error as AuthError, 'resendVerification', 'catch block');
+      const errorInfo = handleAuthError(
+        error as AuthError,
+        'resendVerification'
+      );
+      const friendlyError = new Error(errorInfo.userMessage) as AuthError;
+      friendlyError.code = 'network_error';
+      return { error: friendlyError };
+    }
   };
 
   const value = {
