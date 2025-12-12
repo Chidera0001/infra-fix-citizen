@@ -244,19 +244,33 @@ CREATE TRIGGER update_upvote_count_trigger
 CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-    INSERT INTO profiles (clerk_user_id, email, full_name)
+    INSERT INTO profiles (user_id, email, full_name, user_nickname, role, is_active)
     VALUES (
-        NEW.raw_user_meta_data->>'clerk_user_id',
+        NEW.id,  -- Use auth.users.id as user_id
         NEW.email,
-        COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name')
+        COALESCE(
+            NEW.raw_user_meta_data->>'full_name',
+            NEW.raw_user_meta_data->>'name',
+            'User'
+        ),
+        NEW.raw_user_meta_data->>'user_nickname',
+        'citizen',
+        true
     )
-    ON CONFLICT (clerk_user_id) 
+    ON CONFLICT (user_id) 
     DO UPDATE SET
         email = EXCLUDED.email,
         full_name = COALESCE(EXCLUDED.full_name, profiles.full_name),
+        user_nickname = COALESCE(EXCLUDED.user_nickname, profiles.user_nickname),
         updated_at = NOW();
     
     RETURN NEW;
+EXCEPTION
+    WHEN others THEN
+        -- Log error but don't fail the transaction
+        -- This prevents signup from failing if profile creation has issues
+        RAISE WARNING 'Error creating profile for user %: %', NEW.id, SQLERRM;
+        RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
@@ -266,7 +280,7 @@ RETURNS UUID AS $$
 BEGIN
     RETURN (
         SELECT id FROM profiles 
-        WHERE clerk_user_id = auth.jwt() ->> 'sub'
+        WHERE user_id = auth.uid()
         LIMIT 1
     );
 END;
@@ -278,7 +292,7 @@ RETURNS BOOLEAN AS $$
 BEGIN
     RETURN EXISTS (
         SELECT 1 FROM profiles 
-        WHERE clerk_user_id = auth.jwt() ->> 'sub' 
+        WHERE user_id = auth.uid() 
         AND role IN ('admin', 'moderator')
     );
 END;
@@ -735,10 +749,10 @@ CREATE POLICY "Users can view all profiles" ON profiles
     FOR SELECT USING (true);
 
 CREATE POLICY "Users can update own profile" ON profiles
-    FOR UPDATE USING (clerk_user_id = auth.jwt() ->> 'sub');
+    FOR UPDATE USING (user_id = auth.uid());
 
 CREATE POLICY "Users can insert own profile" ON profiles
-    FOR INSERT WITH CHECK (clerk_user_id = auth.jwt() ->> 'sub');
+    FOR INSERT WITH CHECK (user_id = auth.uid());
 
 CREATE POLICY "Admins can update any profile" ON profiles
     FOR UPDATE USING (is_admin());
