@@ -12,10 +12,10 @@ CREATE POLICY "Users can view all profiles" ON profiles
     FOR SELECT USING (true);
 
 CREATE POLICY "Users can update own profile" ON profiles
-    FOR UPDATE USING (clerk_user_id = auth.jwt() ->> 'sub');
+    FOR UPDATE USING (user_id = auth.uid());
 
 CREATE POLICY "Users can insert own profile" ON profiles
-    FOR INSERT WITH CHECK (clerk_user_id = auth.jwt() ->> 'sub');
+    FOR INSERT WITH CHECK (user_id = auth.uid());
 
 -- Categories policies (read-only for all users)
 CREATE POLICY "Anyone can view categories" ON categories
@@ -27,16 +27,16 @@ CREATE POLICY "Anyone can view issues" ON issues
 
 CREATE POLICY "Authenticated users can create issues" ON issues
     FOR INSERT WITH CHECK (
-        auth.jwt() ->> 'sub' IS NOT NULL AND
+        auth.uid() IS NOT NULL AND
         reporter_id IN (
-            SELECT id FROM profiles WHERE clerk_user_id = auth.jwt() ->> 'sub'
+            SELECT id FROM profiles WHERE user_id = auth.uid()
         )
     );
 
 CREATE POLICY "Users can update own issues" ON issues
     FOR UPDATE USING (
         reporter_id IN (
-            SELECT id FROM profiles WHERE clerk_user_id = auth.jwt() ->> 'sub'
+            SELECT id FROM profiles WHERE user_id = auth.uid()
         )
     );
 
@@ -44,7 +44,7 @@ CREATE POLICY "Admins can update any issue" ON issues
     FOR UPDATE USING (
         EXISTS (
             SELECT 1 FROM profiles 
-            WHERE clerk_user_id = auth.jwt() ->> 'sub' 
+            WHERE user_id = auth.uid() 
             AND role IN ('admin', 'moderator')
         )
     );
@@ -55,9 +55,9 @@ CREATE POLICY "Anyone can view issue updates" ON issue_updates
 
 CREATE POLICY "Authenticated users can create issue updates" ON issue_updates
     FOR INSERT WITH CHECK (
-        auth.jwt() ->> 'sub' IS NOT NULL AND
+        auth.uid() IS NOT NULL AND
         user_id IN (
-            SELECT id FROM profiles WHERE clerk_user_id = auth.jwt() ->> 'sub'
+            SELECT id FROM profiles WHERE user_id = auth.uid()
         )
     );
 
@@ -68,7 +68,7 @@ CREATE POLICY "Anyone can view issue upvotes" ON issue_upvotes
 CREATE POLICY "Authenticated users can manage own upvotes" ON issue_upvotes
     FOR ALL USING (
         user_id IN (
-            SELECT id FROM profiles WHERE clerk_user_id = auth.jwt() ->> 'sub'
+            SELECT id FROM profiles WHERE user_id = auth.uid()
         )
     );
 
@@ -78,23 +78,23 @@ CREATE POLICY "Anyone can view issue comments" ON issue_comments
 
 CREATE POLICY "Authenticated users can create comments" ON issue_comments
     FOR INSERT WITH CHECK (
-        auth.jwt() ->> 'sub' IS NOT NULL AND
+        auth.uid() IS NOT NULL AND
         user_id IN (
-            SELECT id FROM profiles WHERE clerk_user_id = auth.jwt() ->> 'sub'
+            SELECT id FROM profiles WHERE user_id = auth.uid()
         )
     );
 
 CREATE POLICY "Users can update own comments" ON issue_comments
     FOR UPDATE USING (
         user_id IN (
-            SELECT id FROM profiles WHERE clerk_user_id = auth.jwt() ->> 'sub'
+            SELECT id FROM profiles WHERE user_id = auth.uid()
         )
     );
 
 CREATE POLICY "Users can delete own comments" ON issue_comments
     FOR DELETE USING (
         user_id IN (
-            SELECT id FROM profiles WHERE clerk_user_id = auth.jwt() ->> 'sub'
+            SELECT id FROM profiles WHERE user_id = auth.uid()
         )
     );
 
@@ -102,14 +102,14 @@ CREATE POLICY "Users can delete own comments" ON issue_comments
 CREATE POLICY "Users can view own notifications" ON notifications
     FOR SELECT USING (
         user_id IN (
-            SELECT id FROM profiles WHERE clerk_user_id = auth.jwt() ->> 'sub'
+            SELECT id FROM profiles WHERE user_id = auth.uid()
         )
     );
 
 CREATE POLICY "Users can update own notifications" ON notifications
     FOR UPDATE USING (
         user_id IN (
-            SELECT id FROM profiles WHERE clerk_user_id = auth.jwt() ->> 'sub'
+            SELECT id FROM profiles WHERE user_id = auth.uid()
         )
     );
 
@@ -119,7 +119,7 @@ RETURNS UUID AS $$
 BEGIN
     RETURN (
         SELECT id FROM profiles 
-        WHERE clerk_user_id = auth.jwt() ->> 'sub'
+        WHERE user_id = auth.uid()
         LIMIT 1
     );
 END;
@@ -131,7 +131,7 @@ RETURNS BOOLEAN AS $$
 BEGIN
     RETURN EXISTS (
         SELECT 1 FROM profiles 
-        WHERE clerk_user_id = auth.jwt() ->> 'sub' 
+        WHERE user_id = auth.uid() 
         AND role IN ('admin', 'moderator')
     );
 END;
