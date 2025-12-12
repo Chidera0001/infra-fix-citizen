@@ -355,6 +355,16 @@ const Auth = () => {
                     </svg>
                     Continue with Google
                   </Button>
+
+                  <Button
+                    type='button'
+                    variant='outline'
+                    onClick={() => navigate('/report-now?mode=anonymous')}
+                    disabled={isSubmitting}
+                    className='w-full rounded-xl border-green-300 bg-green-50 text-green-700 hover:bg-green-100'
+                  >
+                    Report Anonymously
+                  </Button>
                 </CardContent>
               </Card>
             </div>

@@ -21,8 +21,10 @@ import ReportNow from './pages/ReportNow';
 import OfflineReportIssue from './pages/OfflineReportIssue';
 import About from './pages/About';
 import Api from './pages/Api';
+import ThankYou from './pages/ThankYou';
 import MainLayout from './components/layouts/MainLayout';
 import { useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -58,6 +60,24 @@ const QueryCacheClearer = () => {
   }, []);
 
   return null;
+};
+
+// Wrapper component to conditionally apply AuthGuard based on URL params
+const ReportNowRoute = () => {
+  const [searchParams] = useSearchParams();
+  const isAnonymous = searchParams.get('mode') === 'anonymous';
+
+  if (isAnonymous) {
+    // Allow anonymous access
+    return <ReportNow />;
+  }
+
+  // Require authentication for normal access
+  return (
+    <AuthGuard requiredRole='citizen'>
+      <ReportNow />
+    </AuthGuard>
+  );
 };
 
 const App = () => (
@@ -108,11 +128,11 @@ const App = () => (
             />
             <Route
               path='/report-now'
-              element={
-                <AuthGuard requiredRole='citizen'>
-                  <ReportNow />
-                </AuthGuard>
-              }
+              element={<ReportNowRoute />}
+            />
+            <Route
+              path='/thank-you'
+              element={<ThankYou />}
             />
             <Route
               path='/admin-citizn'

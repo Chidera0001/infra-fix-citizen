@@ -103,19 +103,25 @@ export const categoriesApi = {
 
 // Issues API
 export const issuesApi = {
-  async createIssue(issueData: IssueInsert, userId?: string, photos?: File[]) {
-    // Ensure we have a valid session before making API calls
-    await ensureSession();
+  async createIssue(issueData: IssueInsert, userId?: string, photos?: File[], isAnonymous?: boolean) {
+    let profile: Profile | null = null;
 
-    // First, get or create the user's profile
-    const profile = await getCurrentUserProfile(userId);
-    if (!profile) {
-      throw new Error(
-        'User profile not found. Please ensure you are logged in.'
-      );
+    // For anonymous reports, skip authentication checks
+    if (!isAnonymous) {
+      // Ensure we have a valid session before making API calls
+      await ensureSession();
+
+      // First, get or create the user's profile
+      profile = await getCurrentUserProfile(userId);
+      if (!profile) {
+        throw new Error(
+          'User profile not found. Please ensure you are logged in.'
+        );
+      }
     }
 
     // Upload images if provided
+    // Note: Image uploads may require storage policies to allow anonymous uploads
     let imageUrls: string[] = [];
     if (photos && photos.length > 0) {
       try {
@@ -132,7 +138,7 @@ export const issuesApi = {
     // Add the reporter_id and image_urls to the issue data
     const issueDataWithReporter = {
       ...issueData,
-      reporter_id: profile.id,
+      reporter_id: isAnonymous ? null : profile?.id || null,
       image_urls: imageUrls.length > 0 ? imageUrls : issueData.image_urls || [],
     };
 
@@ -144,8 +150,8 @@ export const issuesApi = {
 
     if (error) throw error;
 
-    // Get the reporter profile separately
-    if (data) {
+    // Get the reporter profile separately (only if not anonymous)
+    if (data && data.reporter_id && profile) {
       const { data: reporterProfile } = await supabase
         .from('profiles')
         .select('id, full_name, email')
@@ -158,6 +164,7 @@ export const issuesApi = {
       };
     }
 
+    // For anonymous reports, return data without profile
     return data;
   },
 

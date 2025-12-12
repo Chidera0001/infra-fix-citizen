@@ -21,6 +21,7 @@ export function fileToBase64(file: File): Promise<string> {
  * @param issueCategory - Selected issue category
  * @param userDescription - User's description of the issue
  * @param accessToken - Optional access token from current session (recommended to avoid race conditions)
+ * @param isAnonymous - Optional flag to indicate anonymous request (uses anon key only)
  * @returns Promise with verification result
  */
 export async function verifyReport(
@@ -28,7 +29,8 @@ export async function verifyReport(
   mimeType: string,
   issueCategory: string,
   userDescription: string,
-  accessToken?: string
+  accessToken?: string,
+  isAnonymous?: boolean
 ): Promise<{ success: boolean; message: string }> {
   // Prepare the payload with all required data
   const verificationPayload = {
@@ -46,12 +48,14 @@ export async function verifyReport(
     const FUNCTION_URL =
       'https://vnnuxlxqbucchlaotbnv.supabase.co/functions/v1/verify-image';
 
-    // If access token was provided, use it directly (preferred method)
-    // Otherwise, try to get it from the session (fallback for backward compatibility)
+    // If explicitly marked as anonymous, skip auth token lookup
+    // Otherwise, if access token was provided, use it directly (preferred method for authenticated users)
+    // If no token provided, try to get it from the session (fallback for backward compatibility)
     let authToken = accessToken;
 
-    if (!authToken) {
+    if (!isAnonymous && !authToken) {
       // Fallback: Try to get session with a single attempt and shorter timeout
+      // Only do this if not explicitly anonymous
       try {
         const sessionPromise = supabase.auth.getSession();
         const timeoutPromise = new Promise((_, reject) =>
@@ -67,15 +71,9 @@ export async function verifyReport(
         authToken = session?.access_token;
       } catch (error) {
         console.warn('Failed to get session for verification:', error);
-        // Don't throw here - let the edge function call fail with proper error
+        // If session lookup fails and not explicitly anonymous, treat as anonymous
+        isAnonymous = true;
       }
-    }
-
-    // Verify we have an auth token
-    if (!authToken) {
-      throw new Error(
-        'Unable to verify authentication. Please ensure you are signed in and try again.'
-      );
     }
 
     // Prepare headers
@@ -88,8 +86,17 @@ export async function verifyReport(
       headers['apikey'] = SUPABASE_ANON_KEY;
     }
 
-    // Add authorization header
-    headers['Authorization'] = `Bearer ${authToken}`;
+    // Add authorization header if we have an auth token (authenticated users)
+    // For anonymous users, we only use the anon key (edge function accepts this)
+    if (authToken) {
+      headers['Authorization'] = `Bearer ${authToken}`;
+    } else if (!isAnonymous) {
+      // Only throw error if we expected to have a token but don't
+      // (This shouldn't happen in normal flow, but keeping for safety)
+      throw new Error(
+        'Unable to verify authentication. Please ensure you are signed in and try again.'
+      );
+    }
 
     // Make direct fetch call to the edge function with timeout
     const fetchPromise = fetch(FUNCTION_URL, {
