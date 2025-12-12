@@ -116,6 +116,21 @@ export function handleAuthError(
     };
   }
 
+  // Handle email not confirmed
+  if (
+    errorMessage.includes('email not confirmed') ||
+    errorMessage.includes('email_not_confirmed') ||
+    errorCode === 'email_not_confirmed'
+  ) {
+    return {
+      isRetryable: false,
+      userMessage:
+        'Please verify your email address before signing in. Check your inbox for the verification link.',
+      technicalMessage: `Email not confirmed during ${operation}: ${error.message}`,
+      shouldClearLocalState: false,
+    };
+  }
+
   // Handle offline errors
   if (errorCode === 'offline_error') {
     return {

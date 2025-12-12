@@ -15,13 +15,15 @@ export function useCreateOnlineIssue() {
       issueData,
       userId,
       photos,
+      isAnonymous,
     }: {
       issueData: any;
       userId?: string;
       photos?: File[];
+      isAnonymous?: boolean;
     }) => {
       // Always make API call - this is for online only
-      return issuesApi.createIssue(issueData, userId, photos);
+      return issuesApi.createIssue(issueData, userId, photos, isAnonymous);
     },
     onSuccess: () => {
       // Invalidate queries to refresh data

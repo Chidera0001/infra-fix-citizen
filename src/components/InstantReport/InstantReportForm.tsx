@@ -14,7 +14,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Send, RotateCcw } from 'lucide-react';
 import type { LocationData } from '@/utils/exifExtractor';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useCreateOnlineIssue } from '@/hooks/use-separate-issues';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -28,6 +28,7 @@ interface InstantReportFormProps {
   initialLocation: LocationData | null;
   locationSource?: 'photo' | 'gps' | 'map';
   onRetake: () => void;
+  mode?: 'anonymous';
 }
 
 type IssueCategoryValue = (typeof ISSUE_CATEGORIES)[number]['value'];
@@ -37,12 +38,14 @@ export const InstantReportForm = ({
   initialLocation,
   locationSource,
   onRetake,
+  mode,
 }: InstantReportFormProps) => {
   const navigate = useNavigate();
   const { user, session } = useAuth();
   const { toast } = useToast();
   const createOnlineIssueMutation = useCreateOnlineIssue();
   const checkDuplicate = useCheckDuplicate();
+  const isAnonymous = mode === 'anonymous';
 
   const [duplicateIssue, setDuplicateIssue] = useState<any>(null);
   const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
@@ -190,14 +193,34 @@ export const InstantReportForm = ({
       // Extract base64 data (remove 'data:image/jpeg;base64,' prefix)
       const base64Data = base64DataUrl.split(',')[1];
 
-      // Step 3: Verify report using AI (pass session token to avoid race conditions)
-      const verificationResult = await verifyReport(
-        base64Data,
-        mimeType,
-        formData.category,
-        formData.description.trim(),
-        session?.access_token // Pass the session token from AuthContext
-      );
+      // Step 3: Verify report using AI (works for both authenticated and anonymous users)
+      // The verifyReport function now supports anonymous requests using just the anon key
+      let verificationResult = { success: true, message: '' };
+
+      try {
+        // Pass isAnonymous flag and accessToken - verifyReport will use anon key for anonymous requests
+        verificationResult = await verifyReport(
+          base64Data,
+          mimeType,
+          formData.category,
+          formData.description.trim(),
+          isAnonymous ? undefined : session?.access_token,
+          isAnonymous // Explicitly pass anonymous flag
+        );
+      } catch (error) {
+        // If verification fails, show error and prevent submission
+        // This ensures all reports (anonymous or not) go through verification
+        console.error('AI verification failed:', error);
+        const errorMessage =
+          error instanceof Error ? error.message : 'Verification failed';
+        toast({
+          title: 'Verification Error',
+          description: errorMessage,
+          variant: 'destructive',
+        });
+        setIsSubmitting(false);
+        return;
+      }
 
       // Step 3: If verification fails, show error and return
       if (!verificationResult.success) {
@@ -265,12 +288,17 @@ export const InstantReportForm = ({
       // Pass the captured photo to be uploaded
       await createOnlineIssueMutation.mutateAsync({
         issueData,
-        userId: user?.id,
+        userId: isAnonymous ? undefined : user?.id,
         photos: [photo],
+        isAnonymous,
       });
 
-      // Redirect immediately on success
-      navigate('/citizen');
+      // Redirect based on mode
+      if (isAnonymous) {
+        navigate('/thank-you?anonymous=true');
+      } else {
+        navigate('/citizen');
+      }
     } catch (error) {
       console.error('Error submitting instant report:', error);
 

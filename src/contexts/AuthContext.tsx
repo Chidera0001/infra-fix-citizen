@@ -329,7 +329,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsOfflineMode(true);
   };
 
-  const signUp = async (email: string, password: string, fullName: string, nickname: string) => {
+  const signUp = async (
+    email: string,
+    password: string,
+    fullName: string,
+    nickname: string
+  ) => {
     if (!isOnline) {
       const error = new Error('Cannot sign up while offline') as AuthError;
       error.code = 'offline_error';
@@ -337,7 +342,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
 
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -345,12 +350,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             full_name: fullName,
             user_nickname: nickname,
           },
-          // Redirect to confirmation page after email verification
           emailRedirectTo: `${window.location.origin}/auth/confirm`,
         },
       });
 
-      // Handle errors using the error handler
+      // Handle explicit errors first
       if (error) {
         logAuthError(error, 'signUp');
         const errorInfo = handleAuthError(error, 'signUp');
@@ -359,7 +363,54 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return { error: friendlyError };
       }
 
-      return { error };
+      // Check if user already exists
+      // When email confirmation is enabled, Supabase returns user with null session
+      // for both new and existing users. We detect existing users by:
+      // 1. User was created more than 5 seconds ago (not a fresh signup)
+      // 2. OR user has confirmed email but no session (existing verified user)
+      // 3. OR user exists but metadata was NOT updated (existing user, metadata unchanged)
+      if (data.user) {
+        const userCreatedAt = new Date(data.user.created_at).getTime();
+        const now = Date.now();
+        const secondsSinceCreation = (now - userCreatedAt) / 1000;
+
+        // Check if user is already verified (existing verified user trying to sign up again)
+        const isEmailConfirmed = data.user.email_confirmed_at !== null;
+
+        // Check if metadata was actually updated (new signups will have fresh metadata)
+        // For existing users, Supabase might not update metadata on signup attempt
+        const currentMetadata = data.user.user_metadata || {};
+        const metadataWasJustSet =
+          currentMetadata.full_name === fullName &&
+          currentMetadata.user_nickname === nickname;
+
+        // If user was created more than 5 seconds ago, it's definitely existing
+        // OR if email is confirmed but no session (existing verified user)
+        // OR if user exists but metadata doesn't match what we sent (edge case)
+        const isExistingUser =
+          secondsSinceCreation > 5 || // User created more than 5 seconds ago
+          (isEmailConfirmed && !data.session) || // Verified user but no session
+          (!metadataWasJustSet && secondsSinceCreation > 2); // Metadata mismatch + not just created
+
+        if (isExistingUser) {
+          if (isEmailConfirmed) {
+            return {
+              error: new Error(
+                'An account with this email already exists. Please sign in instead.'
+              ) as AuthError,
+            };
+          } else {
+            return {
+              error: new Error(
+                'An account with this email already exists but is not verified. Please check your email for the verification link, or sign in to request a new one.'
+              ) as AuthError,
+            };
+          }
+        }
+      }
+
+      // Success - new user created
+      return { error: null };
     } catch (error) {
       logAuthError(error as AuthError, 'signUp', 'catch block');
       if (isInvalidRefreshError(error)) {
@@ -514,6 +565,37 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
 
     return { error: null };
+  };
+
+  const resendVerificationEmail = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/confirm`,
+        },
+      });
+
+      if (error) {
+        logAuthError(error, 'resendVerification');
+        const errorInfo = handleAuthError(error, 'resendVerification');
+        const friendlyError = new Error(errorInfo.userMessage) as AuthError;
+        friendlyError.code = error.code || 'resend_error';
+        return { error: friendlyError };
+      }
+
+      return { error: null };
+    } catch (error) {
+      logAuthError(error as AuthError, 'resendVerification', 'catch block');
+      const errorInfo = handleAuthError(
+        error as AuthError,
+        'resendVerification'
+      );
+      const friendlyError = new Error(errorInfo.userMessage) as AuthError;
+      friendlyError.code = 'network_error';
+      return { error: friendlyError };
+    }
   };
 
   const value = {

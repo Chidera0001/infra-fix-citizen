@@ -1,20 +1,34 @@
--- Function to create or update user profile from Clerk
+-- Function to create or update user profile from Supabase Auth
 CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-    INSERT INTO profiles (clerk_user_id, email, full_name)
+    INSERT INTO profiles (user_id, email, full_name, user_nickname, role, is_active)
     VALUES (
-        NEW.raw_user_meta_data->>'clerk_user_id',
+        NEW.id,  -- Use auth.users.id as user_id
         NEW.email,
-        COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name')
+        COALESCE(
+            NEW.raw_user_meta_data->>'full_name',
+            NEW.raw_user_meta_data->>'name',
+            'User'
+        ),
+        NEW.raw_user_meta_data->>'user_nickname',
+        'citizen',
+        true
     )
-    ON CONFLICT (clerk_user_id) 
+    ON CONFLICT (user_id) 
     DO UPDATE SET
         email = EXCLUDED.email,
         full_name = COALESCE(EXCLUDED.full_name, profiles.full_name),
+        user_nickname = COALESCE(EXCLUDED.user_nickname, profiles.user_nickname),
         updated_at = NOW();
     
     RETURN NEW;
+EXCEPTION
+    WHEN others THEN
+        -- Log error but don't fail the transaction
+        -- This prevents signup from failing if profile creation has issues
+        RAISE WARNING 'Error creating profile for user %: %', NEW.id, SQLERRM;
+        RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 

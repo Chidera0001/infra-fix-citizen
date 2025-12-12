@@ -26,6 +26,7 @@ const ReportNow = () => {
   );
   const [isGettingCurrentLocation, setIsGettingCurrentLocation] =
     useState(false);
+  const isAnonymous = searchParams.get('mode') === 'anonymous';
 
   // Handle URL parameters for map-click scenarios
   useEffect(() => {
@@ -244,7 +245,9 @@ const ReportNow = () => {
 
   return (
     <div className='flex min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-indigo-50'>
-      <CitizenSidebar activeTab='report-now' onTabChange={handleTabChange} />
+      {!isAnonymous && (
+        <CitizenSidebar activeTab='report-now' onTabChange={handleTabChange} />
+      )}
 
       {/* Main Content Area */}
       <div className='flex-1'>
@@ -287,6 +290,7 @@ const ReportNow = () => {
                 initialLocation={locationData}
                 locationSource={locationSource}
                 onRetake={handleRetake}
+                mode={isAnonymous ? 'anonymous' : undefined}
               />
             </div>
           ) : (
